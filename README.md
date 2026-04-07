@@ -77,11 +77,11 @@ Make sure you have the following installed:
 
 ## Contributions  
 Huge thanks to the main developers 🙏:
-- [Amal Daldol](https://github.com/amal-d-hub)
+- [Amal Daldoul](https://github.com/amal-d-hub)
 - [Lyna Bibi](https://github.com/bibi2505)
 - [Mohamed Aziz Amri](https://github.com/XDRAIS-le)
 - [Mohamed Cherif](https://github.com/Mohamed-jpeg)
-- [Youssef zouari](https://github.com/youssefzozo)
+- [Youssef Zouaghi](https://github.com/youssefzozo)
 - [Youssef Jebalia](https://github.com/ysf02041985)
 
 Contributions are welcome!
