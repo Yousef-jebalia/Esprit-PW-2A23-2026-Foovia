@@ -1,0 +1,448 @@
+:root {
+  --market-primary: #6bb252;
+  --market-dark: #1f2937;
+  --market-muted: #6b7280;
+  --market-soft: #f5f7f1;
+  --market-accent: #f8b84e;
+}
+
+.foovia-topbar {
+  background: #fff;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.foovia-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111827;
+  text-decoration: none;
+}
+
+.foovia-brand-mark {
+  color: var(--market-primary);
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.foovia-searchbar {
+  background: #f8f8f8;
+  border-radius: 20px;
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.foovia-searchbar select,
+.foovia-searchbar input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.foovia-searchbar button {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--market-dark);
+}
+
+.foovia-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  font-weight: 700;
+}
+
+.foovia-nav a {
+  color: #111827;
+  text-decoration: none;
+}
+
+.foovia-icons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #111827;
+  font-size: 1.2rem;
+}
+
+.foovia-icons span,
+.foovia-searchbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foovia-hero {
+  background: #f8d86b;
+  overflow: hidden;
+  position: relative;
+}
+
+.foovia-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(248, 216, 107, 0.94) 0%, rgba(248, 216, 107, 0.92) 34%, rgba(248, 216, 107, 0.18) 58%, rgba(248, 216, 107, 0) 74%),
+    url('../../front-office/images/banner-1.jpg') center right/cover no-repeat;
+}
+
+.foovia-hero-copy {
+  padding: 6rem 3rem 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.foovia-hero-copy h1 {
+  font-size: clamp(3rem, 5vw, 5.5rem);
+  line-height: 1.03;
+  color: #18202f;
+  margin-bottom: 1.5rem;
+}
+
+.foovia-hero-copy p {
+  color: #6b7280;
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.foovia-accent {
+  color: var(--market-primary);
+}
+
+.foovia-hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+.foovia-btn-primary,
+.foovia-btn-dark {
+  padding: 1rem 1.7rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+}
+
+.foovia-btn-primary {
+  background: #6bb252;
+  color: #fff;
+}
+
+.foovia-btn-dark {
+  background: #1f2937;
+  color: #fff;
+}
+
+.foovia-stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.foovia-stat strong {
+  font-size: 2rem;
+  color: #18202f;
+  display: inline-block;
+  min-width: 95px;
+}
+
+.foovia-stat span {
+  color: #111827;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  display: inline-block;
+  max-width: 120px;
+  line-height: 1.2;
+}
+
+.foovia-hero-image {
+  min-height: 720px;
+  background: transparent;
+}
+
+.foovia-feature-strip {
+  margin-top: 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.foovia-feature-card {
+  min-height: 142px;
+  padding: 1.75rem 2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  color: #fff;
+}
+
+.foovia-feature-card h3 {
+  color: #fff;
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.foovia-feature-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.7;
+}
+
+.foovia-feature-icon {
+  width: 64px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.foovia-feature-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.foovia-feature-green {
+  background: #73b94f;
+}
+
+.foovia-feature-dark {
+  background: #2f3f21;
+}
+
+.foovia-feature-orange {
+  background: #ff6b02;
+}
+
+.foovia-admin-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #fff;
+}
+
+.foovia-admin-brand:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.foovia-admin-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6bb252, #f5a524);
+  color: #fff;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.foovia-admin-name {
+  letter-spacing: 0.02em;
+}
+
+.market-hero {
+  background: linear-gradient(135deg, rgba(107, 178, 82, 0.14), rgba(248, 184, 78, 0.12)), #fff;
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.market-hero-copy {
+  padding: 3rem;
+}
+
+.market-hero-copy h1,
+.market-hero-copy h2,
+.market-title {
+  color: var(--market-dark);
+}
+
+.market-highlight {
+  color: var(--market-primary);
+}
+
+.market-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: rgba(107, 178, 82, 0.12);
+  color: var(--market-primary);
+  font-weight: 700;
+}
+
+.market-search {
+  background: #fff;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 22px;
+  padding: 1.2rem;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+.market-search .form-control,
+.market-search .form-select {
+  border-radius: 14px;
+  min-height: 48px;
+}
+
+.market-grid {
+  gap: 1.5rem 0;
+}
+
+.market-card {
+  background: #fff;
+  border-radius: 24px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.market-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.1);
+}
+
+.market-card-media {
+  height: 230px;
+  background: linear-gradient(160deg, #f8faf5, #edf7ea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.market-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.market-card-body {
+  padding: 1.5rem;
+}
+
+.market-price {
+  color: var(--market-primary);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.market-meta {
+  color: var(--market-muted);
+  font-size: 0.95rem;
+}
+
+.market-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.8rem;
+  background: var(--market-soft);
+  border-radius: 999px;
+  color: var(--market-dark);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.market-empty {
+  background: #fff;
+  border: 1px dashed rgba(107, 178, 82, 0.35);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.admin-stat-card {
+  border-radius: 20px;
+  min-height: 100%;
+}
+
+.admin-stat-card .card-block {
+  padding: 1.5rem;
+}
+
+.admin-form-card .form-control,
+.admin-form-card .form-select,
+.admin-form-card textarea {
+  border-radius: 12px;
+}
+
+.admin-alert {
+  border-radius: 14px;
+}
+
+.admin-preview {
+  min-height: 220px;
+  border-radius: 18px;
+  border: 1px dashed rgba(17, 24, 39, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.admin-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.validation-message {
+  color: #ef4444;
+  display: block;
+  font-size: 0.85rem;
+  min-height: 1.25rem;
+  margin-top: 0.35rem;
+}
+
+.admin-table-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+@media (max-width: 767.98px) {
+  .market-hero-copy {
+    padding: 2rem;
+  }
+
+  .market-card-media {
+    height: 190px;
+  }
+
+  .foovia-hero-copy {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .foovia-hero-image {
+    min-height: 300px;
+    background-position: center;
+  }
+
+  .foovia-nav {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}
