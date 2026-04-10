@@ -94,7 +94,7 @@
   inset: 0;
   background:
     linear-gradient(90deg, rgba(248, 216, 107, 0.94) 0%, rgba(248, 216, 107, 0.92) 34%, rgba(248, 216, 107, 0.18) 58%, rgba(248, 216, 107, 0) 74%),
-    url('../../front-office/images/banner-1.jpg') center right/cover no-repeat;
+    url('../imges-autre/background.jpg') center right/cover no-repeat;
 }
 
 .foovia-hero-copy {

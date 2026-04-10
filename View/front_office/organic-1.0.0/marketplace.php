@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/marketplace_repository.php';
+require_once __DIR__ . '/../../../Model/Marchandise.php';
 
 $products = marketplace_fetch_products();
 $stores = marketplace_fetch_stores();
@@ -18,7 +18,7 @@ $stores = marketplace_fetch_stores();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" type="text/css" href="../assets/css/marketplace.css">
+    <link rel="stylesheet" type="text/css" href="../../../assets/css/marketplace.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@ $stores = marketplace_fetch_stores();
         .foovia-hero::before {
             background:
                 linear-gradient(90deg, rgba(248, 216, 107, 0.94) 0%, rgba(248, 216, 107, 0.92) 34%, rgba(248, 216, 107, 0.18) 58%, rgba(248, 216, 107, 0) 74%),
-                url('../assets/imges-autre/background.jpg') center right/cover no-repeat !important;
+                url('../../../assets/imges-autre/background.jpg') center right/cover no-repeat !important;
         }
     </style>
 </head>
@@ -99,7 +99,7 @@ $stores = marketplace_fetch_stores();
                             <p>Dignissim massa diam elementum.</p>
                             <div class="foovia-hero-actions">
                                 <a href="#products" class="foovia-btn-primary">START SHOPPING</a>
-                                <a href="../back-office/products.php" class="foovia-btn-dark">JOIN NOW</a>
+                                <a href="../../back_office/material_able-main/products.php" class="foovia-btn-dark">JOIN NOW</a>
                             </div>
                             <div class="foovia-stats">
                                 <div class="foovia-stat">
@@ -191,7 +191,7 @@ $stores = marketplace_fetch_stores();
                         <div class="col-md-6 col-xl-4" data-product-card data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>" data-store-name="<?= htmlspecialchars(strtolower((string) ($product['name_mag'] ?? '')), ENT_QUOTES) ?>" data-product-description="<?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?>">
                             <article class="market-card">
                                 <div class="market-card-media">
-                                    <img src="../handlers/product-image.php?id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>">
+                                    <img src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>">
                                 </div>
                                 <div class="market-card-body">
                                     <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
@@ -208,7 +208,7 @@ $stores = marketplace_fetch_stores();
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted">Expires <?= htmlspecialchars($product['date_expiration_march'], ENT_QUOTES) ?></small>
-                                        <a href="../back-office/products.php" class="btn btn-outline-success rounded-pill px-3">Manage</a>
+                                        <a href="../../back_office/material_able-main/products.php" class="btn btn-outline-success rounded-pill px-3">Manage</a>
                                     </div>
                                 </div>
                             </article>
@@ -225,7 +225,7 @@ $stores = marketplace_fetch_stores();
                     <div class="market-empty">
                         <h3 class="h4 mb-2">No marketplace products yet</h3>
                         <p class="text-muted mb-4">Use the back office page to add your first product and it will appear here.</p>
-                        <a href="../back-office/products.php" class="btn btn-success rounded-pill px-4">Open Back Office</a>
+                        <a href="../../back_office/material_able-main/products.php" class="btn btn-success rounded-pill px-4">Open Back Office</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -233,6 +233,6 @@ $stores = marketplace_fetch_stores();
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/frontoffice-filters.js"></script>
+    <script src="../../../assets/js/frontoffice-filters.js"></script>
 </body>
 </html>

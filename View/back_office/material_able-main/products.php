@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/marketplace_repository.php';
+require_once __DIR__ . '/../../../Model/Marchandise.php';
 
 $stores = marketplace_fetch_stores();
 $products = marketplace_fetch_products();
@@ -38,7 +38,7 @@ $message = match ($status) {
     <link rel="stylesheet" type="text/css" href="assets/icon/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/css/jquery.mCustomScrollbar.css">
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
-    <link rel="stylesheet" type="text/css" href="../assets/css/marketplace.css">
+    <link rel="stylesheet" type="text/css" href="../../../assets/css/marketplace.css">
 </head>
 <body>
     <div class="theme-loader">
@@ -101,7 +101,7 @@ $message = match ($status) {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="../front-office/marketplace.php" class="waves-effect waves-dark">
+                                    <a href="../../front_office/organic-1.0.0/marketplace.php" class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-shopping-cart"></i></span>
                                         <span class="pcoded-mtext">Front Office</span>
                                     </a>
@@ -152,7 +152,7 @@ $message = match ($status) {
                                                         <span><?= $isEditing ? 'Select a product, modify the fields below, then save the changes.' : 'The HTML stays clean while the validation lives in JavaScript only.' ?></span>
                                                     </div>
                                                     <div class="card-block">
-                                                        <form action="../handlers/save-product.php" method="post" enctype="multipart/form-data" data-product-form data-editing-mode="<?= $isEditing ? 'true' : 'false' ?>">
+                                                        <form action="../../../Controller/Marchandise_Controller.php?action=save" method="post" enctype="multipart/form-data" data-product-form data-editing-mode="<?= $isEditing ? 'true' : 'false' ?>">
                                                             <input type="hidden" name="id_march" value="<?= $isEditing ? (int) $editingProduct['id_march'] : 0 ?>">
                                                             <div class="row">
                                                                 <div class="col-md-6">
@@ -228,7 +228,7 @@ $message = match ($status) {
 
                                                             <div class="admin-preview m-b-20" data-image-preview>
                                                                 <?php if ($isEditing): ?>
-                                                                    <img src="../handlers/product-image.php?id=<?= (int) $editingProduct['id_march'] ?>" alt="<?= htmlspecialchars((string) $editingProduct['name_march'], ENT_QUOTES) ?>">
+                                                                    <img src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $editingProduct['id_march'] ?>" alt="<?= htmlspecialchars((string) $editingProduct['name_march'], ENT_QUOTES) ?>">
                                                                 <?php else: ?>
                                                                     <span class="text-muted">Image preview will appear here</span>
                                                                 <?php endif; ?>
@@ -291,7 +291,7 @@ $message = match ($status) {
                                                             <?php else: ?>
                                                                 <?php foreach ($products as $product): ?>
                                                                     <tr>
-                                                                        <td><img class="admin-table-thumb" src="../handlers/product-image.php?id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>"></td>
+                                                                        <td><img class="admin-table-thumb" src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>"></td>
                                                                         <td><strong><?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?></strong><br><small><?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?></small></td>
                                                                         <td><?= htmlspecialchars($product['name_mag'] ?? 'No store', ENT_QUOTES) ?></td>
                                                                         <td><?= (int) $product['price_march'] ?> TND</td>
@@ -299,7 +299,7 @@ $message = match ($status) {
                                                                         <td><?= htmlspecialchars($product['date_expiration_march'], ENT_QUOTES) ?></td>
                                                                         <td>
                                                                             <a href="products.php?edit=<?= (int) $product['id_march'] ?>" class="btn btn-info btn-sm waves-effect waves-light m-r-5">Modify</a>
-                                                                            <form action="../handlers/delete-product.php" method="post" data-delete-product-form data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>">
+                                                                            <form action="../../../Controller/Marchandise_Controller.php?action=delete" method="post" data-delete-product-form data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>">
                                                                                 <input type="hidden" name="id_march" value="<?= (int) $product['id_march'] ?>">
                                                                                 <button type="submit" class="btn btn-danger btn-sm waves-effect waves-light">Delete</button>
                                                                             </form>
@@ -334,7 +334,7 @@ $message = match ($status) {
     <script src="assets/js/pcoded.min.js"></script>
     <script src="assets/js/vertical/vertical-layout.min.js"></script>
     <script src="assets/js/script.js"></script>
-    <script src="../assets/js/backoffice-validation.js"></script>
-    <script src="../assets/js/backoffice-actions.js"></script>
+    <script src="../../../assets/js/backoffice-validation.js"></script>
+    <script src="../../../assets/js/backoffice-actions.js"></script>
 </body>
 </html>
