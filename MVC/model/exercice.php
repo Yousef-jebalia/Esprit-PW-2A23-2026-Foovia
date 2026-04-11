@@ -17,10 +17,9 @@ class Exercise
 
     private PDO $db;
 
-    public function __construct($id=NULL, $name, $type, $muscle, $cal, $fatigue, $PR=0.0, $description, $gif)
+    public function __construct($name, $type, $muscle, $cal, $fatigue, $description, $gif=NULL, $id=NULL, $PR=0.0)
     {
         $this->db = config::getConnexion();
-        $this->id_ex = $id;
         $this->name_ex = $name;
         $this->type_ex = $type;
         $this->muscle_ex = $muscle;

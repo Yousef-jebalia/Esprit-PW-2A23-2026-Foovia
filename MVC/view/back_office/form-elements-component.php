@@ -52,8 +52,65 @@ $exercises = $stmt->fetchAll();
 </head>
 
 
+//controle de saisie **********************************************************************
+<script>
+function validateForm() {
+    const name     = document.getElementById('ex_name').value.trim();
+    const type     = document.getElementById('ex_type').value;
+    const muscles  = Array.from(document.querySelectorAll('input[name="ex_target_muscle[]"]:checked'));
+    const calories = document.getElementById('ex_calories').value.trim();
+    const fatigue  = document.getElementById('ex_fatigue').value.trim();
 
+    let errorMessage = '';
 
+    // Name
+    if (name === '') {
+        errorMessage += 'Exercise name is required.\n';
+    } else if (name.length < 3) {
+        errorMessage += 'Exercise name must be at least 3 characters.\n';
+    } else if (name.length > 100) {
+        errorMessage += 'Exercise name must be less than 100 characters.\n';
+    } 
+
+    // Type
+    if (type === '') {
+        errorMessage += 'Please select an exercise type.\n';
+    }
+
+    // Muscles
+    if (muscles.length === 0) {
+        errorMessage += 'Please select at least one target muscle.\n';
+    } else if (muscles.length > 3) {
+        errorMessage += 'You can select a maximum of 3 muscles.\n';
+    } else if (type === 'isolation' && muscles.length > 1) {
+        errorMessage += 'Isolation exercises can only target 1 muscle.\n';
+    }
+
+    // Calories
+    if (calories === '') {
+        errorMessage += 'Calories per rep is required.\n';
+    } else if (isNaN(calories) || Number(calories) < 0) {
+        errorMessage += 'Calories must be a positive number.\n';
+    } else if (Number(calories) > 20) {
+        errorMessage += 'Calories per rep seems too high (max 100).\n';
+    }
+
+    // Fatigue
+    if (fatigue === '') {
+        errorMessage += 'Fatigue ratio is required.\n';
+    } else if (isNaN(fatigue) || Number(fatigue) < 0 || Number(fatigue) > 10) {
+        errorMessage += 'Fatigue ratio must be between 0 and 10.\n';
+    }
+
+    // Show error or submit
+    if (errorMessage !== '') {
+        alert(errorMessage);
+        return false;
+    }
+
+    return true;
+}
+</script>
 
 
 
@@ -557,11 +614,11 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                 <?= htmlspecialchars(trim($m)) ?>
                             </span>
                         <?php endforeach; ?>
-                        <span style="color: #999;">🔥 <?= (int)$ex['cal_ex'] ?> cal</span>
+                        
                     </div>
                         <span style="color: #999;">🔥 <?= (int)$ex['cal_ex'] ?> cal</span>
                         <span style="background: #e8f7ee; color: red ; padding: 2px 8px; border-radius: 20px;">
-                            <?= htmlspecialchars($ex['fatigue_ex']/100) ?>
+                            <?= htmlspecialchars($ex['fatigue_ex']/10) ?>
                         </span>
                     </div>
                 </div>
@@ -612,7 +669,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                             
                                             
                                                     
-                                            <form class="exercise-form" id="exercise-form" action="../../controle/controle_exercice.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+                                            <form onsubmit="return validateForm()" class="exercise-form" id="exercise-form" action="../../controle/controle_exercice.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
 
 
                                                     <input type="hidden" name="action" id="form-action" value="add">
@@ -662,12 +719,12 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Calories Per Rep</label>
-                                                    <input name="ex_calories" id="ex_calories" type="number" class="form-input" placeholder="e.g., 5" min="0" step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_calories" id="ex_calories" type="text" class="form-input" placeholder="5"  step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Fatigue Ratio</label>
-                                                    <input name="ex_fatigue" id="ex_fatigue" type="number" class="form-input" placeholder="e.g., 0.8" min="0" max="1" step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_fatigue" id="ex_fatigue" type="text" class="form-input" placeholder=" 0.8"   step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; gap: 10px; margin-top: 15px;">
