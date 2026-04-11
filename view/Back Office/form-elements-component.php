@@ -318,7 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <li class="active">
                                     <a href="form-elements-component.html" class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-layers"></i><b>FC</b></span>
-                                        <span class="pcoded-mtext">Form</span>
+                                        <span class="pcoded-mtext">Recipe</span>
                                         <span class="pcoded-mcaret"></span>
                                     </a>
                                 </li>
