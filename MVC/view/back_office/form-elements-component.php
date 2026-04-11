@@ -51,6 +51,40 @@ $exercises = $stmt->fetchAll();
 
 </head>
 
+
+
+
+
+
+
+<script>
+function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
+    // highlight selected card
+    document.querySelectorAll('.exercise-card').forEach(c => c.style.background = 'white');
+    document.getElementById('card-' + id).style.background = '#e8f0fe';
+
+    // fill the form
+    document.getElementById('form-action').value = 'update';
+    document.getElementById('edit-id').value = id;
+    document.getElementById('ex_name').value = name;
+    document.getElementById('ex_type').value = type;
+    document.getElementById('ex_target_muscle').value = muscle;
+    document.getElementById('ex_calories').value = cal;
+    document.getElementById('ex_fatigue').value = fatigue;
+    document.getElementById('ex_description').value = description;
+
+    // scroll to form
+    document.getElementById('exercise-form').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+
+
+
+
+
+
+
 <body>
     <!-- Pre-loader start -->
     <div class="theme-loader">
@@ -492,7 +526,7 @@ $exercises = $stmt->fetchAll();
         </div>
     <?php else: ?>
         <?php foreach ($exercises as $ex): ?>
-            <div style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
+            <div id="card-<?= $ex['id_ex'] ?>" class="exercise-card"  style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
                 
                 <!-- GIF/Image -->
                 <div style="width: 60px; height: 60px; flex-shrink: 0; background: #f0f4ff; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
@@ -524,15 +558,24 @@ $exercises = $stmt->fetchAll();
                     </div>
                 </div>
 
-                <!-- Delete button -->
-                <form method="POST" action="../../controle/controle_exercice.php" style="margin: 0;">
-                    <input type="hidden" name="delete_id" value="<?= (int)$ex['id_ex'] ?>">
-                    <button type="submit" name="action" value="delete"
-                        style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"
-                        onclick="return confirm('Delete this exercise?')">
-                        <i class="ti-trash"></i>
-                    </button>
-                </form>
+                <!-- Delete button & edit button -->
+                <form method="POST" action="../../controle/controle_exercice.php" style="margin: 0; display: flex; gap: 5px;">
+    <input type="hidden" name="delete_id" value="<?= (int)$ex['id_ex'] ?>">
+    
+    <!-- Delete button -->
+    <button type="submit" name="action" value="delete"
+        style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"
+        onclick="return confirm('Delete this exercise?')">
+        <i class="ti-trash"></i>
+    </button>
+
+    <!-- Edit button -->
+    <button type="button"
+        onclick="fillEditForm(<?= $ex['id_ex'] ?>, '<?= addslashes($ex['name_ex']) ?>', '<?= addslashes($ex['type_ex']) ?>', '<?= addslashes($ex['muscle_ex']) ?>', <?= (int)$ex['cal_ex'] ?>, <?= (float)$ex['fatigue_ex'] ?>, '<?= addslashes($ex['description_ex']) ?>')"
+        style="background: none; border: none; color: #4099ff; cursor: pointer; font-size: 16px; padding: 5px;">
+        <i class="ti-pencil"></i>
+    </button>
+</form>
 
             </div>
         <?php endforeach; ?>
@@ -562,6 +605,12 @@ $exercises = $stmt->fetchAll();
                                             
                                                     
                                             <form class="exercise-form" id="exercise-form" action="../../controle/controle_exercice.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+
+
+                                                    <input type="hidden" name="action" id="form-action" value="add">
+                                                    <input type="hidden" name="edit_id" id="edit-id" value="">
+
+
                                                 <div style="font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                                                     <i class="ti-pencil-alt"></i>
                                                     Add New Exercise
@@ -569,12 +618,12 @@ $exercises = $stmt->fetchAll();
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Exercise Name</label>
-                                                    <input type="text" name="ex_name" class="form-input" placeholder="e.g., Barbell Squat" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input type="text" id="ex_name" name="ex_name" class="form-input" placeholder="e.g., Barbell Squat" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Type</label>
-                                                    <select name="ex_type" class="form-select"  style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <select name="ex_type" id="ex_type" class="form-select"  style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                         <option value="">Select Type</option>
                                                         <option value="compound">Compound</option>
                                                         <option value="isolation">Isolation</option>
@@ -584,7 +633,7 @@ $exercises = $stmt->fetchAll();
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Target Muscle</label>
-                                                    <select name="ex_target_muscle" class="form-select"  style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <select name="ex_target_muscle" id="ex_target_muscle" class="form-select"  style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                         <option value="">Select Muscle</option>
                                                         <option value="calves">Calves</option>
                                                         <option value="hamstrings">Hamstrings</option>
@@ -607,27 +656,27 @@ $exercises = $stmt->fetchAll();
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Description</label>
-                                                    <textarea name="ex_description" class="form-textarea" placeholder="Describe the exercise..." style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+                                                    <textarea name="ex_description" id="ex_description" class="form-textarea" placeholder="Describe the exercise..." style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
                                                 </div>
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Picture or GIF</label>
-                                                    <input name="ex_picture" type="file" class="form-input" placeholder="Upload exercise GIF or image" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_picture" id="ex_picture" type="file" class="form-input" placeholder="Upload exercise GIF or image" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Calories Per Rep</label>
-                                                    <input name="ex_calories" type="number" class="form-input" placeholder="e.g., 5" min="0" step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_calories" id="ex_calories" type="number" class="form-input" placeholder="e.g., 5" min="0" step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Fatigue Ratio</label>
-                                                    <input name="ex_fatigue" type="number" class="form-input" placeholder="e.g., 0.8" min="0" max="1" step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_fatigue" id="ex_fatigue" type="number" class="form-input" placeholder="e.g., 0.8" min="0" max="1" step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                                                     <button type="submit" style="flex: 1; padding: 12px; background: #4099ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.3s;">
-                                                        <i class="ti-save"></i> Add Exercise
+                                                        <i class="ti-save"></i> Add / Modify Exercise
                                                     </button>
                                                     <button type="reset" style="flex: 1; padding: 12px; background: #f5f5f5; color: #333; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
                                                         <i class="ti-close"></i> Clear

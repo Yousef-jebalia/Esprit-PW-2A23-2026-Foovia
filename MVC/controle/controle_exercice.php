@@ -81,39 +81,46 @@ function delete_exercise($id)
 }
 
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    $action = $_POST['action'] ?? 'add';
+    $controller = new controle_exercice();
 
-    // Handle delete
-    if (isset($_POST['action']) && $_POST['action'] === 'delete') {
-        $controller = new controle_exercice();
-        $controller->delete_exercise( (int)$_POST['delete_id'] );
+    if ($action === 'delete') {
+        $controller->delete_exercise((int)$_POST['delete_id']);
         header('Location: ../view/back_office/form-elements-component.php');
         exit;
     }
 
-    
-echo '<pre>POST: ' . print_r($_POST, true) . "\nFILES: " . print_r($_FILES, true) . '</pre>';
-    $name = $_POST['ex_name'] ?? '';
-    $type = $_POST['ex_type'] ?? '';
-    $muscle = $_POST['ex_target_muscle'] ?? '';
-    $description = $_POST['ex_description'] ?? '';
-    $calories = (int)($_POST['ex_calories'] ?? 0);
-    $fatigue = (float)($_POST['ex_fatigue'] ?? 0);
+    if ($action === 'update') {
+        $exercise = new Exercise(
+            null,
+            $_POST['ex_name']          ?? '',
+            $_POST['ex_type']          ?? '',
+            $_POST['ex_target_muscle'] ?? '',
+            (int)($_POST['ex_calories'] ?? 0),
+            (float)($_POST['ex_fatigue'] ?? 0),
+            0.0,
+            $_POST['ex_description']   ?? '',
+            null
+        );
+        $controller->update_exercise($exercise, (int)$_POST['edit_id']);
+        header('Location: ../view/back_office/form-elements-component.php');
+        exit;
+    }
+
+    // default: add
     $gif = null;
     if (isset($_FILES['ex_picture']) && $_FILES['ex_picture']['error'] === UPLOAD_ERR_OK) {
         $gif = $_FILES['ex_picture']['name'];
     }
-
-    $exercise = new Exercise(null, $name, $type, $muscle, $calories, $fatigue, 0.0, $description, $gif);
-    $controller = new controle_exercice();
+    $exercise = new Exercise(null, $_POST['ex_name'] ?? '', $_POST['ex_type'] ?? '', $_POST['ex_target_muscle'] ?? '', (int)($_POST['ex_calories'] ?? 0), (float)($_POST['ex_fatigue'] ?? 0), 0.0, $_POST['ex_description'] ?? '', $gif);
     $result = $controller->add_exercise($exercise);
 
     if ($result === true) {
-        echo "<script>alert('Exercise added successfully!'); window.location = '../view/back_office/form-elements-component.php';</script>";
+        header('Location: ../view/back_office/form-elements-component.php');
     } else {
-        echo "<script>alert('Error: $result');</script>";
+        echo "<script>alert('Error: " . addslashes($result) . "');</script>";
     }
     exit;
 }
