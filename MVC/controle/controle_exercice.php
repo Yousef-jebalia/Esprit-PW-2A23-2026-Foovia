@@ -12,7 +12,7 @@ class controle_exercice
     
    function add_exercise($exercise) {
    // CORRECT
-$sql = "INSERT INTO exercice (name_ex, type_ex, muscle_ex, cal_ex, fatigue_ex, PR_ex, description_ex, gif_ex)
+    $sql = "INSERT INTO exercice (name_ex, type_ex, muscle_ex, cal_ex, fatigue_ex, PR_ex, description_ex, gif_ex)
         VALUES (:name_ex, :type_ex, :muscle_ex, :cal_ex, :fatigue_ex, :PR_ex, :description_ex, :gif_ex)";
     $db = config::getConnexion();
     try {
@@ -69,7 +69,7 @@ function update_exercise($exercise, $id)
 
 function delete_exercise($id)
 {
-    $sql = "DELETE FROM exercise WHERE id_ex = :id";
+    $sql = "DELETE FROM exercice WHERE id_ex = :id";
     $db = config::getConnexion();
     $req = $db->prepare($sql);
     $req->bindValue(':id', $id);
