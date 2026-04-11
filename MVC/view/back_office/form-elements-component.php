@@ -1,3 +1,16 @@
+<?php
+require_once __DIR__ . '/../../model/config.php';
+
+$db = config::getConnexion();
+$stmt = $db->query("SELECT * FROM exercice ORDER BY id_ex DESC");
+$exercises = $stmt->fetchAll();
+?>
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -475,7 +488,7 @@
                 <i class="ti-package"></i>
             </div>
             <div style="font-weight: 600; margin-bottom: 5px;">No Exercises Yet</div>
-            <div style="font-size: 14px;">Add your first exercise using the form on the right</div>
+            <div style="font-size: 14px;">Add your first exercise using the form on the right ==> </div>
         </div>
     <?php else: ?>
         <?php foreach ($exercises as $ex): ?>
@@ -495,7 +508,7 @@
                 <!-- Info -->
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">
-                        <?= htmlspecialchars($ex['name_ex']) ?>
+                        <?= htmlspecialchars($ex['name_ex'] . ' (id=' . $ex['id_ex'] . ')') ?>
                     </div>
                     <div style="font-size: 12px; color: #666; display: flex; gap: 8px; flex-wrap: wrap;">
                         <span style="background: #e8f0fe; color: #4099ff; padding: 2px 8px; border-radius: 20px;">
@@ -505,6 +518,9 @@
                             <?= htmlspecialchars($ex['muscle_ex']) ?>
                         </span>
                         <span style="color: #999;">🔥 <?= (int)$ex['cal_ex'] ?> cal</span>
+                        <span style="background: #e8f7ee; color: red ; padding: 2px 8px; border-radius: 20px;">
+                            <?= htmlspecialchars($ex['fatigue_ex']/100) ?>
+                        </span>
                     </div>
                 </div>
 
