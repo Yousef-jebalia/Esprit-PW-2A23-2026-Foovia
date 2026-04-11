@@ -1,6 +1,6 @@
 <?php
-include(__DIR__ . '/../Model/config.php');
-include(__DIR__ . '/../Model/menu.php');
+include(__DIR__ . '/../model/config.php');
+include(__DIR__ . '/../model/menu.php');
 
 class Controller_menu {
 

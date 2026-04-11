@@ -358,6 +358,13 @@ $recipes = $controller->list_recipe();
                                         <span class="pcoded-mcaret"></span>
                                     </a>
                                 </li>
+                                <li class="">
+                                    <a href="form-elements-ingrediant.php" class="waves-effect waves-dark">
+                                        <span class="pcoded-micon"><i class="ti-layers"></i><b>FC</b></span>
+                                        <span class="pcoded-mtext">Ingrediants</span>
+                                        <span class="pcoded-mcaret"></span>
+                                    </a>
+                                </li>
                             </ul>
                             <div class="pcoded-navigation-label">Tables</div>
                             <ul class="pcoded-item pcoded-left-item">

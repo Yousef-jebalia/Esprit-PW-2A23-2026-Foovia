@@ -1,3 +1,88 @@
+<?php
+include '../../controle/controle_ingrediant.php';
+
+$error = "";
+$success = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST["delete_id_ing"]) && !empty($_POST["delete_id_ing"])) {
+        $controller = new Controller_ingrediant();
+        $controller->delete_ingrediant((int)$_POST["delete_id_ing"]);
+        $success = "Ingrediant deleted successfully.";
+    } elseif (
+        isset($_POST["id_ing"]) && isset($_POST["name_ing"]) && isset($_POST["prot_ing"]) &&
+        isset($_POST["fat_ing"]) && isset($_POST["carb_ing"]) && isset($_POST["cal_ing"])
+    ) {
+        if (
+            !empty($_POST["name_ing"]) && !empty($_POST["prot_ing"]) &&
+            !empty($_POST["fat_ing"]) && !empty($_POST["carb_ing"]) && !empty($_POST["cal_ing"])
+        ) {
+            $imagePath = "";
+
+            // Image is required when adding a new ingredient.
+            if (!isset($_FILES['img_ing']) || $_FILES['img_ing']['error'] === UPLOAD_ERR_NO_FILE) {
+                $error = "Image is required.";
+            } elseif ($_FILES['img_ing']['error'] !== UPLOAD_ERR_OK) {
+                $error = "Upload error code: " . (int)$_FILES['img_ing']['error'];
+            } else {
+                $absoluteUploadDir = __DIR__ . '/assets/images/ingredients/';
+                $relativeUploadDir = 'assets/images/ingredients/';
+
+                if (!is_dir($absoluteUploadDir)) {
+                    mkdir($absoluteUploadDir, 0755, true);
+                }
+
+                $fileName = basename($_FILES['img_ing']['name']);
+                $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $tmpPath = $_FILES['img_ing']['tmp_name'];
+                $mimeType = mime_content_type($tmpPath);
+
+                if (!in_array($fileExt, $allowedExts) || !in_array($mimeType, $allowedMimes)) {
+                    $error = "Invalid image file format. Only JPG, PNG, GIF, WebP allowed.";
+                } else {
+                    $newFileName = uniqid('ing_', true) . '.' . $fileExt;
+                    $absoluteUploadPath = $absoluteUploadDir . $newFileName;
+
+                    if (move_uploaded_file($tmpPath, $absoluteUploadPath)) {
+                        $imagePath = $relativeUploadDir . $newFileName;
+                    } else {
+                        $error = "Failed to upload image file.";
+                    }
+                }
+            }
+            
+            if (empty($error)) {
+                $idIng = !empty($_POST['id_ing']) ? (int)$_POST['id_ing'] : 0;
+                $ingrediant = new Ingrediant(
+                    $idIng,
+                    $_POST['name_ing'],
+                    (float)$_POST['prot_ing'],
+                    $_POST['fat_ing'],
+                    $_POST['carb_ing'],
+                    $_POST['cal_ing'],
+                    $imagePath
+                );
+                $controller = new Controller_ingrediant();
+                if ($controller->add_ingrediant($ingrediant)) {
+                    $success = "Ingrediant added successfully.";
+                } else {
+                    $error = "Failed to add ingrediant: " . $controller->getLastError();
+                }
+            }
+        } else {
+            $error = "Name, protein, fat, carbs and calories are required.";
+        }
+    } else {
+        $error = "Missing form data.";
+    }
+}
+
+$controller = new Controller_ingrediant();
+$ingrediants = $controller->list_ingrediants();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,10 +105,10 @@
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
     <!-- Google font-->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
-    <!-- Required Fremwork -->
-    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap/css/bootstrap.min.css">
     <!-- waves.css -->
     <link rel="stylesheet" href="assets/pages/waves/css/waves.min.css" type="text/css" media="all">
+    <!-- Required Fremwork -->
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap/css/bootstrap.min.css">
     <!-- themify-icons line icon -->
     <link rel="stylesheet" type="text/css" href="assets/icon/themify-icons/themify-icons.css">
     <!-- ico font -->
@@ -33,64 +118,8 @@
     <!-- Style.css -->
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="assets/css/jquery.mCustomScrollbar.css">
-
 </head>
-
 <body>
-    <!-- Pre-loader start -->
-    <div class="theme-loader">
-        <div class="loader-track">
-            <div class="preloader-wrapper">
-                <div class="spinner-layer spinner-blue">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-                <div class="spinner-layer spinner-red">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-
-                <div class="spinner-layer spinner-yellow">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-
-                <div class="spinner-layer spinner-green">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Pre-loader end -->
     <div id="pcoded" class="pcoded">
         <div class="pcoded-overlay-box"></div>
         <div class="pcoded-container navbar-wrapper">
@@ -216,22 +245,20 @@
                     <nav class="pcoded-navbar">
                         <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
                         <div class="pcoded-inner-navbar main-menu">
-                            <div class="">
-                                <div class="main-menu-header">
-                                    <img class="img-80 img-radius" src="assets/images/avatar-4.jpg" alt="User-Profile-Image">
-                                    <div class="user-details">
-                                        <span id="more-details">John Doe<i class="fa fa-caret-down"></i></span>
-                                    </div>
+                            <div class="main-menu-header">
+                                <img class="img-80 img-radius" src="assets/images/avatar-4.jpg" alt="User-Profile-Image">
+                                <div class="user-details">
+                                    <span id="more-details">John Doe<i class="fa fa-caret-down"></i></span>
                                 </div>
-                                <div class="main-menu-content">
-                                    <ul>
-                                        <li class="more-details">
-                                            <a href="user-profile.html"><i class="ti-user"></i>View Profile</a>
-                                            <a href="#!"><i class="ti-settings"></i>Settings</a>
-                                            <a href="auth-normal-sign-in.html"><i class="ti-layout-sidebar-left"></i>Logout</a>
-                                        </li>
-                                    </ul>
-                                </div>
+                            </div>
+                            <div class="main-menu-content">
+                                <ul>
+                                    <li class="more-details">
+                                        <a href="user-profile.html"><i class="ti-user"></i>View Profile</a>
+                                        <a href="#!"><i class="ti-settings"></i>Settings</a>
+                                        <a href="auth-normal-sign-in.html"><i class="ti-layout-sidebar-left"></i>Logout</a>
+                                    </li>
+                                </ul>
                             </div>
                             <div class="p-15 p-b-0">
                                 <form class="form-material">
@@ -254,7 +281,7 @@
                             </ul>
                             <div class="pcoded-navigation-label">UI Element</div>
                             <ul class="pcoded-item pcoded-left-item">
-                                <li class="pcoded-hasmenu active pcoded-trigger">
+                                <li class="pcoded-hasmenu">
                                     <a href="javascript:void(0)" class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-layout-grid2-alt"></i><b>BC</b></span>
                                         <span class="pcoded-mtext">Basic</span>
@@ -303,7 +330,7 @@
                                                 <span class="pcoded-mcaret"></span>
                                             </a>
                                         </li>
-                                        <li class="active ">
+                                        <li class=" ">
                                             <a href="tooltip.html" class="waves-effect waves-dark">
                                                 <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
                                                 <span class="pcoded-mtext">Tooltip And Popover</span>
@@ -336,7 +363,7 @@
                                         <span class="pcoded-mcaret"></span>
                                     </a>
                                 </li>
-                                <li class="">
+                                <li class="active">
                                     <a href="form-elements-ingrediant.php" class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-layers"></i><b>FC</b></span>
                                         <span class="pcoded-mtext">Ingrediants</span>
@@ -406,177 +433,169 @@
                             </ul>
                         </div>
                     </nav>
+
                     <div class="pcoded-content">
-                        <!-- Page-header start -->
-                        <div class="page-header">
-                            <div class="page-block">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <div class="page-header-title">
-                                            <h5 class="m-b-10">Animated Tooltip</h5>
-                                            <p class="m-b-0">Lorem Ipsum is simply dummy text of the printing</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <ul class="breadcrumb">
-                                            <li class="breadcrumb-item">
-                                                <a href="index.html"> <i class="fa fa-home"></i> </a>
-                                            </li>
-                                            <li class="breadcrumb-item"><a href="#!">Basic Components</a>
-                                            </li>
-                                            <li class="breadcrumb-item"><a href="#!">Animated Tooltip</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Page-header end -->
                         <div class="pcoded-inner-content">
                             <div class="main-body">
                                 <div class="page-wrapper">
-                                    <!-- Page-body start -->
                                     <div class="page-body">
                                         <div class="row">
-                                            <div class="col-sm-6">
-                                                <!-- Tooltip on button card start -->
-                                                <div class="card button-page o-visible">
+                                            <div class="col-sm-12">
+                                                <?php if (!empty($error)): ?>
+                                                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                                                <?php endif; ?>
+
+                                                <?php if (!empty($success)): ?>
+                                                    <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
+                                                <?php endif; ?>
+
+                                                <div class="card">
                                                     <div class="card-header">
-                                                        <h5>Tooltip</h5>
+                                                        <h5>Ingrediants List</h5>
+                                                    </div>
+                                                    <div class="card-block table-border-style">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-striped table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Image</th>
+                                                                        <th>Name</th>
+                                                                        <th>ID</th>
+                                                                        <th>Protein</th>
+                                                                        <th>Fat</th>
+                                                                        <th>Carbs</th>
+                                                                        <th>Calories</th>
+                                                                        <th>Action</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <?php if (!empty($ingrediants)): ?>
+                                                                        <?php foreach ($ingrediants as $ingrediant): ?>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <?php if (!empty($ingrediant['img_ing'])): ?>
+                                                                                        <img src="<?php echo htmlspecialchars($ingrediant['img_ing']); ?>" alt="Ingrediant image" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">
+                                                                                    <?php else: ?>
+                                                                                        No image
+                                                                                    <?php endif; ?>
+                                                                                </td>
+                                                                                <td><?php echo htmlspecialchars($ingrediant['name_ing']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($ingrediant['id_ing']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($ingrediant['prot_ing']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($ingrediant['fat_ing']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($ingrediant['carb_ing']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($ingrediant['cal_ing']); ?></td>
+                                                                                <td>
+                                                                                    <form method="POST" action="" onsubmit="return confirm('Delete this ingrediant?');" style="margin:0;">
+                                                                                        <input type="hidden" name="delete_id_ing" value="<?php echo (int)$ingrediant['id_ing']; ?>">
+                                                                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                                                    </form>
+                                                                                    <a href="edit-ingrediant.php?id_ing=<?php echo (int)$ingrediant['id_ing']; ?>" class="btn btn-primary btn-sm" style="margin-top:8px;display:inline-block;">Edit</a>
+                                                                                </td>
+                                                                            </tr>
+                                                                        <?php endforeach; ?>
+                                                                    <?php else: ?>
+                                                                        <tr>
+                                                                            <td colspan="8" class="text-center">No ingrediants found.</td>
+                                                                        </tr>
+                                                                    <?php endif; ?>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card">
+                                                    <div class="card-header">
+                                                        <h5>ADD Ingrediant</h5>
                                                     </div>
                                                     <div class="card-block">
-                                                        <ul>
-                                                            <li>
-                                                                <button type="button" class="btn btn-default waves-effect" data-toggle="tooltip" data-placement="top" title="tooltip on top">Top
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button type="button" class="btn btn-primary waves-effect waves-light" data-toggle="tooltip" data-placement="left" title="tooltip on left">Left
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button type="button" class="btn btn-success waves-effect waves-light" data-toggle="tooltip" data-placement="right" title="tooltip on right">right
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button type="button" class="btn btn-warning waves-effect waves-light" data-toggle="tooltip" data-placement="bottom" title="tooltip on bottom">bottom
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button type="button" class="btn btn-info waves-effect waves-light" data-toggle="tooltip" data-html="true" title="<em>Tooltip</em> <u>with</u> <b>HTML</b>">Html Tooltip
-                                                                </button>
-                                                            </li>
-                                                        </ul>
+                                                        <h4 class="sub-title">Ingrediant Information</h4>
+                                                        <form method="POST" action="" enctype="multipart/form-data">
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Ingrediant ID</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="number" name="id_ing" class="form-control" placeholder="Ingrediant ID (optional)">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Ingrediant Name</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="text" name="name_ing" class="form-control" placeholder="Ingrediant name">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Protein</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="number" step="0.01" name="prot_ing" class="form-control" placeholder="Protein in grams">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Fat</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="text" name="fat_ing" class="form-control" placeholder="Fat in grams">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Carbs</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="text" name="carb_ing" class="form-control" placeholder="Carbs in grams">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Calories</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="text" name="cal_ing" class="form-control" placeholder="Calories">
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <label class="col-sm-2 col-form-label">Image</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="file" name="img_ing" id="imageInputIng" class="form-control-file" accept="image/*" required>
+                                                                    <small class="form-text text-muted">Supported formats: JPG, PNG, GIF, WebP (Max 5MB)</small>
+                                                                    <div id="imagePreviewIng" class="mt-3" style="display:none;">
+                                                                        <img id="previewImgIng" style="width:120px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <script>
+                                                                document.getElementById('imageInputIng').addEventListener('change', function(e) {
+                                                                    const file = e.target.files[0];
+                                                                    if (file && file.type.startsWith('image/')) {
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = function(event) {
+                                                                            document.getElementById('previewImgIng').src = event.target.result;
+                                                                            document.getElementById('imagePreviewIng').style.display = 'block';
+                                                                        };
+                                                                        reader.readAsDataURL(file);
+                                                                    } else if (file) {
+                                                                        alert('Please select a valid image file');
+                                                                        document.getElementById('previewImgIng').src = '';
+                                                                        document.getElementById('imagePreviewIng').style.display = 'none';
+                                                                    } else {
+                                                                        document.getElementById('previewImgIng').src = '';
+                                                                        document.getElementById('imagePreviewIng').style.display = 'none';
+                                                                    }
+                                                                });
+                                                            </script>
+                                                            <div class="form-group row">
+                                                                <div class="col-sm-10 offset-sm-2">
+                                                                    <button type="submit" class="btn btn-primary">Save Ingrediant</button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
                                                     </div>
                                                 </div>
-                                                <!-- Tooltip on button card end -->
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <!-- Tooltip on popover card start -->
-                                                <div class="card o-visible">
-                                                    <div class="card-header">
-                                                        <h5>Popover</h5>
-                                                    </div>
-                                                    <div class="card-block tooltip-pop button-list">
-                                                        <button type="button" class="btn btn-default waves-effect" data-toggle="popover" data-placement="top" title="" data-content="top by popover" data-original-title="tooltip on top">Top
-                                                        </button>
-                                                        <button type="button" class="btn btn-primary waves-effect waves-light" data-toggle="popover" data-placement="left" title="tooltip on left" data-content="left by popover">Left
-                                                        </button>
-                                                        <button type="button" class="btn btn-success waves-effect waves-light" data-toggle="popover" data-placement="right" title="tooltip on right" data-content="right by popover">right
-                                                        </button>
-                                                        <button type="button" class="btn btn-warning waves-effect waves-light" data-toggle="popover" data-placement="bottom" title="tooltip on bottom" data-content="bottom by popover">bottom
-                                                        </button>
-                                                        <button type="button" class="btn btn-info waves-effect waves-light" data-toggle="popover" data-html="true" data-placement="top" title="<em>Tooltip</em> <u>with</u> <b>HTML</b>"
-                                                            data-content="tooltip by HTML">Html Tooltip
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <!-- Tooltip on popover card end -->
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <!-- Tooltips on textbox card start -->
-                                                <div class="card o-visible">
-                                                    <div class="card-header">
-                                                        <h5>Tooltips On Textbox</h5>
-                                                    </div>
-                                                    <div class="card-block tooltip-icon button-list">
-                                                        <div class="input-group">
-                                                            <span class="input-group-prepend" id="name"><label class="input-group-text"><i class="icofont icofont-user-alt-3"></i></label></span>
-                                                            <input type="text" class="form-control" placeholder="Enter your name" title="Enter your name" data-toggle="tooltip">
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <span class="input-group-prepend" id="name"><label class="input-group-text"><i class="icofont icofont-ui-email"></i></label></span>
-                                                            <input type="text" class="form-control" placeholder="Enter email" title="Enter email" data-toggle="tooltip">
-                                                        </div>
-                                                        <button type="button" class="btn btn-primary waves-effect waves-light m-r-20" data-toggle="tooltip" data-placement="right" title="submit">Submit
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <!-- Tooltips on textbox card end -->
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Page-body end -->
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Main-body end -->
-                    <div id="styleSelector">
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-
-
-    <!-- Warning Section Starts -->
-    <!-- Older IE warning message -->
-    <!--[if lt IE 10]>
-<div class="ie-warning">
-    <h1>Warning!!</h1>
-    <p>You are using an outdated version of Internet Explorer, please upgrade <br/>to any of the following web browsers to access this website.</p>
-    <div class="iew-container">
-        <ul class="iew-download">
-            <li>
-                <a href="http://www.google.com/chrome/">
-                    <img src="assets/images/browser/chrome.png" alt="Chrome">
-                    <div>Chrome</div>
-                </a>
-            </li>
-            <li>
-                <a href="https://www.mozilla.org/en-US/firefox/new/">
-                    <img src="assets/images/browser/firefox.png" alt="Firefox">
-                    <div>Firefox</div>
-                </a>
-            </li>
-            <li>
-                <a href="http://www.opera.com">
-                    <img src="assets/images/browser/opera.png" alt="Opera">
-                    <div>Opera</div>
-                </a>
-            </li>
-            <li>
-                <a href="https://www.apple.com/safari/">
-                    <img src="assets/images/browser/safari.png" alt="Safari">
-                    <div>Safari</div>
-                </a>
-            </li>
-            <li>
-                <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">
-                    <img src="assets/images/browser/ie.png" alt="">
-                    <div>IE (9 & above)</div>
-                </a>
-            </li>
-        </ul>
-    </div>
-    <p>Sorry for the inconvenience!</p>
-</div>
-<![endif]-->
-    <!-- Warning Section Ends -->
-    <!-- Required Jquery -->
     <script type="text/javascript" src="assets/js/jquery/jquery.min.js "></script>
     <script type="text/javascript" src="assets/js/jquery-ui/jquery-ui.min.js "></script>
     <script type="text/javascript" src="assets/js/popper.js/popper.min.js"></script>
@@ -585,27 +604,12 @@
     <script src="assets/pages/waves/js/waves.min.js"></script>
     <!-- jquery slimscroll js -->
     <script type="text/javascript" src="assets/js/jquery-slimscroll/jquery.slimscroll.js"></script>
+
+    <!-- Custom js -->
     <script src="assets/js/pcoded.min.js"></script>
     <script src="assets/js/vertical/vertical-layout.min.js"></script>
     <script src="assets/js/jquery.mCustomScrollbar.concat.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('[data-toggle="tooltip"]').tooltip();
-        });
-
-        $(document).ready(function() {
-            $('[data-toggle="popover"]').popover({
-                html: true,
-                content: function() {
-                    return $('#primary-popover-content').html();
-                }
-            });
-        });
-    </script>
-    <!-- Custom js -->
     <script type="text/javascript" src="assets/js/script.js"></script>
-
 </body>
 
 </html>
