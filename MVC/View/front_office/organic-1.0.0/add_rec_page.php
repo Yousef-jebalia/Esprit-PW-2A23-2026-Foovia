@@ -9,19 +9,7 @@ $controller = new Controller_reclamation();
 $reclamations = [];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['action']) && $_POST['action'] === 'delete' && !empty($_POST['id_recl'])) {
-        $deleteReclamation = new Reclamations(
-            $_POST['id_recl'],
-            0,
-            '',
-            '',
-            '',
-            '',
-            ''
-        );
-        $controller->suppression_reclamation($deleteReclamation);
-        $success = "Reclamation deleted successfully.";
-    } elseif (
+    if (
         isset($_POST["id_recl"]) && isset($_POST["id_user"]) && isset($_POST["description"]) && 
         isset($_POST["etat_rec"]) && isset($_POST["type"]) && isset($_POST["date_overture"]) 
     ) {
@@ -38,8 +26,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_POST['date_overture'],
                 ''
             );
-           /* $controller->add_reclamation($reclamation);
-            $success = "Reclamation added successfully.";*/
+            $controller->add_reclamation($reclamation);
+            header('Location: support_rec_page.php');
+            exit;
         } else {
             $error = "All fields are required.";
         }
@@ -488,6 +477,8 @@ $reclamations = $controller->get_reclamations();
 
       <!--------------------------------------------------------------------->
     </section>
+    
+          
     <section>
         <div class="container mt-5">
             <?php if (!empty($error)): ?>
@@ -501,62 +492,36 @@ $reclamations = $controller->get_reclamations();
                 </div>
             <?php endif; ?>
         </div>
-        <div class="container mt-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">Liste des Reclamations</h2>
-                <a href="add_rec_page.php" class="btn btn-success" title="Ajouter Reclamation">Ajouter Reclamation</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID Reclamation</th>
-                            <th>ID User</th>
-                            <th>Description</th>
-                            <th>Etat</th>
-                            <th>Type</th>
-                            <th>Date Overture</th>
-                            <th>Date Fermiture</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($reclamations)): ?>
-                            <?php foreach ($reclamations as $reclamation): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($reclamation['id_reclam']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['id_user']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['description_reclam']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['etat_reclam']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['type_reclam']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['dateouvert_reclam']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['dateferm_reclam'] ?? '-'); ?></td>
-                                    <td>
-                                        <div class="d-flex gap-2">
-                                            <form method="post" class="m-0">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id_recl" value="<?php echo htmlspecialchars($reclamation['id_reclam']); ?>">
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cette reclamation ?');">Supprimer</button>
-                                            </form>
-                                            <a href="Modifier_rec_page.php?id=<?php echo urlencode($reclamation['id_reclam']); ?>" class="btn btn-warning btn-sm" title="Modifier">Modifier</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" class="text-center">No reclamations found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    
-          
-    
+        <form action="" method="post" class="container mt-5">
+          <div class="mb-3">
+            <label for="id_recl" class="form-label">ID Reclamation</label>
+            <input type="text" class="form-control" id="id_recl" name="id_recl" placeholder="Enter ID Reclamation" >
+          </div>
+          <div class="mb-3">
+            <label for="id_user" class="form-label">ID User</label>
+            <input type="text" class="form-control" id="id_user" name="id_user" placeholder="Enter ID User" >
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter Description"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="etat_rec" class="form-label">Etat Reclamation</label>
+            <input type="text" class="form-control" id="etat_rec" name="etat_rec" placeholder="Enter Etat Reclamation" >
+          </div>
+          <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <input type="text" class="form-control" id="type" name="type" placeholder="Enter Type" >
+          </div>
+          <div class="mb-3">
+            <label for="date_overture" class="form-label">Date Overture</label>
+            <input type="date" class="form-control" id="date_overture" name="date_overture" placeholder="Select Date Overture" >
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-4">
+                <button type="submit" class="btn btn-success">Confirmer</button>
+                <a href="support_rec_page.php" class="btn btn-secondary" title="Annuler">Annuler</a>
+        </form>
+      </section>
 
 
     <section class="pb-4 my-4">
