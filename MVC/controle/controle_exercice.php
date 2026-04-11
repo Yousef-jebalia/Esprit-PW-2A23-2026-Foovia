@@ -11,7 +11,9 @@ class controle_exercice
 {
     
    function add_exercise($exercise) {
-    $sql = "INSERT INTO exercice VALUES (NULL, :name_ex, :type_ex, :muscle_ex, :cal_ex, :fatigue_ex, :PR_ex, :description_ex, :gif_ex)";
+   // CORRECT
+$sql = "INSERT INTO exercice (name_ex, type_ex, muscle_ex, cal_ex, fatigue_ex, PR_ex, description_ex, gif_ex)
+        VALUES (:name_ex, :type_ex, :muscle_ex, :cal_ex, :fatigue_ex, :PR_ex, :description_ex, :gif_ex)";
     $db = config::getConnexion();
     try {
         $query = $db->prepare($sql);
