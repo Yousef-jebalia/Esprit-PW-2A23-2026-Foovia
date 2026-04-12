@@ -69,31 +69,31 @@ $editMode = false;
                         <?php if ($success): ?>
                             <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
                         <?php endif; ?>
-                        <form method="post">
+                        <form method="post" novalidate>
                             <input type="hidden" name="action" value="add">
                             <div class="mb-3">
                                 <label for="id_traitement" class="form-label">ID Traitement</label>
-                                <input type="number" class="form-control" id="id_traitement" name="id_traitement" value="<?php echo htmlspecialchars($id_traitement); ?>" <?php echo $editMode ? 'readonly' : ''; ?> required>
+                                <input type="text" class="form-control" id="id_traitement" name="id_traitement" value="<?php echo htmlspecialchars($id_traitement); ?>" <?php echo $editMode ? 'readonly' : ''; ?> >
                             </div>
                             <div class="mb-3">
                                 <label for="id_reclam" class="form-label">ID Réclamation</label>
-                                <input type="text" class="form-control" id="id_reclam" name="id_reclam" value="<?php echo htmlspecialchars($id_reclam); ?>" required>
+                                <input type="text" class="form-control" id="id_reclam" name="id_reclam" value="<?php echo htmlspecialchars($id_reclam); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="comment" class="form-label">Commentaire</label>
-                                <textarea class="form-control" id="comment" name="comment" rows="3" required><?php echo htmlspecialchars($comment); ?></textarea>
+                                <textarea class="form-control" id="comment" name="comment" rows="3"><?php echo htmlspecialchars($comment); ?></textarea>
                             </div>
                             <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
-                                <input type="text" class="form-control" id="status" name="status" value="<?php echo htmlspecialchars($status); ?>" required>
+                                <input type="text" class="form-control" id="status" name="status" value="<?php echo htmlspecialchars($status); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="date_trait" class="form-label">Date</label>
-                                <input type="date" class="form-control" id="date_trait" name="date_trait" value="<?php echo htmlspecialchars($date_trait); ?>" required>
+                                <input type="date" class="form-control" id="date_trait" name="date_trait" value="<?php echo htmlspecialchars($date_trait); ?>">
                             </div>
                             <div class="mb-3">
                                 <label for="id_user" class="form-label">ID User</label>
-                                <input type="number" class="form-control" id="id_user" name="id_user" value="<?php echo htmlspecialchars($id_user); ?>" required>
+                                <input type="text" class="form-control" id="id_user" name="id_user" value="<?php echo htmlspecialchars($id_user); ?>">
                             </div>
                             <button type="submit" class="btn btn-success"><?php echo $editMode ? 'Mettre à jour' : 'Ajouter'; ?></button>
                         </form>
@@ -102,6 +102,7 @@ $editMode = false;
             </div>
         </div>
     </div>
+    <script src="verif_traitements.js"></script>
 </body>
 
 </html>

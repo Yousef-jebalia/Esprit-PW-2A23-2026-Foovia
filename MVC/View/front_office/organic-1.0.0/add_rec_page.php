@@ -11,24 +11,28 @@ $reclamations = [];
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (
         isset($_POST["id_recl"]) && isset($_POST["id_user"]) && isset($_POST["description"]) && 
-        isset($_POST["etat_rec"]) && isset($_POST["type"]) && isset($_POST["date_overture"]) 
+        isset($_POST["etat_rec"]) && isset($_POST["type"])
     ) {
         if (
             !empty($_POST["id_recl"]) && !empty($_POST["id_user"]) && !empty($_POST["description"]) && 
-            !empty($_POST["etat_rec"]) && !empty($_POST["type"]) && !empty($_POST["date_overture"]) )
-         {
-            $reclamation = new Reclamations(
-                $_POST['id_recl'],
-                (int)$_POST['id_user'],
-                $_POST['description'],
-                $_POST['etat_rec'],
-                $_POST['type'],
-                $_POST['date_overture'],
-                ''
-            );
-            $controller->add_reclamation($reclamation);
-            header('Location: support_rec_page.php');
-            exit;
+            !empty($_POST["etat_rec"]) && !empty($_POST["type"])
+        ) {
+            try {
+                $reclamation = new Reclamations(
+                    $_POST['id_recl'],
+                    (int)$_POST['id_user'],
+                    $_POST['description'],
+                    $_POST['etat_rec'],
+                    $_POST['type'],
+                    '',
+                    ''
+                );
+                $controller->add_reclamation($reclamation);
+                header('Location: support_rec_page.php');
+                exit;
+            } catch (Exception $e) {
+                $error = 'Database error: ' . $e->getMessage();
+            }
         } else {
             $error = "All fields are required.";
         }
@@ -492,7 +496,7 @@ $reclamations = $controller->get_reclamations();
                 </div>
             <?php endif; ?>
         </div>
-        <form action="" method="post" class="container mt-5">
+        <form action="" method="post" class="container mt-5" novalidate>
           <div class="mb-3">
             <label for="id_recl" class="form-label">ID Reclamation</label>
             <input type="text" class="form-control" id="id_recl" name="id_recl" placeholder="Enter ID Reclamation" >
@@ -511,11 +515,12 @@ $reclamations = $controller->get_reclamations();
           </div>
           <div class="mb-3">
             <label for="type" class="form-label">Type</label>
-            <input type="text" class="form-control" id="type" name="type" placeholder="Enter Type" >
-          </div>
-          <div class="mb-3">
-            <label for="date_overture" class="form-label">Date Overture</label>
-            <input type="date" class="form-control" id="date_overture" name="date_overture" placeholder="Select Date Overture" >
+            <select class="form-control" id="type" name="type">
+              <option value="">Select Type</option>
+              <option value="Authentication">Authentication</option>
+              <option value="Abonnement">Abonnement</option>
+              <option value="Autre">Autre</option>
+            </select>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-4">
                 <button type="submit" class="btn btn-success">Confirmer</button>
@@ -779,5 +784,6 @@ $reclamations = $controller->get_reclamations();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
+    <script src="verif_rec.js"></script>
   </body>
 </html>

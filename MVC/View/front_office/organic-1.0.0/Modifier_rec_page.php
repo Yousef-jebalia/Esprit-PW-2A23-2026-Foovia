@@ -19,20 +19,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['action']) && $_POST['action'] === 'update' && !empty($_POST['id_recl'])) {
         if (
             !empty($_POST["id_recl"]) && !empty($_POST["id_user"]) && !empty($_POST["description"]) && 
-            !empty($_POST["etat_rec"]) && !empty($_POST["type"]) && !empty($_POST["date_overture"]) )
-        {
-            $reclamation = new Reclamations(
-                $_POST['id_recl'],
-                (int)$_POST['id_user'],
-                $_POST['description'],
-                $_POST['etat_rec'],
-                $_POST['type'],
-                $_POST['date_overture'],
-                ''
-            );
-            $controller->update_reclamation($reclamation);
-            header('Location: support_rec_page.php');
-            exit;
+            !empty($_POST["etat_rec"]) && !empty($_POST["type"])
+        ) {
+            try {
+                $reclamation = new Reclamations(
+                    $_POST['id_recl'],
+                    (int)$_POST['id_user'],
+                    $_POST['description'],
+                    $_POST['etat_rec'],
+                    $_POST['type'],
+                    '',
+                    ''
+                );
+                $controller->update_reclamation($reclamation);
+                header('Location: support_rec_page.php');
+                exit;
+            } catch (Exception $e) {
+                $error = 'Database error: ' . $e->getMessage();
+            }
         } else {
             $error = "All fields are required.";
         }
@@ -484,7 +488,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             <?php endif; ?>
         </div>
-        <form action="" method="post" class="container mt-5">
+        <form action="" method="post" class="container mt-5" novalidate>
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="id_recl" value="<?php echo htmlspecialchars($reclamationToEdit['id_reclam'] ?? ''); ?>">
           <input type="hidden" id="id_user" name="id_user" value="<?php echo htmlspecialchars($reclamationToEdit['id_user'] ?? ''); ?>">
@@ -498,11 +502,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           </div>
           <div class="mb-3">
             <label for="type" class="form-label">Type</label>
-            <input type="text" class="form-control" id="type" name="type" placeholder="Enter Type" value="<?php echo htmlspecialchars($reclamationToEdit['type_reclam'] ?? ''); ?>">
-          </div>
-          <div class="mb-3">
-            <label for="date_overture" class="form-label">Date Overture</label>
-            <input type="date" class="form-control" id="date_overture" name="date_overture" placeholder="Select Date Overture" value="<?php echo htmlspecialchars($reclamationToEdit['dateouvert_reclam'] ?? ''); ?>">
+            <select class="form-control" id="type" name="type">
+              <option value="">Select Type</option>
+              <option value="Authentication" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Authentication') ? 'selected' : ''; ?>>Authentication</option>
+              <option value="Abonnement" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Abonnement') ? 'selected' : ''; ?>>Abonnement</option>
+              <option value="Autre" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Autre') ? 'selected' : ''; ?>>Autre</option>
+            </select>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-4">
                 <button type="submit" class="btn btn-primary">Confirmer</button>
@@ -767,5 +772,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
+    <script src="verif_rec.js"></script>
   </body>
 </html>
