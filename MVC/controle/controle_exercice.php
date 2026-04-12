@@ -15,16 +15,15 @@ class controle_exercice
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
-            $query->execute([
-                'name_ex'        => $exercise->getNameEx(),
-                'type_ex'        => $exercise->getTypeEx(),
-                'muscle_ex'      => $exercise->getMuscleEx(),
-                'cal_ex'         => $exercise->getCalEx(),
-                'fatigue_ex'     => $exercise->getFatigueEx(),
-                'PR_ex'          => $exercise->getPREx(),
-                'description_ex' => $exercise->getDescriptionEx(),
-                'gif_ex'         => $exercise->getGifEx(),
-            ]);
+            $query->bindValue('name_ex',        $exercise->getNameEx());
+            $query->bindValue('type_ex',        $exercise->getTypeEx());
+            $query->bindValue('muscle_ex',      $exercise->getMuscleEx());
+            $query->bindValue('cal_ex',         $exercise->getCalEx());
+            $query->bindValue('fatigue_ex',     $exercise->getFatigueEx());
+            $query->bindValue('PR_ex',          $exercise->getPREx());
+            $query->bindValue('description_ex', $exercise->getDescriptionEx());
+            $query->bindValue('gif_ex',         $exercise->getGifEx(), PDO::PARAM_LOB);
+            $query->execute();
             return true;
         } catch (Exception $e) {
             return $e->getMessage();
@@ -43,8 +42,7 @@ class controle_exercice
                     cal_ex         = :cal_ex,
                     fatigue_ex     = :fatigue_ex,
                     PR_ex          = :PR_ex,
-                    description_ex = :description_ex,
-                    gif_ex         = :gif_ex
+                    description_ex = :description_ex
                 WHERE id_ex = :id'
             );
             $query->execute([
@@ -56,7 +54,6 @@ class controle_exercice
                 'fatigue_ex'     => $exercise->getFatigueEx(),
                 'PR_ex'          => $exercise->getPREx(),
                 'description_ex' => $exercise->getDescriptionEx(),
-                'gif_ex'         => $exercise->getGifEx(),
             ]);
             return true;
         } catch (PDOException $e) {
@@ -124,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gif         = null;
 
     if (isset($_FILES['ex_picture']) && $_FILES['ex_picture']['error'] === UPLOAD_ERR_OK) {
-        $gif = $_FILES['ex_picture']['name'];
+        $gif = file_get_contents($_FILES['ex_picture']['tmp_name']);
     }
 
     $exercise = new Exercise($name, $type, $muscle, $calories, $fatigue, $description, $gif, null, 0.0);

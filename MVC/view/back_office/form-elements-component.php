@@ -586,15 +586,12 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
             <div id="card-<?= $ex['id_ex'] ?>" class="exercise-card"  style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
                 
                 <!-- GIF/Image -->
-                <div style="width: 60px; height: 60px; flex-shrink: 0; background: #f0f4ff; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                    <?php if (!empty($ex['gif_ex'])): ?>
-                        <img src="../../uploads/<?= htmlspecialchars($ex['gif_ex']) ?>" 
-                             style="width: 100%; height: 100%; object-fit: cover;" 
-                             onerror="this.style.display='none'">
-                    <?php else: ?>
-                        <i class="ti-image" style="color: #aaa; font-size: 24px;"></i>
-                    <?php endif; ?>
-                </div>
+               <?php if (!empty($ex['gif_ex'])): ?>
+                    <img src="data:image/gif;base64,<?= base64_encode($ex['gif_ex']) ?>" 
+                        style="width: 10%; height: 10%; object-fit: cover;">
+                <?php else: ?>
+                    <i class="ti-image" style="color: #aaa; font-size: 24px;"></i>
+                <?php endif; ?>
 
                 <!-- Info -->
                 <div style="flex: 1; min-width: 0;">
