@@ -18,15 +18,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
         $controller = new Controller_user();
         $db = config::getConnexion();
         
-        $sql = "SELECT id_user, name_user FROM user WHERE email_user = :email";
+        $sql = "SELECT id_user, name_user, password_user, phone_user FROM user WHERE email_user = :email";
         $query = $db->prepare($sql);
         $query->execute(['email' => $email]);
+        
         $result = $query->fetch();
         
         if (!$result) {
             $error_message = 'User not found.';
+
         } else {
             $user_id = $result['id_user'];
+            $user_pw = $result['password_user'];
+            $user_phone = $result['phone_user'];
+
             
             // Create User object with updated information
             $user = new User(
@@ -34,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                 $result['name_user'],
                 $_POST['lastname'] ?? $result['name_user'],
                 $email,
-                '', // password remains unchanged
-                intval($_POST['phone'] ?? 0),
+                $user_pw, // password remains unchanged
+                $user_phone, // phone remains unchanged
                 $_POST['gender'] ?? '',
                 $_POST['birthday'] ?? '',
                 intval($_POST['height'] ?? 0),
@@ -56,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
             
             // Clear session and redirect to login
             unset($_SESSION['signup_email']);
-            header('refresh:2;url=auth-normal-sign-in.html');
+            header('refresh:2;url=../frontoffice/login.php');
         }
     } catch (Exception $e) {
         $error_message = 'An error occurred: ' . $e->getMessage();

@@ -7,7 +7,7 @@ class User
     private string $lastname_user;
     private string $email_user;
     private string $password_user;
-    private int $phone_user;
+    private string $phone_user;
     private string $gender_user;
     private string $birthday_user;
     private int $height_user;
@@ -27,7 +27,7 @@ class User
         string $lastname_user,
         string $email_user,
         string $password_user,
-        int $phone_user,
+        string $phone_user,
         string $gender_user,
         string $birthday_user,
         int $height_user,
@@ -71,7 +71,7 @@ class User
     public function getLastnameUser(): string { return $this->lastname_user; }
     public function getEmailUser(): string { return $this->email_user; }
     public function getPasswordUser(): string { return $this->password_user; }
-    public function getPhoneUser(): int { return $this->phone_user; }
+    public function getPhoneUser(): string { return $this->phone_user; }
     public function getGenderUser(): string { return $this->gender_user; }
     public function getBirthdayUser(): string { return $this->birthday_user; }
     public function getHeightUser(): int { return $this->height_user; }
@@ -90,7 +90,7 @@ class User
     public function setLastnameUser(string $lastname_user): void { $this->lastname_user = $lastname_user; }
     public function setEmailUser(string $email_user): void { $this->email_user = $email_user; }
     public function setPasswordUser(string $password_user): void { $this->password_user = $password_user; }
-    public function setPhoneUser(int $phone_user): void { $this->phone_user = $phone_user; }
+    public function setPhoneUser(string $phone_user): void { $this->phone_user = $phone_user; }
     public function setGenderUser(string $gender_user): void { $this->gender_user = $gender_user; }
     public function setBirthdayUser(string $birthday_user): void { $this->birthday_user = $birthday_user; }
     public function setHeightUser(int $height_user): void { $this->height_user = $height_user; }

@@ -9,10 +9,11 @@ $success_message = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
     // Get form values
     $name = $_POST['name'] ?? '';
+    $phone = $_POST['phone'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm-password'] ?? '';
-    $phone = $_POST['phone'] ?? '';
+    $lastname = $_POST['lastname'] ?? $name; // fallback to name if no lastname field
     $gender = $_POST['gender'] ?? 'Not specified';
     $birthday = $_POST['birthday'] ?? '';
     $height = intval($_POST['height'] ?? 0);
@@ -26,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
     // Trim values
     $name = trim($name);
     $email = trim($email);
-    $phone = trim($phone);
+    //$phone = trim($phone);
     
     // Validate form data
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
@@ -38,25 +39,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
     } else {
         try {
             // Create User object with plain password (no hashing)
-            $user = new User(
-                0,
-                $name,
-                $name,
-                $email,
-                $password, // Store password as plain text
-                intval($phone),
-                $gender,
-                $birthday,
-                $height,
-                $weight,
-                $bmi,
-                $activity,
-                $illness,
-                $allergie,
-                $medicament,
-                date('Y-m-d H:i:s'),
-                'user'
-            );
+            // ✅ CORRECT
+
+
+$user = new User(
+    0,
+    $name,          // name_user
+    $lastname,      // lastname_user
+    $email,         // email_user
+    $password,      // password_user ✅
+    $phone,         // phone_user as STRING ✅
+    $gender,
+    $birthday,
+    $height,
+    $weight,
+    $bmi,
+    $activity,
+    $illness,
+    $allergie,
+    $medicament,
+    date('Y-m-d H:i:s'),
+    'user'
+);
 
             // Add user to database
             $controller = new Controller_user();
