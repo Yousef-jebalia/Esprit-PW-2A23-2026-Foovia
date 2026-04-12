@@ -2,7 +2,6 @@
 session_start();
 include(__DIR__ . '/../../controller/Controller_user.php');
 
-// Check if user has just signed up
 if (!isset($_SESSION['signup_email'])) {
     header('Location: auth-sign-up.php');
     exit;
@@ -14,33 +13,28 @@ $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
     try {
-        // Get the user by email
         $controller = new Controller_user();
         $db = config::getConnexion();
-        
+
         $sql = "SELECT id_user, name_user, password_user, phone_user FROM user WHERE email_user = :email";
         $query = $db->prepare($sql);
         $query->execute(['email' => $email]);
-        
         $result = $query->fetch();
-        
+
         if (!$result) {
             $error_message = 'User not found.';
-
         } else {
-            $user_id = $result['id_user'];
-            $user_pw = $result['password_user'];
+            $user_id    = $result['id_user'];
+            $user_pw    = $result['password_user'];
             $user_phone = $result['phone_user'];
 
-            
-            // Create User object with updated information
             $user = new User(
                 $user_id,
                 $result['name_user'],
                 $_POST['lastname'] ?? $result['name_user'],
                 $email,
-                $user_pw, // password remains unchanged
-                $user_phone, // phone remains unchanged
+                $user_pw,
+                $user_phone,
                 $_POST['gender'] ?? '',
                 $_POST['birthday'] ?? '',
                 intval($_POST['height'] ?? 0),
@@ -53,13 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                 date('Y-m-d H:i:s'),
                 'user'
             );
-            
-            // Update user in database
+
             $controller->update_user($user, $user_id);
-            
+
             $success_message = 'Survey completed successfully! Redirecting to login...';
-            
-            // Clear session and redirect to login
             unset($_SESSION['signup_email']);
             header('refresh:2;url=../frontoffice/login.php');
         }
@@ -70,7 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <title>Health Survey - Foovia</title>
     <meta charset="utf-8">
@@ -84,14 +74,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
     <link rel="stylesheet" type="text/css" href="assets/icon/icofont/css/icofont.css">
     <link rel="stylesheet" type="text/css" href="assets/icon/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+    <style>
+        .field-error { color: #e74c3c; font-size: 12px; margin-top: 4px; display: none; }
+        .form-control.invalid { border-bottom: 2px solid #e74c3c !important; }
+        .form-control.valid   { border-bottom: 2px solid #2ecc71 !important; }
+    </style>
 </head>
-
 <body themebg-pattern="theme1">
     <section class="login-block">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-12">
-                    <form class="md-float-material form-material" action="" method="POST">
+                    <form class="md-float-material form-material" id="surveyForm" action="" method="POST" novalidate>
                         <div class="text-center">
                             <img src="assets/images/logo.png" alt="logo.png">
                         </div>
@@ -104,14 +98,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                                     </div>
                                 </div>
 
+                                <?php if (!empty($error_message)): ?>
+                                    <div class="alert alert-danger"><?php echo $error_message; ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($success_message)): ?>
+                                    <div class="alert alert-success"><?php echo $success_message; ?></div>
+                                <?php endif; ?>
+
                                 <!-- Last Name -->
                                 <div class="form-group form-primary">
-                                    <input type="text" name="lastname" class="form-control">
+                                    <input type="text" name="lastname" id="lastname" class="form-control">
                                     <span class="form-bar"></span>
                                     <label class="float-label">Last Name</label>
+                                    <span class="field-error" id="lastname-error">Last name must contain letters only.</span>
                                 </div>
 
-                                <!-- Gender & Birthday in rows -->
+                                <!-- Gender & Birthday -->
                                 <div class="row">
                                     <div class="col-sm-6">
                                         <div class="form-group form-primary">
@@ -127,9 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                                     </div>
                                     <div class="col-sm-6">
                                         <div class="form-group form-primary">
-                                            <input type="date" name="birthday" class="form-control">
+                                            <input type="date" name="birthday" id="birthday" class="form-control">
                                             <span class="form-bar"></span>
                                             <label class="float-label">Birthday</label>
+                                            <span class="field-error" id="birthday-error">Birthday must be before today.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -138,23 +141,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                                 <div class="row">
                                     <div class="col-sm-4">
                                         <div class="form-group form-primary">
-                                            <input type="number" name="height" class="form-control" placeholder="cm">
+                                            <input type="number" name="height" id="height" class="form-control" placeholder="cm" min="50" max="250">
                                             <span class="form-bar"></span>
                                             <label class="float-label">Height (cm)</label>
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
                                         <div class="form-group form-primary">
-                                            <input type="number" name="weight" class="form-control" placeholder="kg">
+                                            <input type="number" name="weight" id="weight" class="form-control" placeholder="kg" min="10" max="300">
                                             <span class="form-bar"></span>
                                             <label class="float-label">Weight (kg)</label>
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
                                         <div class="form-group form-primary">
-                                            <input type="number" name="bmi" class="form-control" placeholder="kg/m²">
+                                            <input type="number" name="bmi" id="bmi" class="form-control" placeholder="Auto-calculated" readonly style="background:#f5f5f5; cursor:not-allowed;">
                                             <span class="form-bar"></span>
-                                            <label class="float-label">BMI</label>
+                                            <label class="float-label">BMI (auto)</label>
+                                            <span id="bmi-label" style="font-size:11px; margin-top:3px; display:none;"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -166,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                                     <label class="float-label">Activity Level</label>
                                 </div>
 
-                                <!-- Health Information -->
+                                <!-- Health Info -->
                                 <div class="form-group form-primary">
                                     <input type="text" name="illness" class="form-control" placeholder="e.g., Diabetes, Hypertension">
                                     <span class="form-bar"></span>
@@ -205,13 +209,105 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
         </div>
     </section>
 
-    <script type="text/javascript" src="assets/js/jquery/jquery.min.js "></script>
-    <script type="text/javascript" src="assets/js/jquery-ui/jquery-ui.min.js "></script>
+    <script type="text/javascript" src="assets/js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/js/jquery-ui/jquery-ui.min.js"></script>
     <script type="text/javascript" src="assets/js/popper.js/popper.min.js"></script>
-    <script type="text/javascript" src="assets/js/bootstrap/js/bootstrap.min.js "></script>
+    <script type="text/javascript" src="assets/js/bootstrap/js/bootstrap.min.js"></script>
     <script src="assets/pages/waves/js/waves.min.js"></script>
     <script type="text/javascript" src="assets/js/jquery-slimscroll/jquery.slimscroll.js"></script>
     <script type="text/javascript" src="assets/js/common-pages.js"></script>
-</body>
 
+    <script>
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function showError(fieldId, errorId) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(errorId);
+        if (field)  { field.classList.add('invalid'); field.classList.remove('valid'); }
+        if (error)  { error.style.display = 'block'; }
+        return false;
+    }
+    function showValid(fieldId, errorId) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(errorId);
+        if (field)  { field.classList.remove('invalid'); field.classList.add('valid'); }
+        if (error)  { error.style.display = 'none'; }
+        return true;
+    }
+
+    // ── Last name: letters, spaces, hyphens only ──────────────────────────────
+    document.getElementById('lastname').addEventListener('input', function () {
+        // Block any character that is not a letter, space or hyphen
+        this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-]/g, '');
+    });
+
+    // ── Birthday: set max to today so the browser picker blocks future dates ──
+    (function () {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('birthday').setAttribute('max', today);
+    })();
+
+    // ── Live validation on blur ───────────────────────────────────────────────
+    document.getElementById('lastname').addEventListener('blur', validateLastname);
+    document.getElementById('birthday').addEventListener('blur', validateBirthday);
+
+    function validateLastname() {
+        const val = document.getElementById('lastname').value.trim();
+        return /^[a-zA-ZÀ-ÿ\s\-]+$/.test(val) && val.length > 0
+            ? showValid('lastname', 'lastname-error')
+            : showError('lastname', 'lastname-error');
+    }
+
+    function validateBirthday() {
+        const val = document.getElementById('birthday').value;
+        if (!val) return showError('birthday', 'birthday-error');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const chosen = new Date(val);
+        return chosen < today
+            ? showValid('birthday', 'birthday-error')
+            : showError('birthday', 'birthday-error');
+    }
+
+    // ── BMI auto-calculation ──────────────────────────────────────────────────
+    function calcBMI() {
+        const height = parseFloat(document.getElementById('height').value);
+        const weight = parseFloat(document.getElementById('weight').value);
+        const bmiField = document.getElementById('bmi');
+        const bmiLabel = document.getElementById('bmi-label');
+
+        if (height > 0 && weight > 0) {
+            const heightM = height / 100;
+            const bmi = (weight / (heightM * heightM)).toFixed(1);
+            bmiField.value = bmi;
+
+            // Show category
+            let category = '';
+            let color = '';
+            if      (bmi < 18.5) { category = 'Underweight'; color = '#3498db'; }
+            else if (bmi < 25)   { category = 'Normal weight'; color = '#2ecc71'; }
+            else if (bmi < 30)   { category = 'Overweight'; color = '#f39c12'; }
+            else                 { category = 'Obese'; color = '#e74c3c'; }
+
+            bmiLabel.textContent = 'BMI ' + bmi + ' — ' + category;
+            bmiLabel.style.color = color;
+            bmiLabel.style.display = 'block';
+        } else {
+            bmiField.value = '';
+            bmiLabel.style.display = 'none';
+        }
+    }
+
+    document.getElementById('height').addEventListener('input', calcBMI);
+    document.getElementById('weight').addEventListener('input', calcBMI);
+
+    // ── Block form if validation fails ────────────────────────────────────────
+    document.getElementById('surveyForm').addEventListener('submit', function (e) {
+        const lastnameOk = validateLastname();
+        const birthdayOk = validateBirthday();
+        if (!lastnameOk || !birthdayOk) {
+            e.preventDefault();
+        }
+    });
+    </script>
+</body>
 </html>
