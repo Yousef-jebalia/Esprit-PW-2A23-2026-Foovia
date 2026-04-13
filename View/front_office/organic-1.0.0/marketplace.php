@@ -3,9 +3,13 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../../Model/Marchandise.php';
+require_once __DIR__ . '/../../../Model/Magasin.php';
 
-$products = marketplace_fetch_products();
-$stores = marketplace_fetch_stores();
+$marchandiseModel = new Marchandise();
+$magasinModel = new Magasin();
+
+$products = $marchandiseModel->fetchAllWithStores();
+$stores = $magasinModel->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">

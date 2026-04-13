@@ -2,18 +2,31 @@
 
 declare(strict_types=1);
 
-function foovia_db(): mysqli
+final class Database
 {
-    static $connection = null;
+    private static ?PDO $connection = null;
 
-    if ($connection instanceof mysqli) {
-        return $connection;
+    private function __construct()
+    {
     }
 
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    public static function getConnection(): PDO
+    {
+        if (self::$connection instanceof PDO) {
+            return self::$connection;
+        }
 
-    $connection = new mysqli('127.0.0.1', 'root', '', 'foovia_db');
-    $connection->set_charset('utf8mb4');
+        self::$connection = new PDO(
+            'mysql:host=127.0.0.1;dbname=foovia_db;charset=utf8mb4',
+            'root',
+            '',
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]
+        );
 
-    return $connection;
+        return self::$connection;
+    }
 }

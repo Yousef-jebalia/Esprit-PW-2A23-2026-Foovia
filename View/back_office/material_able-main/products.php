@@ -3,13 +3,17 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../../Model/Marchandise.php';
+require_once __DIR__ . '/../../../Model/Magasin.php';
 
-$stores = marketplace_fetch_stores();
-$products = marketplace_fetch_products();
-$summary = marketplace_fetch_summary();
+$marchandiseModel = new Marchandise();
+$magasinModel = new Magasin();
+
+$stores = $magasinModel->fetchAll();
+$products = $marchandiseModel->fetchAllWithStores();
+$summary = $marchandiseModel->fetchSummary();
 $status = (string) ($_GET['status'] ?? '');
 $editId = (int) ($_GET['edit'] ?? 0);
-$editingProduct = $editId > 0 ? marketplace_fetch_product_by_id($editId) : null;
+$editingProduct = $editId > 0 ? $marchandiseModel->findById($editId) : null;
 $isEditing = $editingProduct !== null;
 
 $message = match ($status) {
