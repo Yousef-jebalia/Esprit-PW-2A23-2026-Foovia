@@ -381,6 +381,7 @@
   .how .section-title { color: #fff; }
 
   .steps {
+    --step-shift: 260px;
     position: relative;
     margin-top: 20px;
     height: 360px;
@@ -398,7 +399,7 @@
     flex-direction: column;
     justify-content: center;
     opacity: 0;
-    transform: translate(calc(-50% + 260px), -50%);
+    transform: translate(calc(-50% + var(--step-shift)), -50%) scale(1);
     transition: none;
     animation: stepCarousel 12s ease-in-out infinite;
     animation-fill-mode: both;
@@ -410,24 +411,44 @@
   
   @keyframes stepCarousel {
     0% {
-      opacity: 0;
-      transform: translate(calc(-50% + 260px), -50%);
+      opacity: 0.68;
+      transform: translate(calc(-50% + var(--step-shift)), -50%) scale(0.8);
     }
     8% {
       opacity: 1;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) scale(1);
     }
     25% {
       opacity: 1;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) scale(1);
     }
     33% {
+      opacity: 0.68;
+      transform: translate(calc(-50% - var(--step-shift)), -50%) scale(0.8);
+    }
+    50% {
+      opacity: 0.68;
+      transform: translate(calc(-50% - var(--step-shift)), -50%) scale(0.8);
+    }
+    58% {
       opacity: 0;
-      transform: translate(calc(-50% - 260px), -50%);
+      transform: translate(calc(-50% - (var(--step-shift) * 1.35)), -50%) scale(0.72);
+    }
+    73% {
+      opacity: 0;
+      transform: translate(calc(-50% + (var(--step-shift) * 1.35)), -50%) scale(0.72);
+    }
+    80% {
+      opacity: 0.42;
+      transform: translate(calc(-50% + (var(--step-shift) * 1.18)), -50%) scale(0.76);
+    }
+    87% {
+      opacity: 0.68;
+      transform: translate(calc(-50% + var(--step-shift)), -50%) scale(0.8);
     }
     100% {
-      opacity: 0;
-      transform: translate(calc(-50% - 260px), -50%);
+      opacity: 0.68;
+      transform: translate(calc(-50% + var(--step-shift)), -50%) scale(0.8);
     }
   }
   .step-num {
@@ -623,7 +644,7 @@
     .section { padding: 64px 28px; }
     .feat-grid { grid-template-columns: 1fr 1fr; }
     .feat-card.wide { grid-column: span 2; }
-    .steps { height: 320px; }
+    .steps { --step-shift: 220px; height: 320px; }
     .step { width: 220px; min-height: 220px; padding: 24px 20px; }
     .marketplace { grid-template-columns: 1fr; }
     .mkt-text { padding: 60px 28px; }
@@ -636,7 +657,7 @@
   @media (max-width: 600px) {
     .feat-grid { grid-template-columns: 1fr; }
     .feat-card.wide { grid-column: span 1; }
-    .steps { height: 280px; }
+    .steps { --step-shift: 190px; height: 280px; }
     .step {
       width: 200px;
       min-height: 200px;
