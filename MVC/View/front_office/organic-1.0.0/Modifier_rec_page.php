@@ -18,15 +18,14 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['action']) && $_POST['action'] === 'update' && !empty($_POST['id_recl'])) {
         if (
-            !empty($_POST["id_recl"]) && !empty($_POST["id_user"]) && !empty($_POST["description"]) && 
-            !empty($_POST["etat_rec"]) && !empty($_POST["type"])
+            !empty($_POST["id_recl"]) && !empty($_POST["description"]) && !empty($_POST["type"])
         ) {
             try {
                 $reclamation = new Reclamations(
                     $_POST['id_recl'],
-                    (int)$_POST['id_user'],
+                    0,
                     $_POST['description'],
-                    $_POST['etat_rec'],
+                    '',
                     $_POST['type'],
                     '',
                     ''
@@ -491,14 +490,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form action="" method="post" class="container mt-5" novalidate>
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="id_recl" value="<?php echo htmlspecialchars($reclamationToEdit['id_reclam'] ?? ''); ?>">
-          <input type="hidden" id="id_user" name="id_user" value="<?php echo htmlspecialchars($reclamationToEdit['id_user'] ?? ''); ?>">
           <div class="mb-3">
             <label for="description" class="form-label">Description</label>
             <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter Description"><?php echo htmlspecialchars($reclamationToEdit['description_reclam'] ?? ''); ?></textarea>
-          </div>
-          <div class="mb-3">
-            <label for="etat_rec" class="form-label">Etat Reclamation</label>
-            <input type="text" class="form-control" id="etat_rec" name="etat_rec" placeholder="Enter Etat Reclamation" value="<?php echo htmlspecialchars($reclamationToEdit['etat_reclam'] ?? ''); ?>">
           </div>
           <div class="mb-3">
             <label for="type" class="form-label">Type</label>

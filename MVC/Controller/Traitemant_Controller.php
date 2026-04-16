@@ -1,5 +1,5 @@
 ﻿<?php
-include(__DIR__ . '/../Model/config.php');
+include_once(__DIR__ . '/../Model/config.php');
 include(__DIR__ . '/../Model/traitements.php');
 
 class Controller_traitement {

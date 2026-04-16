@@ -1,5 +1,5 @@
 <?php
-include(__DIR__ . '/../Model/config.php');
+include_once(__DIR__ . '/../Model/config.php');
 include(__DIR__ . '/../Model/reclamation.php');
 
 class Controller_reclamation {
@@ -10,22 +10,19 @@ class Controller_reclamation {
         $dateOverture = trim($reclamation->getDateOverture());
         try {
             if ($dateOverture === '') {
-                $sql = "INSERT INTO reclamation (id_reclam, id_user, description_reclam, etat_reclam, type_reclam, dateferm_reclam) 
-                        VALUES (:id_reclamation, :id_user, :description, :etat, :type, :date_fermiture)";
+                $sql = "INSERT INTO reclamation (id_user,description_reclam, etat_reclam, type_reclam, dateferm_reclam) 
+                        VALUES (:id_user,:description, :etat, :type, :date_fermiture)";
                 $params = [
-                    'id_reclamation' => $reclamation->getIdReclamation(),
-                    'id_user' => $reclamation->getIdUser(),
+                    'id_user'=>2,
                     'description' => $reclamation->getDescription(),
                     'etat' => $reclamation->getEtat(),
                     'type' => $reclamation->getType(),
                     'date_fermiture' => null
                 ];
             } else {
-                $sql = "INSERT INTO reclamation (id_reclam, id_user, description_reclam, etat_reclam, type_reclam, dateouvert_reclam, dateferm_reclam) 
-                        VALUES (:id_reclamation, :id_user, :description, :etat, :type, :date_overture, :date_fermiture)";
+                $sql = "INSERT INTO reclamation (description_reclam, etat_reclam, type_reclam, dateouvert_reclam, dateferm_reclam) 
+                        VALUES (:description, :etat, :type, :date_overture, :date_fermiture)";
                 $params = [
-                    'id_reclamation' => $reclamation->getIdReclamation(),
-                    'id_user' => $reclamation->getIdUser(),
                     'description' => $reclamation->getDescription(),
                     'etat' => $reclamation->getEtat(),
                     'type' => $reclamation->getType(),
@@ -72,6 +69,22 @@ class Controller_reclamation {
             return true;
         } catch (Exception $e) {
             throw new Exception('Reclamation update failed: ' . $e->getMessage());
+        }
+    }
+
+    public function update_reclamation_status_and_close(Reclamations $reclamation): bool {
+        $sql = "UPDATE reclamation SET etat_reclam = :etat, dateferm_reclam = :date_fermiture WHERE id_reclam = :id_reclamation";
+        $db = config::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            $query->execute([
+                'etat' => $reclamation->getEtat(),
+                'date_fermiture' => $reclamation->getDateFermiture(),
+                'id_reclamation' => $reclamation->getIdReclamation()
+            ]);
+            return true;
+        } catch (Exception $e) {
+            throw new Exception('Reclamation status update failed: ' . $e->getMessage());
         }
     }
 

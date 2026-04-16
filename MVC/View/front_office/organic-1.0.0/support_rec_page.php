@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             '',
             '',
             '',
-            '',
+            '',+
             ''
         );
         $controller->suppression_reclamation($deleteReclamation);
@@ -352,7 +352,7 @@ $reclamations = $controller->get_reclamations();
           <div class="col-lg-4">
             <ul class="navbar-nav list-unstyled d-flex flex-row gap-3 gap-lg-5 justify-content-center flex-wrap align-items-center mb-0 fw-bold text-uppercase text-dark">
               <li class="nav-item active">
-                <a href="index.html" class="nav-link">Home</a>
+                <a href="" class="nav-link">Home</a>
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle pe-3" role="button" id="pages" data-bs-toggle="dropdown" aria-expanded="false">Pages</a>
@@ -510,42 +510,27 @@ $reclamations = $controller->get_reclamations();
                 <table class="table table-bordered table-striped">
                     <thead class="table-light">
                         <tr>
-                            <th>ID Reclamation</th>
-                            <th>ID User</th>
                             <th>Description</th>
                             <th>Etat</th>
                             <th>Type</th>
                             <th>Date Overture</th>
                             <th>Date Fermiture</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($reclamations)): ?>
                             <?php foreach ($reclamations as $reclamation): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($reclamation['id_reclam']); ?></td>
-                                    <td><?php echo htmlspecialchars($reclamation['id_user']); ?></td>
                                     <td><?php echo htmlspecialchars($reclamation['description_reclam']); ?></td>
                                     <td><?php echo htmlspecialchars($reclamation['etat_reclam']); ?></td>
                                     <td><?php echo htmlspecialchars($reclamation['type_reclam']); ?></td>
                                     <td><?php echo htmlspecialchars($reclamation['dateouvert_reclam']); ?></td>
                                     <td><?php echo htmlspecialchars($reclamation['dateferm_reclam'] ?? '-'); ?></td>
-                                    <td>
-                                        <div class="d-flex gap-2">
-                                            <form method="post" class="m-0">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id_recl" value="<?php echo htmlspecialchars($reclamation['id_reclam']); ?>">
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cette reclamation ?');">Supprimer</button>
-                                            </form>
-                                            <a href="Modifier_rec_page.php?id=<?php echo urlencode($reclamation['id_reclam']); ?>" class="btn btn-warning btn-sm" title="Modifier">Modifier</a>
-                                        </div>
-                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center">No reclamations found.</td>
+                                <td colspan="5" class="text-center">No reclamations found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

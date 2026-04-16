@@ -10,19 +10,17 @@ $reclamations = [];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (
-        isset($_POST["id_recl"]) && isset($_POST["id_user"]) && isset($_POST["description"]) && 
-        isset($_POST["etat_rec"]) && isset($_POST["type"])
+        isset($_POST["description"])  && isset($_POST["type"])
     ) {
         if (
-            !empty($_POST["id_recl"]) && !empty($_POST["id_user"]) && !empty($_POST["description"]) && 
-            !empty($_POST["etat_rec"]) && !empty($_POST["type"])
+            !empty($_POST["description"]) && !empty($_POST["type"])
         ) {
             try {
                 $reclamation = new Reclamations(
-                    $_POST['id_recl'],
-                    (int)$_POST['id_user'],
+                    '',
+                    0,
                     $_POST['description'],
-                    $_POST['etat_rec'],
+                    'Pending',
                     $_POST['type'],
                     '',
                     ''
@@ -498,20 +496,8 @@ $reclamations = $controller->get_reclamations();
         </div>
         <form action="" method="post" class="container mt-5" novalidate>
           <div class="mb-3">
-            <label for="id_recl" class="form-label">ID Reclamation</label>
-            <input type="text" class="form-control" id="id_recl" name="id_recl" placeholder="Enter ID Reclamation" >
-          </div>
-          <div class="mb-3">
-            <label for="id_user" class="form-label">ID User</label>
-            <input type="text" class="form-control" id="id_user" name="id_user" placeholder="Enter ID User" >
-          </div>
-          <div class="mb-3">
             <label for="description" class="form-label">Description</label>
             <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter Description"></textarea>
-          </div>
-          <div class="mb-3">
-            <label for="etat_rec" class="form-label">Etat Reclamation</label>
-            <input type="text" class="form-control" id="etat_rec" name="etat_rec" placeholder="Enter Etat Reclamation" >
           </div>
           <div class="mb-3">
             <label for="type" class="form-label">Type</label>

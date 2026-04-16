@@ -1,25 +1,43 @@
 <?php
 include __DIR__ . '/../../../MVC/Controller/Traitemant_Controller.php';
+include __DIR__ . '/../../../MVC/Controller/Reclamtion_Controller.php';
 
 $error = '';
 $success = '';
 $controller = new Controller_traitement();
+$reclamationController = new Controller_reclamation();
 $traitements = [];
+$reclamations = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && !empty($_POST['id_traitement'])) {
-    $deleteTraitement = new Traitements(
-        (int)$_POST['id_traitement'], 
-        0,
-        '',
-        '',
-        '',
-        ''
-    );
-    $controller->suppression_traitement($deleteTraitement);
-    $success = 'Traitement supprimé avec succès.';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'delete_traitement' && !empty($_POST['id_traitement'])) {
+        $deleteTraitement = new Traitements(
+            (int)$_POST['id_traitement'], 
+            0,
+            '',
+            '',
+            '',
+            ''
+        );
+        $controller->suppression_traitement($deleteTraitement);
+        $success = 'Traitement supprimé avec succès.';
+    } elseif ($_POST['action'] === 'delete_reclamation' && !empty($_POST['id_reclamation'])) {
+        $deleteReclamation = new Reclamations(
+            $_POST['id_reclamation'], 
+            0,
+            '',
+            '',
+            '',
+            '',
+            ''
+        );
+        $reclamationController->suppression_reclamation($deleteReclamation);
+        $success = 'Reclamation supprimée avec succès.';
+    }
 }
 
 $traitements = $controller->get_traitements();
+$reclamations = $reclamationController->get_reclamations();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -448,11 +466,11 @@ $traitements = $controller->get_traitements();
                                                                             <td><?php echo htmlspecialchars($traitement['date__trait']); ?></td>
                                                                             <td><?php echo htmlspecialchars($traitement['id_user']); ?></td>
                                                                             <td>
-                                                                                <a href="update_traitement_page.php?id=<?php echo urlencode($traitement['id_traitement']); ?>" class="btn btn-warning btn-sm">Modifier</a>
+                                                                                <a href="update_traitement_page.php?id=<?php echo urlencode($traitement['id_traitement']); ?>" class="btn btn-warning btn-sm">Modify</a>
                                                                                 <form method="post" style="display:inline-block; margin-left:8px;" onsubmit="return confirm('Supprimer ce traitement ?');">
-                                                                                    <input type="hidden" name="action" value="delete">
+                                                                                    <input type="hidden" name="action" value="delete_traitement">
                                                                                     <input type="hidden" name="id_traitement" value="<?php echo htmlspecialchars($traitement['id_traitement']); ?>">
-                                                                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                                                                 </form>
                                                                             </td>
                                                                         </tr>
@@ -468,7 +486,61 @@ $traitements = $controller->get_traitements();
                                                 </div>
                                             </div>
                                         </div>
-
+                                        <div class="col-sm-12 mt-4">
+                                            <div class="card">
+                                                <div class="card-header d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <h5 class="mb-0">Liste des réclamations</h5>
+                                                        <span>Gestion des réclamations enregistrées</span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-block">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>ID réclamation</th>
+                                                                    <th>ID user</th>
+                                                                    <th>Description</th>
+                                                                    <th>Etat</th>
+                                                                    <th>Type</th>
+                                                                    <th>Date ouverture</th>
+                                                                    <th>Date fermeture</th>
+                                                                    <th>Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php if (!empty($reclamations)): ?>
+                                                                    <?php foreach ($reclamations as $reclamation): ?>
+                                                                        <tr>
+                                                                            <td><?php echo htmlspecialchars($reclamation['id_reclam']); ?></td>
+                                                                            <td><?php echo htmlspecialchars($reclamation['id_user']); ?></td>
+                                                                            <td><?php echo htmlspecialchars($reclamation['description_reclam']); ?></td>
+                                                                            <td><?php echo htmlspecialchars($reclamation['etat_reclam']); ?></td>
+                                                                            <td><?php echo htmlspecialchars($reclamation['type_reclam']); ?></td>
+                                                                            <td><?php echo htmlspecialchars($reclamation['dateouvert_reclam']); ?></td>
+                                                                            <td><?php echo htmlspecialchars($reclamation['dateferm_reclam'] ?? '-'); ?></td>
+                                                                            <td>
+                                                                                <a href="update_reclamation_page.php?id=<?php echo urlencode($reclamation['id_reclam']); ?>" class="btn btn-warning btn-sm">Modifier</a>
+                                                                                <form method="post" style="display:inline-block; margin-left:8px;" onsubmit="return confirm('Supprimer cette réclamation ?');">
+                                                                                    <input type="hidden" name="action" value="delete_reclamation">
+                                                                                    <input type="hidden" name="id_reclamation" value="<?php echo htmlspecialchars($reclamation['id_reclam']); ?>">
+                                                                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                                                                </form>
+                                                                            </td>
+                                                                        </tr>
+                                                                    <?php endforeach; ?>
+                                                                <?php else: ?>
+                                                                    <tr>
+                                                                        <td colspan="8" class="text-center">Aucune réclamation trouvée.</td>
+                                                                    </tr>
+                                                                <?php endif; ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>
