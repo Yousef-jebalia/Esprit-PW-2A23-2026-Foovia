@@ -18,7 +18,7 @@ class config
             ]);
             //echo "connected successfully";
             } catch (Exception $e) {
-            die('Erreur: ' . $e->getMessage());
+            die('Error: ' . $e->getMessage());
             }
             }
             return self::$pdo;

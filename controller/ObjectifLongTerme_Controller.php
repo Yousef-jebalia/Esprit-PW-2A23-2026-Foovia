@@ -4,6 +4,19 @@ include(__DIR__ . '/../model/ObjectifLongTerme.php');
 
 class ObjectifLongTerme_Controller {
 
+    public function get_next_objectif_id(): int {
+        $sql = "SELECT COALESCE(MAX(id_obj), 0) + 1 AS next_id FROM objectiflongterme";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->query($sql);
+            $result = $query->fetch();
+            return isset($result['next_id']) ? (int) $result['next_id'] : 1;
+        } catch (Exception $e) {
+            return 1;
+        }
+    }
+
     public function add_objectif(ObjectifLongTerme $objectif, $data) {
         $errors = $this->validate_objectif($data);
         if (!empty($errors)) {
@@ -36,7 +49,7 @@ class ObjectifLongTerme_Controller {
                 'obj_prot_obj' => $objectif->getObjProtObj(),
                 'obj_carb_obj' => $objectif->getObjCarbObj()
             ]);
-            echo "<p style='color:green'>Objectif ajouté avec succès !</p>";
+            echo "<p style='color:green'>Goal added successfully!</p>";
             return true;
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
@@ -57,7 +70,7 @@ class ObjectifLongTerme_Controller {
     }
 
     public function get_objectif_by_id(int $id_obj): ?array {
-        $sql = "SELECT id_obj, val_cible_obj, date_deb_obj, date_fin_obj, obj_cal_obj, obj_fat_obj, obj_prot_obj, obj_carb_obj FROM objectiflongterme WHERE id_obj = :id_obj";
+        $sql = "SELECT id_obj, id_user, type_obj, val_cible_obj, val_init_obj, date_deb_obj, date_fin_obj, status_obj, frequency_rappel_obj, consistancy_sport_obj, consistency_alim_obj, obj_cal_obj, obj_fat_obj, obj_prot_obj, obj_carb_obj FROM objectiflongterme WHERE id_obj = :id_obj";
         $db = config::getConnexion();
 
         try {
@@ -73,6 +86,7 @@ class ObjectifLongTerme_Controller {
     public function update_objectif_fields(int $id_obj, array $data): bool {
         $sql = "UPDATE objectiflongterme
                 SET val_cible_obj = :val_cible_obj,
+                    val_init_obj = :val_init_obj,
                     date_deb_obj = :date_deb_obj,
                     date_fin_obj = :date_fin_obj,
                     obj_cal_obj = :obj_cal_obj,
@@ -87,6 +101,7 @@ class ObjectifLongTerme_Controller {
             $query->execute([
                 'id_obj' => $id_obj,
                 'val_cible_obj' => $data['val_cible_obj'],
+                'val_init_obj' => $data['val_init_obj'],
                 'date_deb_obj' => $data['date_deb_obj'],
                 'date_fin_obj' => $data['date_fin_obj'],
                 'obj_cal_obj' => $data['obj_cal_obj'],
@@ -121,7 +136,7 @@ class ObjectifLongTerme_Controller {
         
         // Validation ID (max 4 chiffres)
         if (!isset($data['id_obj']) || !is_numeric($data['id_obj']) || $data['id_obj'] > 9999) {
-            $errors[] = "L'ID de l'objectif doit être un nombre à maximum 4 chiffres.";
+            $errors[] = "Goal ID must be a number with up to 4 digits.";
         }
         
         // Validation valeur cible selon type
@@ -165,27 +180,27 @@ class ObjectifLongTerme_Controller {
         
         // Validation des valeurs strictement positives
         $positive_fields = [
-            'val_cible_obj' => 'Valeur cible',
-            'val_init_obj' => 'Valeur initiale',
-            'obj_cal_obj' => 'Objectif calorique',
-            'obj_fat_obj' => 'Objectif lipides',
-            'obj_prot_obj' => 'Objectif protéines',
-            'obj_carb_obj' => 'Objectif glucides',
-            'frequency_rappel_obj' => 'Fréquence de rappel'
+            'val_cible_obj' => 'Target value',
+            'val_init_obj' => 'Initial value',
+            'obj_cal_obj' => 'Calorie goal',
+            'obj_fat_obj' => 'Fat goal',
+            'obj_prot_obj' => 'Protein goal',
+            'obj_carb_obj' => 'Carb goal',
+            'frequency_rappel_obj' => 'Reminder frequency'
         ];
         
         foreach ($positive_fields as $field => $label) {
             if (isset($data[$field]) && $data[$field] <= 0) {
-                $errors[] = "$label doit être strictement positif.";
+                $errors[] = "$label must be strictly positive.";
             }
         }
         
         // Validation des consistances (entre 0 et 100)
         if (isset($data['consistancy_sport_obj']) && ($data['consistancy_sport_obj'] < 0 || $data['consistancy_sport_obj'] > 100)) {
-            $errors[] = "La constance sportive doit être comprise entre 0 et 100.";
+            $errors[] = "Sport consistency must be between 0 and 100.";
         }
         if (isset($data['consistency_alim_obj']) && ($data['consistency_alim_obj'] < 0 || $data['consistency_alim_obj'] > 100)) {
-            $errors[] = "La constance alimentaire doit être comprise entre 0 et 100.";
+            $errors[] = "Diet consistency must be between 0 and 100.";
         }
         
         // Validation valeur cible selon type
@@ -194,13 +209,13 @@ class ObjectifLongTerme_Controller {
         $val_init = $data['val_init_obj'];
         
         if ($type == 'prise_de_poids' && $val_cible <= $val_init) {
-            $errors[] = "Pour une prise de poids, la valeur cible doit être supérieure à la valeur initiale.";
+            $errors[] = "For weight gain, the target value must be greater than the initial value.";
         }
         if ($type == 'perte_de_poids' && $val_cible >= $val_init) {
-            $errors[] = "Pour une perte de poids, la valeur cible doit être inférieure à la valeur initiale.";
+            $errors[] = "For weight loss, the target value must be lower than the initial value.";
         }
         if ($type == 'maintien_de_poids' && abs($val_cible - $val_init) > 0.5) {
-            $errors[] = "Pour un maintien de poids, la valeur cible doit être proche de la valeur initiale (±0.5).";
+            $errors[] = "For weight maintenance, the target value must be close to the initial value (+/- 0.5).";
         }
         
         // Validation dates
@@ -210,10 +225,10 @@ class ObjectifLongTerme_Controller {
         $days = $diff->days;
         
         if ($date_deb > $date_fin) {
-            $errors[] = "La date de début ne peut pas être postérieure à la date de fin.";
+            $errors[] = "The start date cannot be later than the end date.";
         }
         if ($days < 30) {
-            $errors[] = "La durée minimale d'un objectif est d'un mois (30 jours).";
+            $errors[] = "The minimum goal duration is one month (30 days).";
         }
         
         return $errors;
