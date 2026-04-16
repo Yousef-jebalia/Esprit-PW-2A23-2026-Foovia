@@ -8,9 +8,64 @@ $categoryController = new controle_categ_rec();
 $categoryRows = $categoryController->list_categ_rec();
 $db = config::getConnexion();
 $categories = [];
+$categoryMetaByName = [];
+
+if (!function_exists('foovia_normalize_hex_color')) {
+  function foovia_normalize_hex_color($color) {
+    $color = trim((string)$color);
+    if ($color === '') {
+      return '#f59e0b';
+    }
+
+    if ($color[0] === '#') {
+      $color = substr($color, 1);
+    }
+
+    if (preg_match('/^[0-9a-fA-F]{3}$/', $color)) {
+      $color = $color[0] . $color[0] . $color[1] . $color[1] . $color[2] . $color[2];
+    }
+
+    if (!preg_match('/^[0-9a-fA-F]{6}$/', $color)) {
+      return '#f59e0b';
+    }
+
+    return '#' . strtolower($color);
+  }
+}
+
+if (!function_exists('foovia_category_text_color')) {
+  function foovia_category_text_color($color) {
+    $color = foovia_normalize_hex_color($color);
+    $hex = ltrim($color, '#');
+    $red = hexdec(substr($hex, 0, 2));
+    $green = hexdec(substr($hex, 2, 2));
+    $blue = hexdec(substr($hex, 4, 2));
+    $luminance = (0.299 * $red) + (0.587 * $green) + (0.114 * $blue);
+
+    return $luminance > 160 ? '#111827' : '#ffffff';
+  }
+}
+
+if (!function_exists('foovia_normalize_image_path')) {
+  function foovia_normalize_image_path($path, $fallback = 'images/category-thumb-1.jpg') {
+    $path = str_replace('\\', '/', trim((string)$path));
+    if ($path === '') {
+      return $fallback;
+    }
+
+    if (!preg_match('~^(https?://|/|\./|\.\./)~i', $path)) {
+      return '../../Back Office/' . ltrim($path, '/');
+    }
+
+    return $path;
+  }
+}
+
 foreach ($categoryRows as $categoryRow) {
   $categoryId = isset($categoryRow['id_categ_rec']) ? (int)$categoryRow['id_categ_rec'] : 0;
   $categoryName = isset($categoryRow['nom_categ']) ? trim($categoryRow['nom_categ']) : '';
+  $categoryColor = $categoryRow['color_categ'] ?? ($categoryRow['color_cat_rec'] ?? '');
+  $categoryPhoto = $categoryRow['photo_categ'] ?? ($categoryRow['img_cat_rec'] ?? '');
   if ($categoryId <= 0 || $categoryName === '') {
     continue;
   }
@@ -19,6 +74,11 @@ foreach ($categoryRows as $categoryRow) {
   $query->execute(['id_categ_rec' => $categoryId]);
 
   $categories[$categoryName] = (int)$query->fetchColumn();
+  $categoryMetaByName[$categoryName] = [
+    'color' => foovia_normalize_hex_color($categoryColor),
+    'text' => foovia_category_text_color($categoryColor),
+    'photo' => foovia_normalize_image_path($categoryPhoto)
+  ];
 }
 ksort($categories);
 ?>
@@ -107,6 +167,92 @@ ksort($categories);
         box-shadow: var(--foovia-shadow);
       }
 
+      .product-item {
+        height: 100%;
+        min-height: 350px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .product-item figure {
+        min-height: 150px;
+        margin-bottom: 1rem;
+      }
+
+      .recipe-card-media {
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .recipe-card-media .tab-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .recipe-card-content {
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      .recipe-title {
+        min-height: 2.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0;
+      }
+
+      .recipe-categories-slot {
+        min-height: 82px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+      }
+
+      .product-item .button-area {
+        margin-top: auto;
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .category-mini-card {
+        min-height: 180px !important;
+        padding: 0.7rem 0.55rem;
+      }
+
+      .category-mini-card figure {
+        min-height: auto;
+        margin-bottom: 0.5rem;
+      }
+
+      .category-mini-card .category-photo {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+      }
+
+      .category-mini-card .category-title {
+        font-size: 0.9rem;
+        line-height: 1.2;
+        margin-bottom: 0.2rem;
+      }
+
+      .category-mini-card .text-body-secondary {
+        font-size: 0.8rem;
+      }
+
       .search-bar,
       .form-control,
       .form-select {
@@ -129,6 +275,37 @@ ksort($categories);
       .btn-warning {
         background-color: #f59e0b !important;
         color: #111827 !important;
+      }
+
+      .recipe-category-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 0.6rem;
+      }
+
+      .recipe-category-square {
+        min-width: 96px;
+        min-height: 36px;
+        padding: 0.45rem 0.7rem;
+        border-radius: 0;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 0.68rem;
+        font-weight: 700;
+        line-height: 1.05;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        word-break: break-word;
+        overflow: hidden;
+      }
+
+      html[data-theme="dark"] .recipe-category-square {
+        border-color: rgba(255, 255, 255, 0.24);
       }
 
       html[data-theme="dark"] .btn-dark {
@@ -511,28 +688,14 @@ ksort($categories);
         </div>
         <div class="row g-4">
           <?php if (!empty($categories)): ?>
-            <?php
-            $categoryThumbs = [
-                'images/category-thumb-1.jpg',
-                'images/category-thumb-2.jpg',
-                'images/category-thumb-3.jpg',
-                'images/category-thumb-4.jpg',
-                'images/category-thumb-5.jpg',
-                'images/category-thumb-6.jpg',
-                'images/category-thumb-7.jpg',
-                'images/category-thumb-8.jpg'
-            ];
-            $thumbIndex = 0;
-            ?>
             <?php foreach ($categories as $categoryName => $categoryCount): ?>
               <?php
-              $thumb = $categoryThumbs[$thumbIndex % count($categoryThumbs)];
-              $thumbIndex++;
+              $categoryPhoto = $categoryMetaByName[$categoryName]['photo'] ?? 'images/category-thumb-1.jpg';
               ?>
-              <div class="col-6 col-md-4 col-lg-3">
-                <div class="product-item text-center">
+              <div class="col-6 col-md-3 col-lg-2">
+                <div class="product-item category-mini-card text-center">
                   <figure class="d-flex justify-content-center">
-                    <img src="<?php echo htmlspecialchars($thumb); ?>" class="rounded-circle" alt="<?php echo htmlspecialchars($categoryName); ?>" style="width:120px;height:120px;object-fit:cover;">
+                    <img src="<?php echo htmlspecialchars($categoryPhoto); ?>" class="rounded-circle category-photo" alt="<?php echo htmlspecialchars($categoryName); ?>">
                   </figure>
                   <h4 class="fs-6 mt-2 fw-normal category-title"><?php echo htmlspecialchars($categoryName); ?></h4>
                   <span class="text-body-secondary"><?php echo (int)$categoryCount; ?> recipes</span>
@@ -581,12 +744,32 @@ ksort($categories);
                   ?>
                   <div class="col-6 col-md-4 col-lg-3">
                     <div class="product-item">
-                      <figure class="d-flex justify-content-center">
-                        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($recipe['name_rec']); ?>" class="tab-image d-block mx-auto" style="max-width:100%;height:auto;">
+                      <figure class="recipe-card-media d-flex">
+                        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($recipe['name_rec']); ?>" class="tab-image d-block mx-auto">
                       </figure>
-                      <div class="d-flex flex-column text-center">
-                        <h3 class="fs-6 fw-normal"><?php echo htmlspecialchars($recipe['name_rec']); ?></h3>
-                        <span class="badge bg-warning text-dark rounded-0 align-self-center px-2 py-1 mt-1"><?php echo htmlspecialchars($recipe['categorie_rec']); ?></span>
+                      <div class="recipe-card-content text-center">
+                        <h3 class="recipe-title fs-6 fw-normal"><?php echo htmlspecialchars($recipe['name_rec']); ?></h3>
+                        <?php
+                          $recipeCategoryNames = array_filter(array_map('trim', explode(',', (string)($recipe['categorie_rec'] ?? ''))));
+                        ?>
+                        <div class="recipe-categories-slot">
+                          <?php if (!empty($recipeCategoryNames)): ?>
+                            <div class="recipe-category-grid">
+                              <?php foreach ($recipeCategoryNames as $recipeCategoryName): ?>
+                                <?php
+                                  $categoryMeta = $categoryMetaByName[$recipeCategoryName] ?? ['color' => '#f59e0b', 'text' => '#111827'];
+                                ?>
+                                <span
+                                  class="recipe-category-square"
+                                  title="<?php echo htmlspecialchars($recipeCategoryName); ?>"
+                                  style="background-color: <?php echo htmlspecialchars($categoryMeta['color']); ?>; color: <?php echo htmlspecialchars($categoryMeta['text']); ?>;"
+                                >
+                                  <?php echo htmlspecialchars($recipeCategoryName); ?>
+                                </span>
+                              <?php endforeach; ?>
+                            </div>
+                          <?php endif; ?>
+                        </div>
                       </div>
                       <div class="button-area p-3 pt-0">
                         <a href="recipes-details.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>" class="btn btn-primary rounded-1 p-2 fs-7">View details</a>
