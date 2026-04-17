@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../../../controle/controle_Menu.php';
 require_once __DIR__ . '/../../../controle/controle_categ_rec.php';
 
@@ -107,7 +107,7 @@ ksort($categories);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.css?v=20260417">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -116,484 +116,7 @@ ksort($categories);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
-    <style>
-      @font-face {
-        font-family: 'Boldonse';
-        src: url('../assets/Boldonse-Regular.ttf') format('truetype');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-
-      :root {
-        --foovia-bg: #f7f5ef;
-        --foovia-surface: #ffffff;
-        --foovia-surface-soft: #f3f4f6;
-        --foovia-text: #111827;
-        --foovia-muted: #6b7280;
-        --foovia-border: rgba(15, 23, 42, 0.08);
-        --foovia-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-      }
-
-      html[data-theme="dark"] {
-        --foovia-bg: #0b0f19;
-        --foovia-surface: #111827;
-        --foovia-surface-soft: #1f2937;
-        --foovia-text: #e5e7eb;
-        --foovia-muted: #9ca3af;
-        --foovia-border: rgba(255, 255, 255, 0.08);
-        --foovia-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
-      }
-
-      html,
-      body {
-        background: var(--foovia-bg);
-        color: var(--foovia-text);
-        transition: background-color 0.25s ease, color 0.25s ease;
-      }
-
-      body {
-        min-height: 100vh;
-      }
-
-      .section-title,
-      .widget-title,
-      .footer-menu h5,
-      .footer-menu p,
-      .copyright p,
-      .credit-link p,
-      .credit-link a,
-      .section-header,
-      .category-title {
-        color: var(--foovia-text);
-      }
-
-      .section-title,
-      .recipe-title,
-      .category-title {
-        font-family: 'Boldonse', 'Syne', sans-serif;
-      }
-
-      .recipe-category-square {
-        font-family: 'DM Sans', sans-serif;
-      }
-
-      .text-body-secondary,
-      .footer-menu .text-body-secondary {
-        color: var(--foovia-muted) !important;
-      }
-
-      .product-item,
-      .card,
-      .footer-menu,
-      .search-bar,
-      .bg-warning.pt-5.rounded-5 {
-        background: var(--foovia-surface) !important;
-        color: var(--foovia-text);
-        border-color: var(--foovia-border) !important;
-        box-shadow: var(--foovia-shadow);
-      }
-
-      .product-item {
-        height: 100%;
-        min-height: 350px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-
-      .product-item figure {
-        min-height: 150px;
-        margin-bottom: 1rem;
-      }
-
-      .recipe-card-media {
-        width: 100%;
-        height: 180px;
-        overflow: hidden;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .recipe-card-media .tab-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .recipe-card-content {
-        min-height: 130px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-      }
-
-      .recipe-title {
-        min-height: 2.7rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 0;
-      }
-
-      .recipe-categories-slot {
-        min-height: 82px;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-      }
-
-      .product-item .button-area {
-        margin-top: auto;
-        position: static !important;
-        inset: auto !important;
-        transform: none !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      .category-mini-card {
-        min-height: 180px !important;
-        padding: 0.7rem 0.55rem;
-      }
-
-      .category-scroll-row {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 1rem;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 0.25rem 0.25rem 0.75rem;
-        scrollbar-width: thin;
-      }
-
-      .category-scroll-item {
-        flex: 0 0 150px;
-        max-width: 150px;
-      }
-
-      .category-mini-card figure {
-        min-height: auto;
-        margin-bottom: 0.5rem;
-      }
-
-      .category-mini-card .category-photo {
-        width: 72px;
-        height: 72px;
-        object-fit: cover;
-      }
-
-      .category-mini-card .category-title {
-        font-size: 0.9rem;
-        line-height: 1.2;
-        margin-bottom: 0.2rem;
-      }
-
-      .category-mini-card .text-body-secondary {
-        font-size: 0.8rem;
-      }
-
-      .category-filter-card {
-        width: 100%;
-        border: 1px solid var(--foovia-border);
-        cursor: pointer;
-        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-      }
-
-      .category-filter-card:hover {
-        transform: translateY(-2px);
-      }
-
-      .category-filter-card.is-selected {
-        background: var(--cat-color) !important;
-        border-color: var(--cat-color) !important;
-      }
-
-      .category-filter-card.is-selected .category-title,
-      .category-filter-card.is-selected .text-body-secondary {
-        color: var(--cat-text) !important;
-      }
-
-      .search-bar,
-      .form-control,
-      .form-select {
-        background-color: var(--foovia-surface) !important;
-        color: var(--foovia-text) !important;
-        border-color: var(--foovia-border) !important;
-      }
-
-      .form-control::placeholder {
-        color: var(--foovia-muted);
-      }
-
-      footer,
-      #footer-bottom {
-        background: var(--foovia-surface-soft);
-        color: var(--foovia-text);
-      }
-
-      .badge.bg-warning,
-      .btn-warning {
-        background-color: #f59e0b !important;
-        color: #111827 !important;
-      }
-
-      .recipe-category-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: center;
-        margin-top: 0.6rem;
-      }
-
-      .recipe-category-square {
-        min-width: 96px;
-        min-height: 36px;
-        padding: 0.45rem 0.7rem;
-        border-radius: 0;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        font-size: 0.68rem;
-        font-weight: 700;
-        line-height: 1.05;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
-        word-break: break-word;
-        overflow: hidden;
-      }
-
-      html[data-theme="dark"] .recipe-category-square {
-        border-color: rgba(255, 255, 255, 0.24);
-      }
-
-      html[data-theme="dark"] .btn-dark {
-        background-color: #f3f4f6;
-        color: #111827;
-        border-color: #f3f4f6;
-      }
-
-      html[data-theme="dark"] .product-item h3,
-      html[data-theme="dark"] .product-item .badge,
-      html[data-theme="dark"] .product-item .button-area .btn,
-      html[data-theme="dark"] .product-item .text-center,
-      html[data-theme="dark"] .product-item .text-center * {
-        color: #ffffff !important;
-      }
-
-      html[data-theme="dark"] .product-item .badge.bg-warning {
-        background-color: #fbbf24 !important;
-        color: #111827 !important;
-      }
-
-      html[data-theme="dark"] .product-item .button-area {
-        background: rgba(255, 255, 255, 0.04);
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 0 0 0.5rem 0.5rem;
-      }
-
-      html[data-theme="dark"] .product-item .button-area .btn-primary {
-        background-color: #f3f4f6 !important;
-        border-color: #f3f4f6 !important;
-        color: #111827 !important;
-      }
-
-      html[data-theme="dark"] .product-item .button-area .btn-primary:hover,
-      html[data-theme="dark"] .product-item .button-area .btn-primary:focus-visible {
-        background-color: #ffffff !important;
-        border-color: #ffffff !important;
-        color: #111827 !important;
-      }
-
-      .foovia-nav {
-        position: sticky;
-        top: 0;
-        z-index: 1030;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 0.95rem 1.5rem;
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(18px);
-        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-        font-family: 'DM Sans', sans-serif;
-      }
-
-      .foovia-nav[data-theme="dark"] {
-        background: rgba(11, 15, 25, 0.92);
-        border-bottom-color: rgba(255, 255, 255, 0.08);
-      }
-
-      .foovia-nav .nav-logo {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        color: inherit;
-        text-decoration: none;
-        font-family: 'Syne', sans-serif;
-        font-size: 1.05rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .foovia-nav .nav-logo img {
-        height: 50px;
-        width: auto;
-        display: block;
-      }
-
-      .foovia-nav .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      .foovia-nav .nav-links a {
-        color: inherit;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.95rem;
-        opacity: 0.86;
-      }
-
-      .foovia-nav .nav-links a:hover,
-      .foovia-nav .nav-links a:focus-visible {
-        opacity: 1;
-      }
-
-      .foovia-nav .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.65rem;
-        flex-wrap: wrap;
-      }
-
-      .foovia-nav .nav-btn,
-      .foovia-nav .theme-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        text-decoration: none;
-        transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-      }
-
-      .foovia-nav .nav-btn {
-        padding: 0.55rem 1rem;
-        font-size: 0.92rem;
-        font-weight: 700;
-      }
-
-      .foovia-nav .nav-backoffice {
-        background: #111827;
-        color: #fff;
-      }
-
-      .foovia-nav[data-theme="dark"] .nav-backoffice {
-        background: #f8fafc;
-        color: #111827;
-      }
-
-      .foovia-nav .nav-signin {
-        background: rgba(245, 158, 11, 0.14);
-        color: #9a5b00;
-        border-color: rgba(245, 158, 11, 0.28);
-      }
-
-      .foovia-nav[data-theme="dark"] .nav-signin {
-        background: rgba(245, 158, 11, 0.22);
-        color: #ffd28a;
-      }
-
-      .foovia-nav .nav-signup {
-        background: #f59e0b;
-        color: #111827;
-      }
-
-      .foovia-nav .theme-toggle {
-        width: 42px;
-        height: 42px;
-        border-color: rgba(15, 23, 42, 0.12);
-        background: rgba(15, 23, 42, 0.04);
-        color: inherit;
-        cursor: pointer;
-      }
-
-      .foovia-nav[data-theme="dark"] .theme-toggle {
-        border-color: rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.06);
-      }
-
-      .foovia-nav .theme-toggle svg {
-        width: 18px;
-        height: 18px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 1.8;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-
-      .foovia-nav .icon-moon {
-        display: none;
-      }
-
-      .foovia-nav[data-theme="dark"] .icon-sun {
-        display: none;
-      }
-
-      .foovia-nav[data-theme="dark"] .icon-moon {
-        display: block;
-      }
-
-      .foovia-nav .nav-btn:hover,
-      .foovia-nav .theme-toggle:hover {
-        transform: translateY(-1px);
-      }
-
-      @media (max-width: 991.98px) {
-        .foovia-nav {
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-
-        .foovia-nav .nav-links {
-          order: 3;
-          width: 100%;
-          justify-content: center;
-          flex-wrap: wrap;
-          gap: 0.95rem 1.25rem;
-        }
-      }
-
-      @media (max-width: 575.98px) {
-        .foovia-nav {
-          padding-inline: 1rem;
-        }
-
-        .foovia-nav .nav-actions {
-          justify-content: center;
-        }
-
-        .foovia-nav .nav-btn {
-          padding-inline: 0.85rem;
-        }
-      }
-    </style>
-
-  </head>
+</head>
   <body>
 
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -851,7 +374,7 @@ ksort($categories);
                         </div>
                       </div>
                       <div class="button-area p-3 pt-0">
-                        <a href="recipes-details.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>" class="btn btn-primary rounded-1 p-2 fs-7">View details</a>
+                        <a href="recipes-details.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>" class="btn btn-primary rounded-1 p-2 fs-7 recipe-details-btn">View details</a>
                       </div>
                     </div>
                   </div>
@@ -947,6 +470,7 @@ ksort($categories);
         const recipeItems = Array.from(document.querySelectorAll('.recipe-filter-item[data-category-keys]'));
         const emptyState = document.getElementById('recipesFilterEmpty');
         const selectedCategoryKeys = new Set();
+        let isFirstFilterRun = true;
 
         if (categoryButtons.length === 0 || recipeItems.length === 0) {
           return;
@@ -954,10 +478,33 @@ ksort($categories);
 
         const normalizeKey = (value) => String(value || '').trim().toLowerCase();
 
+        const triggerButtonReveal = (recipeItem) => {
+          const detailsButton = recipeItem.querySelector('.recipe-details-btn');
+          if (!detailsButton) {
+            return;
+          }
+
+          detailsButton.classList.remove('btn-reveal-in');
+          void detailsButton.offsetWidth;
+          detailsButton.classList.add('btn-reveal-in');
+        };
+
+        const triggerCardReveal = (recipeItem) => {
+          const card = recipeItem.querySelector('.product-item');
+          if (!card) {
+            return;
+          }
+
+          card.classList.remove('recipe-card-reveal-in');
+          void card.offsetWidth;
+          card.classList.add('recipe-card-reveal-in');
+        };
+
         const applyRecipeFilter = () => {
           let visibleCount = 0;
 
           recipeItems.forEach((recipeItem) => {
+            const wasHidden = recipeItem.classList.contains('d-none');
             const recipeKeys = (recipeItem.getAttribute('data-category-keys') || '')
               .split(',')
               .map(normalizeKey)
@@ -967,8 +514,14 @@ ksort($categories);
             recipeItem.classList.toggle('d-none', !matches);
             if (matches) {
               visibleCount += 1;
+              if (wasHidden || isFirstFilterRun) {
+                triggerCardReveal(recipeItem);
+                triggerButtonReveal(recipeItem);
+              }
             }
           });
+
+          isFirstFilterRun = false;
 
           if (emptyState) {
             emptyState.classList.toggle('d-none', visibleCount !== 0);
@@ -1010,7 +563,7 @@ ksort($categories);
       <div class="container-lg">
         <div class="row">
           <div class="col-md-6 copyright">
-            <p>© 2024 Organic. All rights reserved.</p>
+            <p>Â© 2024 Organic. All rights reserved.</p>
           </div>
           <div class="col-md-6 credit-link text-start text-md-end">
             <p>HTML Template by <a href="https://templatesjungle.com/">TemplatesJungle</a> Distributed By <a href="https://themewagon.com">ThemeWagon</a> </p>
