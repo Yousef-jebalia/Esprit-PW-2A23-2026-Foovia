@@ -1,9 +1,12 @@
 ﻿<?php
 require_once __DIR__ . '/../../../controle/controle_Menu.php';
 require_once __DIR__ . '/../../../controle/controle_categ_rec.php';
+require_once __DIR__ . '/../../../controle/controle_ingrediant.php';
 
 $controller = new Controller_menu();
 $recipes = $controller->list_recipe();
+$ingredientController = new Controller_ingrediant();
+$ingredients = $ingredientController->list_ingrediants();
 $categoryController = new controle_categ_rec();
 $categoryRows = $categoryController->list_categ_rec();
 $db = config::getConnexion();
@@ -255,7 +258,87 @@ ksort($categories);
       </div>
     </nav>
     
-    
+    <section class="top-cta-section" aria-label="Quick action">
+      <div class="container-lg">
+        <button type="button" class="top-cta-button" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false">
+          Select your ingrediants
+        </button>
+      </div>
+    </section>
+
+    <section class="ingredients-panel" id="ingredientsPanel" aria-hidden="true">
+      <div class="ingredients-panel-inner">
+        <div class="container-lg">
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="section-header d-flex flex-wrap justify-content-between">
+                <h2 class="section-title">Ingredients</h2>
+              </div>
+              <div class="section-search">
+                <input
+                  type="search"
+                  class="form-control section-search-input"
+                  id="ingredientSearchInput"
+                  placeholder="Search ingredients"
+                  aria-label="Search ingredients"
+                >
+              </div>
+              <div class="ingredient-selected-row is-empty" aria-live="polite">
+                <div class="ingredient-selected-list" id="selectedIngredients"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3 ingredient-grid">
+            <?php if (!empty($ingredients)): ?>
+              <?php foreach ($ingredients as $ingredient): ?>
+                <?php
+                  $ingredientName = trim((string)($ingredient['name_ing'] ?? 'Ingredient'));
+                  if ($ingredientName === '') {
+                    $ingredientName = 'Ingredient';
+                  }
+                  $ingredientImage = foovia_normalize_image_path($ingredient['img_ing'] ?? '', 'images/product-thumb-1.png');
+                ?>
+                <div class="col-6 col-md-4 col-lg-2 ingredient-item" data-ing-name="<?php echo htmlspecialchars($ingredientName); ?>">
+                  <div class="product-item ingredient-card">
+                    <figure class="recipe-card-media ingredient-card-media d-flex">
+                      <img src="<?php echo htmlspecialchars($ingredientImage); ?>" alt="<?php echo htmlspecialchars($ingredientName); ?>" class="tab-image d-block mx-auto">
+                    </figure>
+                    <div class="recipe-card-content text-center ingredient-card-content">
+                      <h3 class="recipe-title fs-6 fw-normal ingredient-title"><?php echo htmlspecialchars($ingredientName); ?></h3>
+                    </div>
+                    <div class="button-area p-3 pt-0">
+                      <button
+                        type="button"
+                        class="btn btn-primary rounded-1 p-2 fs-7 ingredient-select-btn"
+                        data-ing-id="<?php echo (int)($ingredient['id_ing'] ?? 0); ?>"
+                        data-ing-name="<?php echo htmlspecialchars($ingredientName); ?>"
+                        data-ing-img="<?php echo htmlspecialchars($ingredientImage); ?>"
+                        aria-pressed="false"
+                      >
+                        Select ingrediant
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <div class="col-12">
+                <p class="text-center text-body-secondary m-0">No ingredients found.</p>
+              </div>
+            <?php endif; ?>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="ingredient-validate-row">
+                <button type="button" class="btn btn-primary ingredient-validate-btn" id="validateIngredientsBtn">
+                  Validate selected ingrediants
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="py-5" id="categories">
       <div class="container-lg">
@@ -264,10 +347,6 @@ ksort($categories);
 
             <div class="section-header d-flex flex-wrap justify-content-between mb-5">
               <h2 class="section-title">Categories</h2>
-
-              <div class="d-flex align-items-center">
-                <a href="#" class="btn btn-primary me-2">View All</a>
-              </div>
             </div>
             
           </div>
@@ -316,10 +395,15 @@ ksort($categories);
 
             <div class="section-header d-flex flex-wrap justify-content-between mb-5">
               <h2 class="section-title">Recipes</h2>
-
-              <div class="d-flex align-items-center">
-                <a href="#" class="btn btn-primary me-2">View All</a>
-              </div>
+            </div>
+            <div class="section-search">
+              <input
+                type="search"
+                class="form-control section-search-input"
+                id="recipeSearchInput"
+                placeholder="Search recipes"
+                aria-label="Search recipes"
+              >
             </div>
             
           </div>
@@ -346,8 +430,22 @@ ksort($categories);
                       $recipeCategoryKeys[] = $meta['key'] ?? foovia_category_key($recipeCategoryName);
                     }
                     $recipeCategoryKeys = array_values(array_unique(array_filter($recipeCategoryKeys)));
+                    $recipeIngredients = $controller->get_recipe_ingredients((int)$recipe['id_rec']);
+                    $recipeIngredientIds = [];
+                    foreach ($recipeIngredients as $recipeIngredient) {
+                      $ingredientId = isset($recipeIngredient['id_ing']) ? (int)$recipeIngredient['id_ing'] : 0;
+                      if ($ingredientId > 0) {
+                        $recipeIngredientIds[] = $ingredientId;
+                      }
+                    }
+                    $recipeIngredientIds = array_values(array_unique($recipeIngredientIds));
                   ?>
-                  <div class="col-6 col-md-4 col-lg-3 recipe-filter-item" data-category-keys="<?php echo htmlspecialchars(implode(',', $recipeCategoryKeys)); ?>">
+                  <div
+                    class="col-6 col-md-4 col-lg-3 recipe-filter-item"
+                    data-category-keys="<?php echo htmlspecialchars(implode(',', $recipeCategoryKeys)); ?>"
+                    data-ingredient-ids="<?php echo htmlspecialchars(implode(',', $recipeIngredientIds)); ?>"
+                    data-recipe-name="<?php echo htmlspecialchars($recipe['name_rec']); ?>"
+                  >
                     <div class="product-item">
                       <figure class="recipe-card-media d-flex">
                         <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($recipe['name_rec']); ?>" class="tab-image d-block mx-auto">
@@ -442,7 +540,9 @@ ksort($categories);
           return;
         }
 
-        const stored = localStorage.getItem('foovia-theme');
+        const themeKey = 'theme';
+        const legacyThemeKey = 'foovia-theme';
+        const stored = localStorage.getItem(themeKey) || localStorage.getItem(legacyThemeKey);
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         const initialTheme = stored || (prefersDark ? 'dark' : 'light');
 
@@ -456,12 +556,248 @@ ksort($categories);
         };
 
         setTheme(initialTheme);
+        localStorage.setItem(themeKey, initialTheme);
+        localStorage.setItem(legacyThemeKey, initialTheme);
 
         toggle.addEventListener('click', () => {
           const currentTheme = root.getAttribute('data-theme') || 'light';
           const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          localStorage.setItem('foovia-theme', nextTheme);
+          localStorage.setItem(themeKey, nextTheme);
+          localStorage.setItem(legacyThemeKey, nextTheme);
           setTheme(nextTheme);
+        });
+      })();
+
+      (function() {
+        const ctaButton = document.querySelector('.top-cta-button');
+        const panel = document.getElementById('ingredientsPanel');
+
+        if (!ctaButton || !panel) {
+          return;
+        }
+
+        const setOpen = (open) => {
+          panel.classList.toggle('is-open', open);
+          panel.setAttribute('aria-hidden', String(!open));
+          ctaButton.classList.toggle('is-active', open);
+          ctaButton.setAttribute('aria-expanded', String(open));
+          ctaButton.setAttribute('aria-pressed', String(open));
+          if (open) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        };
+
+        ctaButton.addEventListener('click', () => {
+          const isOpen = panel.classList.contains('is-open');
+          setOpen(!isOpen);
+        });
+      })();
+
+      (function() {
+        const selectedRow = document.querySelector('.ingredient-selected-row');
+        const selectedList = document.getElementById('selectedIngredients');
+        const ingredientButtons = Array.from(document.querySelectorAll('.ingredient-select-btn'));
+        const selectedIngredientIds = new Set();
+
+        if (!selectedRow || !selectedList || ingredientButtons.length === 0) {
+          return;
+        }
+
+        const escapeSelector = (value) => {
+          if (window.CSS && typeof window.CSS.escape === 'function') {
+            return window.CSS.escape(value);
+          }
+          return String(value).replace(/["\\]/g, '\\$&');
+        };
+
+        const getKeyForButton = (button) => {
+          const id = String(button.dataset.ingId || '').trim();
+          if (id && id !== '0') {
+            return `id:${id}`;
+          }
+          const name = String(button.dataset.ingName || '').trim().toLowerCase();
+          return name ? `name:${name}` : '';
+        };
+
+        const getIdFromKey = (key) => {
+          if (key.startsWith('id:')) {
+            return key.slice(3);
+          }
+          return '';
+        };
+
+        const setSelectedRowState = () => {
+          selectedRow.classList.toggle('is-empty', selectedList.children.length === 0);
+        };
+
+        const syncSelectedIngredientIds = () => {
+          selectedIngredientIds.clear();
+          selectedList.querySelectorAll('.ingredient-selected-item').forEach((item) => {
+            const key = item.getAttribute('data-ing-key') || '';
+            const id = getIdFromKey(key);
+            if (id) {
+              selectedIngredientIds.add(id);
+            }
+          });
+          document.body.dataset.selectedIngredients = Array.from(selectedIngredientIds).join(',');
+        };
+
+        const setButtonState = (button, selected) => {
+          const defaultLabel = button.dataset.defaultLabel || button.textContent.trim() || 'Select ingrediant';
+          if (!button.dataset.defaultLabel) {
+            button.dataset.defaultLabel = defaultLabel;
+          }
+          button.textContent = selected ? 'Selected' : defaultLabel;
+          button.classList.toggle('is-selected', selected);
+          button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        };
+
+        const addSelection = (button, key) => {
+          const name = String(button.dataset.ingName || 'Ingredient').trim() || 'Ingredient';
+          const img = String(button.dataset.ingImg || '').trim();
+
+          const item = document.createElement('div');
+          item.className = 'ingredient-selected-item';
+          item.setAttribute('data-ing-key', key);
+
+          const image = document.createElement('img');
+          image.className = 'ingredient-selected-img';
+          image.src = img;
+          image.alt = name;
+
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'ingredient-selected-remove';
+          removeBtn.textContent = 'x';
+          removeBtn.setAttribute('aria-label', `Remove ${name}`);
+
+          item.appendChild(image);
+          item.appendChild(removeBtn);
+          selectedList.appendChild(item);
+        };
+
+        ingredientButtons.forEach((button) => {
+          const key = getKeyForButton(button);
+          if (!key) {
+            return;
+          }
+
+          button.addEventListener('click', () => {
+            const currentKey = getKeyForButton(button);
+            if (!currentKey) {
+              return;
+            }
+
+            const existing = selectedList.querySelector(`[data-ing-key="${escapeSelector(currentKey)}"]`);
+            if (existing) {
+              existing.remove();
+              setButtonState(button, false);
+              setSelectedRowState();
+              syncSelectedIngredientIds();
+              return;
+            }
+
+            addSelection(button, currentKey);
+            setButtonState(button, true);
+            setSelectedRowState();
+            syncSelectedIngredientIds();
+          });
+        });
+
+        selectedList.addEventListener('click', (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+
+          if (!target.classList.contains('ingredient-selected-remove')) {
+            return;
+          }
+
+          const item = target.closest('.ingredient-selected-item');
+          if (!item) {
+            return;
+          }
+
+          const key = item.getAttribute('data-ing-key') || '';
+          item.remove();
+          if (key) {
+            const matchingButton = ingredientButtons.find((button) => getKeyForButton(button) === key);
+            if (matchingButton) {
+              setButtonState(matchingButton, false);
+            }
+          }
+          setSelectedRowState();
+          syncSelectedIngredientIds();
+        });
+
+        setSelectedRowState();
+        syncSelectedIngredientIds();
+      })();
+
+      (function() {
+        const searchInput = document.getElementById('ingredientSearchInput');
+        const ingredientItems = Array.from(document.querySelectorAll('.ingredient-item[data-ing-name]'));
+
+        if (!searchInput || ingredientItems.length === 0) {
+          return;
+        }
+
+        const normalizeText = (value) => String(value || '').trim().toLowerCase();
+
+        const applyIngredientSearch = () => {
+          const query = normalizeText(searchInput.value);
+          ingredientItems.forEach((item) => {
+            const name = normalizeText(item.getAttribute('data-ing-name'));
+            const matches = !query || name.includes(query);
+            item.classList.toggle('d-none', !matches);
+          });
+        };
+
+        searchInput.addEventListener('input', applyIngredientSearch);
+      })();
+
+      (function() {
+        const validateButton = document.getElementById('validateIngredientsBtn');
+        const panel = document.getElementById('ingredientsPanel');
+        const ctaButton = document.querySelector('.top-cta-button');
+        const recipesSection = document.getElementById('recipes');
+
+        if (!validateButton || !panel) {
+          return;
+        }
+
+        const closePanel = () => {
+          panel.classList.remove('is-open');
+          panel.setAttribute('aria-hidden', 'true');
+          if (ctaButton) {
+            ctaButton.classList.remove('is-active');
+            ctaButton.setAttribute('aria-expanded', 'false');
+            ctaButton.setAttribute('aria-pressed', 'false');
+          }
+        };
+
+        validateButton.addEventListener('click', () => {
+          const selectedIds = (document.body.dataset.selectedIngredients || '')
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+          document.body.dataset.ingredientFilterActive = selectedIds.length > 0 ? 'true' : 'false';
+          document.dispatchEvent(new CustomEvent('foovia:ingredient-filter'));
+          const wasOpen = panel.classList.contains('is-open');
+          closePanel();
+          const scrollToRecipes = () => {
+            if (recipesSection) {
+              recipesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+              window.location.hash = '#recipes';
+            }
+          };
+          if (wasOpen) {
+            setTimeout(scrollToRecipes, 480);
+          } else {
+            scrollToRecipes();
+          }
         });
       })();
 
@@ -470,6 +806,8 @@ ksort($categories);
         const recipeItems = Array.from(document.querySelectorAll('.recipe-filter-item[data-category-keys]'));
         const emptyState = document.getElementById('recipesFilterEmpty');
         const selectedCategoryKeys = new Set();
+        const recipeSearchInput = document.getElementById('recipeSearchInput');
+        let recipeSearchTerm = '';
         let isFirstFilterRun = true;
 
         if (categoryButtons.length === 0 || recipeItems.length === 0) {
@@ -477,6 +815,14 @@ ksort($categories);
         }
 
         const normalizeKey = (value) => String(value || '').trim().toLowerCase();
+        const normalizeId = (value) => String(value || '').trim();
+        const normalizeText = (value) => String(value || '').trim().toLowerCase();
+
+        const getSelectedIngredientSet = () => {
+          const raw = document.body.dataset.selectedIngredients || '';
+          const ids = raw.split(',').map(normalizeId).filter(Boolean);
+          return new Set(ids);
+        };
 
         const triggerButtonReveal = (recipeItem) => {
           const detailsButton = recipeItem.querySelector('.recipe-details-btn');
@@ -502,6 +848,9 @@ ksort($categories);
 
         const applyRecipeFilter = () => {
           let visibleCount = 0;
+          const ingredientFilterActive = document.body.dataset.ingredientFilterActive === 'true';
+          const selectedIngredientSet = getSelectedIngredientSet();
+          const useIngredientFilter = ingredientFilterActive && selectedIngredientSet.size > 0;
 
           recipeItems.forEach((recipeItem) => {
             const wasHidden = recipeItem.classList.contains('d-none');
@@ -509,8 +858,16 @@ ksort($categories);
               .split(',')
               .map(normalizeKey)
               .filter(Boolean);
+            const recipeIngredientIds = (recipeItem.getAttribute('data-ingredient-ids') || '')
+              .split(',')
+              .map(normalizeId)
+              .filter(Boolean);
+            const recipeName = normalizeText(recipeItem.getAttribute('data-recipe-name'));
 
-            const matches = selectedCategoryKeys.size === 0 || Array.from(selectedCategoryKeys).every((selectedKey) => recipeKeys.includes(selectedKey));
+            const matchesCategories = selectedCategoryKeys.size === 0 || Array.from(selectedCategoryKeys).every((selectedKey) => recipeKeys.includes(selectedKey));
+            const matchesIngredients = !useIngredientFilter || recipeIngredientIds.every((ingredientId) => selectedIngredientSet.has(ingredientId));
+            const matchesSearch = !recipeSearchTerm || recipeName.includes(recipeSearchTerm);
+            const matches = matchesCategories && matchesIngredients && matchesSearch;
             recipeItem.classList.toggle('d-none', !matches);
             if (matches) {
               visibleCount += 1;
@@ -550,6 +907,17 @@ ksort($categories);
 
             applyRecipeFilter();
           });
+        });
+
+        if (recipeSearchInput) {
+          recipeSearchInput.addEventListener('input', () => {
+            recipeSearchTerm = normalizeText(recipeSearchInput.value);
+            applyRecipeFilter();
+          });
+        }
+
+        document.addEventListener('foovia:ingredient-filter', () => {
+          applyRecipeFilter();
         });
 
         applyRecipeFilter();
