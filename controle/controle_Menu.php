@@ -136,7 +136,7 @@ class Controller_menu {
     }
 
     public function get_recipe_ingredients($id_rec) {
-        $sql = "SELECT ct.id_rec, ct.id_ing, ct.quantity, ct.unity, i.name_ing
+        $sql = "SELECT ct.id_rec, ct.id_ing, ct.quantity, ct.unity, i.name_ing, i.img_ing
                 FROM contenir ct
                 LEFT JOIN ingrediant i ON i.id_ing = ct.id_ing
                 WHERE ct.id_rec = :id_recipe

@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../controle/controle_Menu.php';
 
 $controller = new Controller_menu();
 $recipe = null;
+$recipeIngredients = [];
 $error = '';
 
 if (!isset($_GET['id_rec']) || !is_numeric($_GET['id_rec'])) {
@@ -11,6 +12,8 @@ if (!isset($_GET['id_rec']) || !is_numeric($_GET['id_rec'])) {
   $recipe = $controller->get_recipe_by_id((int)$_GET['id_rec']);
   if (!$recipe) {
     $error = 'Recipe not found.';
+  } else {
+    $recipeIngredients = $controller->get_recipe_ingredients((int)$_GET['id_rec']);
   }
 }
 ?>
@@ -60,7 +63,35 @@ if (!isset($_GET['id_rec']) || !is_numeric($_GET['id_rec'])) {
                 <div class="col-sm-3"><strong>Calories:</strong> <?php echo htmlspecialchars($recipe['cal_rec']); ?></div>
               </div>
               <p class="mb-2"><strong>Instructions:</strong> <?php echo htmlspecialchars($recipe['instruction_rec']); ?></p>
-              <p class="mb-0"><strong>Origin:</strong> <?php echo htmlspecialchars($recipe['origin_rec']); ?></p>
+              <p class="mb-3"><strong>Origin:</strong> <?php echo htmlspecialchars($recipe['origin_rec']); ?></p>
+
+              <div>
+                <h3 class="h6 mb-2">Ingredients</h3>
+                <?php if (!empty($recipeIngredients)): ?>
+                  <ul class="list-group list-group-flush">
+                    <?php foreach ($recipeIngredients as $ingredientRow): ?>
+                      <?php
+                        $ingredientImagePath = isset($ingredientRow['img_ing']) ? str_replace('\\', '/', (string)$ingredientRow['img_ing']) : '';
+                        if ($ingredientImagePath !== '' && !preg_match('~^(https?://|/|\./|\.\./)~i', $ingredientImagePath)) {
+                          $ingredientImagePath = '../../Back Office/' . ltrim($ingredientImagePath, '/');
+                        }
+                        if ($ingredientImagePath === '') {
+                          $ingredientImagePath = 'images/product-thumb-1.png';
+                        }
+                      ?>
+                      <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                        <span class="d-flex align-items-center gap-2">
+                          <img src="<?php echo htmlspecialchars($ingredientImagePath); ?>" alt="<?php echo htmlspecialchars((string)($ingredientRow['name_ing'] ?? 'Ingredient')); ?>" style="width:34px;height:34px;object-fit:cover;border-radius:6px;">
+                          <span><?php echo htmlspecialchars((string)($ingredientRow['name_ing'] ?? ('Ingredient #' . (int)($ingredientRow['id_ing'] ?? 0)))); ?></span>
+                        </span>
+                        <span class="text-muted"><?php echo htmlspecialchars((string)($ingredientRow['quantity'] ?? '')); ?> <?php echo htmlspecialchars((string)($ingredientRow['unity'] ?? '')); ?></span>
+                      </li>
+                    <?php endforeach; ?>
+                  </ul>
+                <?php else: ?>
+                  <p class="text-muted mb-0">No ingredients linked to this recipe.</p>
+                <?php endif; ?>
+              </div>
             </div>
           </div>
         </div>
