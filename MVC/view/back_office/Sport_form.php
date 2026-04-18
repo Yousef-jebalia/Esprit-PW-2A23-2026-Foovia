@@ -52,7 +52,6 @@ $exercises = $stmt->fetchAll();
 </head>
 
 
-//controle de saisie **********************************************************************
 <script>
 function validateForm() {
     const name     = document.getElementById('ex_name').value.trim();
@@ -110,11 +109,9 @@ function validateForm() {
 
     return true;
 }
-</script>
 
 
 
-<script>
 function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     document.getElementById('form-action').value = 'update';
     document.getElementById('edit-id').value = id;
@@ -198,8 +195,8 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     </div>
     <!-- Pre-loader end -->
     <div id="pcoded" class="pcoded">
-        <div class="pcoded-overlay-box"></div>
-        <div class="pcoded-container navbar-wrapper">
+        <div class="pcoded-overlay-box"></div><!-- Navbar*********************************************** -->
+        <div class="pcoded-container navbar-wrapper"><!-- Navbar**************************************** -->
             <nav class="navbar header-navbar pcoded-header">
                 <div class="navbar-wrapper">
                     <div class="navbar-logo">
@@ -318,8 +315,8 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
             </nav>
 
             <div class="pcoded-main-container">
-                <div class="pcoded-wrapper">
-                    <nav class="pcoded-navbar">
+                <div class="pcoded-wrapper"><!-- Navbar************************************************** -->
+                    <nav class="pcoded-navbar"><!-- Navbar*********************************************** -->
                         <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
                         <div class="pcoded-inner-navbar main-menu">
                             <div class="">
@@ -520,23 +517,23 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                 <!-- HORIZONTAL DASHBOARD NAVIGATION -->
                                 <div class="dashboard-nav" style="display: flex; gap: 20px; padding: 20px; background: #f5f5f5; border-radius: 5px; margin-bottom: 20px;">
                                     <button class="dashboard-item" data-section="workout" style="flex: 1; padding: 20px; background: white; border: 2px solid #ddd; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 16px; font-weight: 500;">
-                                        <i class="ti-list"></i> Workouts
+                                        <i  href="#workout" class="ti-list"></i> Workouts
                                     </button>
                                     <button class="dashboard-item active" data-section="exercise" style="flex: 1; padding: 20px; background: #4099ff; color: white; border: 2px solid #4099ff; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 16px; font-weight: 500;">
                                         <i class="ti-pulse"></i> Exercises
                                     </button>
                                 </div>
 
-                                <!-- WORKOUT SECTION -->
+                                <!-- WORKOUT SECTION *****************************************************-->
                                 <div id="workout-section" class="section-content" style="display: none;">
                                     <div style="background: #000; color: white; padding: 60px; text-align: center; border-radius: 5px; min-height: 400px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 500;">
                                         <div>
                                             <i class="ti-info-alt" style="font-size: 48px; display: block; margin-bottom: 20px;"></i>
-                                            This feature will be provided in the next few versions
+                                            Workout management coming soon! Stay tuned for updates.
                                         </div>
                                     </div>
                                 </div>
-
+                                <!-- WORKOUT SECTION *****************************************************-->
                                 <!-- EXERCISES SECTION -->
                                 <div id="exercise-section" class="section-content" style="display: block;">
                                     <div style="display: flex; gap: 20px; min-height: 600px;">
@@ -831,8 +828,6 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     <script src="assets/js/vertical/vertical-layout.min.js"></script>
     <script src="assets/js/jquery.mCustomScrollbar.concat.min.js"></script>
     <script type="text/javascript" src="assets/js/script.js"></script>
-    <!-- FOOVIA Dashboard JS -->
-    <script src="assets/js/dashboard.js"></script>
     <script>
         (function() {
             const params = new URLSearchParams(window.location.search);
@@ -843,6 +838,43 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                 window.history.replaceState({}, document.title, newUrl);
             }
         })();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('.dashboard-item[data-section]');
+            const sections = {
+                workout: document.getElementById('workout-section'),
+                exercise: document.getElementById('exercise-section')
+            };
+
+            function setActiveSection(sectionKey) {
+                Object.keys(sections).forEach(function(key) {
+                    if (sections[key]) {
+                        sections[key].style.display = key === sectionKey ? 'block' : 'none';
+                    }
+                });
+
+                navButtons.forEach(function(button) {
+                    const isActive = button.dataset.section === sectionKey;
+                    button.classList.toggle('active', isActive);
+                    button.style.background = isActive ? '#4099ff' : 'white';
+                    button.style.color = isActive ? 'white' : '#333';
+                    button.style.borderColor = isActive ? '#4099ff' : '#ddd';
+                });
+            }
+
+            navButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const targetSection = button.dataset.section;
+                    if (sections[targetSection]) {
+                        setActiveSection(targetSection);
+                    }
+                });
+            });
+
+            const initiallyActive = document.querySelector('.dashboard-item.active[data-section]');
+            setActiveSection(initiallyActive ? initiallyActive.dataset.section : 'exercise');
+        });
     </script>
 </body>
 
