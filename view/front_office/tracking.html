@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FOOVIA Tracking Module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link id="foovia-style" rel="stylesheet" href="./style.css?v=20260419">
+<script>
+  (function () {
+    const styleLink = document.getElementById('foovia-style');
+    const candidates = [
+      './style.css?v=20260419',
+      'style.css?v=20260419',
+      '/foovia/Esprit-PW-2A23-2526-Foovia-/view/front_office/style.css?v=20260419'
+    ];
+    let idx = 0;
+
+    styleLink.addEventListener('error', function () {
+      idx += 1;
+      if (idx < candidates.length) {
+        styleLink.href = candidates[idx];
+      }
+    });
+  })();
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
+    FOOVIA
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html#features">Features</a></li>
+    <li><a href="#tracking-tools">Tracking tools</a></li>
+    <li><a href="#tracking-flow">How it works</a></li>
+    <li><a href="#tracking-community">Community</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="backoffice.html" class="nav-btn nav-backoffice">Backoffice</a>
+    <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"></path>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 1 0 11.5 11.5z"></path>
+      </svg>
+    </button>
+    <a href="signin.html" class="nav-btn nav-signin">Sign In</a>
+    <a href="signup.html" class="nav-btn nav-signup">Sign Up</a>
+  </div>
+</nav>
+
+<section class="hero hero-tracking">
+  <div class="hero-text">
+    <h1 class="hero-title">
+      Track smarter.<br>
+      Improve <span class="accent">daily.</span><br>
+      Stay <span class="accent2">consistent.</span>
+    </h1>
+
+    <div class="hero-actions">
+      <a href="#tracking-tools" class="btn-primary">Open tracker</a>
+      <a href="index.html" class="btn-secondary">Back to welcome</a>
+    </div>
+  </div>
+</section>
+
+<div class="features-strip">
+  <div class="marquee-track">
+    <span>Meal Logging</span><span class="sep">*</span>
+    <span>Macro Tracking</span><span class="sep">*</span>
+    <span>Hydration Goals</span><span class="sep">*</span>
+    <span>Workout Consistency</span><span class="sep">*</span>
+    <span>Daily Reminders</span><span class="sep">*</span>
+    <span>Weekly Reports</span><span class="sep">*</span>
+    <span>Meal Logging</span><span class="sep">*</span>
+    <span>Macro Tracking</span><span class="sep">*</span>
+    <span>Hydration Goals</span><span class="sep">*</span>
+    <span>Workout Consistency</span><span class="sep">*</span>
+    <span>Daily Reminders</span><span class="sep">*</span>
+    <span>Weekly Reports</span><span class="sep">*</span>
+  </div>
+</div>
+
+<section class="section" id="tracking-tools">
+  <p class="section-label">Tracking module</p>
+  <h2 class="section-title features-title">Everything needed to monitor your health goals in one place.</h2>
+
+  <div class="feat-grid">
+    <div class="feat-row">
+      <div class="feat-card photo-card photo-recipes">
+        <div class="feat-num">01 - Meals</div>
+        <h3>Photo based meal logging</h3>
+        <p>Upload a meal picture and get fast nutritional estimates with auto-filled logging fields.</p>
+        <a href="#" class="feat-btn">Log meal</a>
+      </div>
+
+      <div class="feat-card photo-card photo-macro-tracking">
+        <div class="feat-num">02 - Macros</div>
+        <h3>Protein carbs fat split</h3>
+        <p>Follow your target macro split in real time and receive actionable recommendations.</p>
+        <a href="#" class="feat-btn">Check macros</a>
+      </div>
+
+      <div class="feat-card photo-card photo-sport">
+        <div class="feat-num">03 - Workouts</div>
+        <h3>Exercise completion tracking</h3>
+        <p>Track completed sessions, effort level, and weekly streaks linked to your plan.</p>
+        <a href="#" class="feat-btn">Update workout</a>
+      </div>
+    </div>
+
+    <div class="feat-row">
+      <div class="feat-card photo-card photo-marketplace">
+        <div class="feat-num">04 - Hydration</div>
+        <h3>Water and supplement reminders</h3>
+        <p>Set smart reminders for hydration and supplements based on your routine and weather.</p>
+        <a href="#" class="feat-btn">Set reminders</a>
+      </div>
+
+      <div class="feat-card photo-card photo-survey-user">
+        <div class="feat-num">05 - Goals</div>
+        <h3>Weekly objective review</h3>
+        <p>Compare planned versus completed targets and adjust your next week strategy quickly.</p>
+        <a href="#" class="feat-btn">Review goals</a>
+      </div>
+
+      <div class="feat-card photo-card photo-support">
+        <div class="feat-num">06 - Insights</div>
+        <h3>Progress summary and support</h3>
+        <p>See trend summaries, receive chatbot coaching, and ask for support when blocked.</p>
+        <a href="#" class="feat-btn">View insights</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="tracking-flow">
+  <p class="section-label">How it works</p>
+  <h2 class="section-title how-title">A simple daily flow for long term progress.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-num">01</div>
+      <h3>Log your meals</h3>
+      <p>Capture breakfast, lunch, dinner, and snacks in seconds from text or photo.</p>
+    </div>
+    <div class="step">
+      <div class="step-dot" style="background:var(--yellow)"></div>
+      <div class="step-num">02</div>
+      <h3>Track habits</h3>
+      <p>Mark workouts, hydration, and supplements to keep your habit chain complete.</p>
+    </div>
+    <div class="step">
+      <div class="step-dot" style="background:var(--orange)"></div>
+      <div class="step-num">03</div>
+      <h3>Review trends</h3>
+      <p>See daily and weekly trend cards that highlight wins and missed targets.</p>
+    </div>
+    <div class="step">
+      <div class="step-dot" style="background:var(--peach)"></div>
+      <div class="step-num">04</div>
+      <h3>Adapt your plan</h3>
+      <p>Use the recommended adjustments to keep progress steady and sustainable.</p>
+    </div>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">24h</div>
+    <div class="stat-label">Daily tracking cycle</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">3x</div>
+    <div class="stat-label">Faster meal logging</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">7d</div>
+    <div class="stat-label">Weekly progress reports</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1</div>
+    <div class="stat-label">Single health dashboard</div>
+  </div>
+</div>
+
+<section class="cta-section" id="tracking-community">
+  <p class="section-label">Start now</p>
+  <h2 class="cta-title">Your data, your progress,<br><em>your next level.</em></h2>
+  <p>Open the tracking tools and build consistent routines that match your real lifestyle.</p>
+  <a href="#tracking-tools" class="btn-primary">Start Tracking</a>
+</section>
+
+<footer>
+  <div class="footer-brand">
+    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 36px; width: auto;">
+    FOOVIA
+  </div>
+  <p>© 2026 Foovia. All rights reserved.</p>
+  <ul class="footer-links">
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#">Support</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+  (function() {
+    const root = document.documentElement;
+    const toggle = document.querySelector('.theme-toggle');
+
+    const setTheme = (theme) => {
+      const isDark = theme === 'dark';
+      root.setAttribute('data-theme', theme);
+      root.style.colorScheme = theme;
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+
+    const stored = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = stored || (prefersDark ? 'dark' : 'light');
+    setTheme(initialTheme);
+
+    toggle.addEventListener('click', () => {
+      const currentTheme = root.getAttribute('data-theme') || 'light';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', nextTheme);
+      setTheme(nextTheme);
+    });
+  })();
+</script>
+
+</body>
+</html>
