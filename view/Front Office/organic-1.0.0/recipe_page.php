@@ -472,7 +472,7 @@ ksort($categories);
                         </div>
                       </div>
                       <div class="button-area p-3 pt-0">
-                        <a href="recipes-details.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>" class="btn btn-primary rounded-1 p-2 fs-7 recipe-details-btn">View details</a>
+                        <a href="foovia-recipe.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>" class="btn btn-primary rounded-1 p-2 fs-7 recipe-details-btn">View details</a>
                       </div>
                     </div>
                   </div>
