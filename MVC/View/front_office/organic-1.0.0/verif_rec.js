@@ -13,7 +13,7 @@
 
   const labels = {
     description: 'Description',
-    etat_rec: 'Etat Reclamation',
+    etat_rec: 'Claim Status',
     type: 'Type'
   };
 
@@ -62,10 +62,10 @@
         return '';
       case 'etat_rec':
         if (!value) {
-          return 'Etat Reclamation is required.';
+          return 'Claim Status is required.';
         }
         if (value.length >= 10) {
-          return 'Etat Reclamation must be less than 10 characters.';
+          return 'Claim Status must be less than 10 characters.';
         }
         return '';
       case 'type':

@@ -13,9 +13,9 @@
   };
 
   const labels = {
-    id_reclam: 'ID Réclamation',
-    id_user: 'ID User',
-    comment: 'Commentaire',
+    id_reclam: 'Claim ID',
+    id_user: 'User ID',
+    comment: 'Comment',
     status: 'Status'
   };
 
@@ -59,15 +59,15 @@
         return '';
       case 'comment':
         if (!value) {
-          return 'Commentaire est requis.';
+          return 'Comment is required.';
         }
         if (value.length >= 250) {
-          return `Commentaire doit être inférieur à 250 caractères. (${value.length})`;
+          return `Comment must be less than 250 characters. (${value.length})`;
         }
         return '';
       case 'status':
         if (!value) {
-          return 'Status est requis.';
+          return 'Status is required.';
         }
         return '';
       default:

@@ -56,7 +56,7 @@ $date_fermeture = $reclamationToEdit['dateferm_reclam'] ?? ($_POST['date_fermetu
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier Réclamation</title>
+    <title>Edit Claim</title>
     <link rel="stylesheet" type="text/css" href="assets/css/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 </head>
@@ -68,7 +68,7 @@ $date_fermeture = $reclamationToEdit['dateferm_reclam'] ?? ($_POST['date_fermetu
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="mb-0">Modifier réclamation</h5>
+                            <h5 class="mb-0">Edit Claim</h5>
                             <small>Modifiez uniquement l'état et la date de fermeture.</small>
                         </div>
                         <a href="Support_admin.php" class="btn btn-secondary btn-sm">Retour</a>
@@ -91,11 +91,11 @@ $date_fermeture = $reclamationToEdit['dateferm_reclam'] ?? ($_POST['date_fermetu
                                 <textarea class="form-control" id="description" rows="3" readonly><?php echo htmlspecialchars($description); ?></textarea>
                             </div>
                             <div class="mb-3">
-                                <label for="etat_rec" class="form-label">Etat</label>
+                                <label for="etat_rec" class="form-label">Status</label>
                                 <input type="text" class="form-control" id="etat_rec" name="etat_rec" value="<?php echo htmlspecialchars($etat); ?>">
                             </div>
                             <div class="mb-3">
-                                <label for="date_fermeture" class="form-label">Date de fermeture</label>
+                                <label for="date_fermeture" class="form-label">Closing Date</label>
                                 <input type="date" class="form-control" id="date_fermeture" name="date_fermeture" value="<?php echo htmlspecialchars($date_fermeture); ?>">
                             </div>
                             <button type="submit" class="btn btn-success">Mettre à jour</button>

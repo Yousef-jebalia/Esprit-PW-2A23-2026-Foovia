@@ -504,13 +504,13 @@ $reclamations = $controller->get_reclamations();
             <select class="form-control" id="type" name="type">
               <option value="">Select Type</option>
               <option value="Authentication">Authentication</option>
-              <option value="Abonnement">Abonnement</option>
-              <option value="Autre">Autre</option>
+              <option value="Subscription">Subscription</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-4">
-                <button type="submit" class="btn btn-success">Confirmer</button>
-                <a href="support_rec_page.php" class="btn btn-secondary" title="Annuler">Annuler</a>
+                <button type="submit" class="btn btn-success">Confirm</button>
+                <a href="support_rec_page.php" class="btn btn-secondary" title="Annuler">Return</a>
         </form>
       </section>
 

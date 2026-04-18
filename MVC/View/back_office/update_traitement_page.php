@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $error = 'Tous les champs sont requis pour modifier le traitement.';
+    $error = 'All fields are required to edit the treatment.';
 }
 
 if (isset($_GET['id']) && $_GET['id'] !== '') {
@@ -53,7 +53,7 @@ $id_user = $traitementToEdit['id_user'] ?? ($_POST['id_user'] ?? '');
 <html lang="en">
 
 <head>
-    <title>Modifier Traitement</title>
+    <title>Edit Treatment</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
     <link rel="stylesheet" type="text/css" href="assets/css/bootstrap/css/bootstrap.min.css">
@@ -67,7 +67,7 @@ $id_user = $traitementToEdit['id_user'] ?? ($_POST['id_user'] ?? '');
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="mb-0">Modifier traitement</h5>
+                            <h5 class="mb-0">Edit Treatment</h5>
                             <small>Modifiez les informations du traitement existant.</small>
                         </div>
                         <a href="Support_admin.php" class="btn btn-secondary btn-sm">Retour</a>
@@ -86,7 +86,7 @@ $id_user = $traitementToEdit['id_user'] ?? ($_POST['id_user'] ?? '');
                                 <input type="text" class="form-control" id="id_reclam" name="id_reclam" value="<?php echo htmlspecialchars($id_reclam); ?>">
                             </div>
                             <div class="mb-3">
-                                <label for="comment" class="form-label">Commentaire</label>
+                                <label for="comment" class="form-label">Comment</label>
                                 <textarea class="form-control" id="comment" name="comment" rows="3"><?php echo htmlspecialchars($comment); ?></textarea>
                             </div>
                             <div class="mb-3">

@@ -503,21 +503,21 @@ $reclamations = $controller->get_reclamations();
         </div>
         <div class="container mt-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">Liste des Reclamations</h2>
-                <a href="add_rec_page.php" class="btn btn-success" title="Ajouter Reclamation">Ajouter Reclamation</a>
+                <h2 class="mb-0">List of Claims</h2>
+                <a href="add_rec_page.php" class="btn btn-success" title="Add Claim">Add Claim</a>
             </div>
             <div class="mb-3">
-                <input id="reclamation-search" type="text" class="form-control" placeholder="Rechercher dans la liste des réclamations...">
+                <input id="reclamation-search" type="text" class="form-control" placeholder="Search in the list of claims...">
             </div>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped" id="reclamation-table">
                     <thead class="table-light">
                         <tr>
                             <th>Description</th>
-                            <th>Etat</th>
+                            <th>Status</th>
                             <th>Type</th>
-                            <th>Date Overture</th>
-                            <th>Date Fermiture</th>
+                            <th>Opening Date</th>
+                            <th>Closing Date</th>
                         </tr>
                     </thead>
                     <tbody>

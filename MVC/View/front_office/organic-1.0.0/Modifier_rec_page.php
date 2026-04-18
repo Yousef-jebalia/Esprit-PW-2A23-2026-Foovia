@@ -11,7 +11,7 @@ $reclamationToEdit = null;
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $reclamationToEdit = $controller->get_reclamation_by_id($_GET['id']);
     if (!$reclamationToEdit) {
-        $error = 'Reclamation non trouvée.';
+        $error = 'Claim not found.';
     }
 }
 
@@ -499,8 +499,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <select class="form-control" id="type" name="type">
               <option value="">Select Type</option>
               <option value="Authentication" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Authentication') ? 'selected' : ''; ?>>Authentication</option>
-              <option value="Abonnement" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Abonnement') ? 'selected' : ''; ?>>Abonnement</option>
-              <option value="Autre" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Autre') ? 'selected' : ''; ?>>Autre</option>
+              <option value="Subscription" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Subscription') ? 'selected' : ''; ?>>Subscription</option>
+              <option value="Other" <?php echo (htmlspecialchars($reclamationToEdit['type_reclam'] ?? '') === 'Other') ? 'selected' : ''; ?>>Other</option>
             </select>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-4">
