@@ -1,5 +1,6 @@
 ﻿<?php
 require_once __DIR__ . '/../../../controle/controle_Menu.php';
+
 require_once __DIR__ . '/../../../controle/controle_categ_rec.php';
 require_once __DIR__ . '/../../../controle/controle_ingrediant.php';
 
@@ -454,16 +455,13 @@ ksort($categories);
                         <h3 class="recipe-title fs-6 fw-normal"><?php echo htmlspecialchars($recipe['name_rec']); ?></h3>
                         <div class="recipe-categories-slot">
                           <?php if (!empty($recipeCategoryNames)): ?>
-                            <div class="recipe-category-grid">
+                            <div class="recipe-tag-cloud">
                               <?php foreach ($recipeCategoryNames as $recipeCategoryName): ?>
                                 <?php
                                   $categoryMeta = $categoryMetaByName[$recipeCategoryName] ?? ['color' => '#f59e0b', 'text' => '#111827'];
+                                  $tagStyle = 'background: ' . $categoryMeta['color'] . '; border-color: ' . $categoryMeta['color'] . '; color: ' . $categoryMeta['text'] . ';';
                                 ?>
-                                <span
-                                  class="recipe-category-square"
-                                  title="<?php echo htmlspecialchars($recipeCategoryName); ?>"
-                                  style="background-color: <?php echo htmlspecialchars($categoryMeta['color']); ?>; color: <?php echo htmlspecialchars($categoryMeta['text']); ?>;"
-                                >
+                                <span class="recipe-tag" style="<?php echo htmlspecialchars($tagStyle); ?>">
                                   <?php echo htmlspecialchars($recipeCategoryName); ?>
                                 </span>
                               <?php endforeach; ?>
@@ -945,4 +943,3 @@ ksort($categories);
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
   </body>
-</html>

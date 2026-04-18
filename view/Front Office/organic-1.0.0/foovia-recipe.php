@@ -1,7 +1,10 @@
 <?php
 require_once __DIR__ . '/../../../controle/controle_Menu.php';
+require_once __DIR__ . '/../../../controle/controle_categ_rec.php';
 
 $controller = new Controller_menu();
+$categoryController = new controle_categ_rec();
+$categoryRows = $categoryController->list_categ_rec();
 $recipe = null;
 $recipeIngredients = [];
 $error = '';
@@ -39,6 +42,42 @@ function foovia_format_number($value) {
   return rtrim(rtrim(number_format($value, $precision), '0'), '.');
 }
 
+function foovia_normalize_hex_color($color) {
+  $color = trim((string)$color);
+  if ($color === '') {
+    return '';
+  }
+
+  if ($color[0] === '#') {
+    $color = substr($color, 1);
+  }
+
+  if (preg_match('/^[0-9a-fA-F]{3}$/', $color)) {
+    $color = $color[0] . $color[0] . $color[1] . $color[1] . $color[2] . $color[2];
+  }
+
+  if (!preg_match('/^[0-9a-fA-F]{6}$/', $color)) {
+    return '';
+  }
+
+  return '#' . strtolower($color);
+}
+
+function foovia_category_text_color($color) {
+  $color = foovia_normalize_hex_color($color);
+  if ($color === '') {
+    return '#555';
+  }
+
+  $hex = ltrim($color, '#');
+  $red = hexdec(substr($hex, 0, 2));
+  $green = hexdec(substr($hex, 2, 2));
+  $blue = hexdec(substr($hex, 4, 2));
+  $luminance = (0.299 * $red) + (0.587 * $green) + (0.114 * $blue);
+
+  return $luminance > 160 ? '#111008' : '#ffffff';
+}
+
 if (!isset($_GET['id_rec']) || !is_numeric($_GET['id_rec'])) {
   $error = 'Recipe ID is missing or invalid.';
 } else {
@@ -53,6 +92,21 @@ if (!isset($_GET['id_rec']) || !is_numeric($_GET['id_rec'])) {
 $recipeName = $recipe ? foovia_clean_text($recipe['name_rec'] ?? '', 'Recipe') : 'Recipe';
 $categoryNames = $recipe ? array_values(array_filter(array_map('trim', explode(',', (string)($recipe['categorie_rec'] ?? ''))))) : [];
 $primaryCategory = !empty($categoryNames) ? $categoryNames[0] : 'Recipe';
+$categoryColorsByName = [];
+foreach ($categoryRows as $categoryRow) {
+  $categoryName = isset($categoryRow['nom_categ']) ? trim((string)$categoryRow['nom_categ']) : '';
+  if ($categoryName === '') {
+    continue;
+  }
+
+  $rawColor = $categoryRow['color_categ'] ?? ($categoryRow['color_cat_rec'] ?? '');
+  $color = foovia_normalize_hex_color($rawColor);
+  if ($color === '') {
+    continue;
+  }
+
+  $categoryColorsByName[strtolower($categoryName)] = $color;
+}
 $description = $recipe ? foovia_clean_text($recipe['description_rec'] ?? '', '') : '';
 $instructionsRaw = $recipe ? foovia_clean_text($recipe['instruction_rec'] ?? '', '') : '';
 $origin = $recipe ? foovia_clean_text($recipe['origin_rec'] ?? '', '') : '';
@@ -483,19 +537,27 @@ if ($recipe) {
   /* save btn */
   .btn-save {
     width: 100%;
-    background: var(--orange);
-    color: #fff;
-    border: none;
+    background: var(--off-white);
+    color: var(--dark);
+    border: 2px solid var(--dark);
     padding: 16px;
     border-radius: 14px;
     font-family: 'Boldonse', system-ui;
     font-size: .95rem;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: background .2s, transform .15s;
+    transition: background .2s, color .2s, border-color .2s, transform .15s;
     margin-bottom: 10px;
   }
-  .btn-save:hover { background: var(--red); transform: scale(1.02); }
+  .btn-save:hover {
+    background: #e8e8e8;
+    border-color: #999;
+  }
+  .btn-save.saved {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
   .btn-log {
     width: 100%;
     background: transparent;
@@ -509,6 +571,11 @@ if ($recipe) {
     transition: background .2s, color .2s;
   }
   .btn-log:hover { background: var(--dark); color: #fff; }
+  .btn-log.saved {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+  }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 960px) {
@@ -577,7 +644,7 @@ if ($recipe) {
     <div class="main-col">
 
       <h2 class="section-heading">
-        <span class="badge" style="background:var(--yellow)">📝</span>
+        <span class="badge" style="background:var(--yellow)"></span>
         About this recipe
       </h2>
       <p class="description-text">
@@ -590,7 +657,7 @@ if ($recipe) {
 
       <div class="ingredients-section">
         <h2 class="section-heading">
-          <span class="badge" style="background:var(--green); color:#fff">🛒</span>
+          <span class="badge" style="background:var(--green); color:#fff"></span>
           Ingredients
         </h2>
 
@@ -619,7 +686,7 @@ if ($recipe) {
 
       <div>
         <h2 class="section-heading">
-          <span class="badge" style="background:var(--orange); color:#fff">👨‍🍳</span>
+          <span class="badge" style="background:var(--orange); color:#fff"></span>
           Instructions
         </h2>
 
@@ -644,8 +711,8 @@ if ($recipe) {
 
     <div class="sidebar">
 
-      <button class="btn-save">❤️ Save Recipe</button>
-      <button class="btn-log">📊 Log to Daily Tracker</button>
+      <button class="btn-save">Save Recipe</button>
+      <button class="btn-log">Log to Daily Tracker</button>
 
       <div class="macros-card" style="margin-top:20px">
         <h2>Nutrition per serving</h2>
@@ -684,12 +751,17 @@ if ($recipe) {
         <h3>Tags</h3>
         <div class="tag-cloud">
           <?php if (!empty($categoryNames)): ?>
-            <?php
-              $tagClasses = ['green', 'yellow', 'orange', ''];
-            ?>
             <?php foreach ($categoryNames as $index => $tagName): ?>
-              <?php $tagClass = $tagClasses[$index % count($tagClasses)]; ?>
-              <span class="tag <?php echo htmlspecialchars($tagClass); ?>"><?php echo htmlspecialchars($tagName); ?></span>
+              <?php
+                $tagKey = strtolower(trim((string)$tagName));
+                $tagColor = $categoryColorsByName[$tagKey] ?? '';
+                $tagStyle = '';
+                if ($tagColor !== '') {
+                  $tagTextColor = foovia_category_text_color($tagColor);
+                  $tagStyle = 'background: ' . $tagColor . '; border-color: ' . $tagColor . '; color: ' . $tagTextColor . ';';
+                }
+              ?>
+              <span class="tag"<?php echo $tagStyle !== '' ? ' style="' . htmlspecialchars($tagStyle) . '"' : ''; ?>><?php echo htmlspecialchars($tagName); ?></span>
             <?php endforeach; ?>
           <?php else: ?>
             <span class="tag">No tags</span>
@@ -738,7 +810,7 @@ if ($recipe) {
 
 <!-- FOOTER -->
 <footer style="background:var(--dark);color:rgba(255,255,255,.45);padding:32px 64px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-  <span style="font-family:'Boldonse',system-ui;color:#F5C842;font-size:1.1rem;">🌿 FOOVIA</span>
+  <span style="font-family:'Boldonse',system-ui;color:#F5C842;font-size:1.1rem;">FOOVIA</span>
   <span style="font-size:.82rem;">© 2026 Foovia. All rights reserved.</span>
   <div style="display:flex;gap:20px;">
     <a href="#" style="color:rgba(255,255,255,.4);font-size:.82rem;text-decoration:none;">Privacy</a>
@@ -746,6 +818,34 @@ if ($recipe) {
     <a href="#" style="color:rgba(255,255,255,.4);font-size:.82rem;text-decoration:none;">Support</a>
   </div>
 </footer>
+
+<script>
+  const saveRecipeBtn = document.querySelector('.btn-save');
+  if (saveRecipeBtn) {
+    saveRecipeBtn.addEventListener('click', function() {
+      if (this.classList.contains('saved')) {
+        this.classList.remove('saved');
+        this.textContent = 'Save Recipe';
+      } else {
+        this.classList.add('saved');
+        this.textContent = 'Saved';
+      }
+    });
+  }
+
+  const logMealBtn = document.querySelector('.btn-log');
+  if (logMealBtn) {
+    logMealBtn.addEventListener('click', function() {
+      if (this.classList.contains('saved')) {
+        this.classList.remove('saved');
+        this.textContent = 'Log to Daily Tracker';
+      } else {
+        this.classList.add('saved');
+        this.textContent = 'Logged';
+      }
+    });
+  }
+</script>
 
 </body>
 </html>
