@@ -83,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "For weight maintenance, the target value must be close to the initial value (+/- 0.5)";
         }
     }
+
+    if (empty($errors) && !empty($data['date_deb_obj'])) {
+        $today = new DateTime('today');
+        $start_date = new DateTime($data['date_deb_obj']);
+        $data['status_obj'] = $start_date < $today ? 'en_cours' : 'en_attente';
+    }
     
     // Si pas d'erreurs, insertion en base de données
     if (empty($errors)) {
@@ -163,94 +169,155 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
     <style>
-        .add-hero {
-            background-image: url('../front_office/images/banner-1.jpg');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center;
+        body {
+            background:
+                radial-gradient(circle at 10% 10%, rgba(245, 200, 66, .24) 0%, rgba(245, 200, 66, 0) 48%),
+                radial-gradient(circle at 90% 90%, rgba(75, 174, 82, .16) 0%, rgba(75, 174, 82, 0) 45%),
+                var(--page-bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--page-text);
         }
 
-        .add-hero .hero-overlay {
-            background: rgba(255, 255, 255, 0.84);
+        .survey-wrap {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+
+        .survey-intro {
+            margin-bottom: 1.1rem;
+            border-radius: 22px;
+            background:
+                radial-gradient(120% 120% at 0% 0%, rgba(245, 200, 66, .16) 0%, rgba(245, 200, 66, 0) 58%),
+                linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+            border: 1.5px solid var(--surface-border);
+            box-shadow: 0 18px 36px rgba(17, 16, 8, 0.08);
+            padding: 1.1rem 1.25rem;
+        }
+
+        .survey-intro small {
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.13em;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: var(--green);
+            margin-bottom: 0.38rem;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .survey-intro h2 {
+            margin: 0;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.42rem;
+            color: var(--panel-text);
         }
 
         .form-shell {
-            border: 1px solid #f0f0f0;
-            border-radius: 16px;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+            border: 1.5px solid var(--surface-border);
+            border-radius: 24px;
+            box-shadow: 0 22px 44px rgba(17, 16, 8, 0.1);
+            background:
+                radial-gradient(120% 120% at 0% 0%, rgba(245, 200, 66, .18) 0%, rgba(245, 200, 66, 0) 58%),
+                linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
         }
 
         .form-section-title {
-            font-size: 0.95rem;
+            font-size: 0.76rem;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #364127;
-            margin-bottom: 1rem;
-            margin-top: 0.5rem;
+            letter-spacing: 0.14em;
+            color: var(--green);
+            margin-bottom: 0.9rem;
+            margin-top: 1.15rem;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            padding-bottom: 0.45rem;
+            border-bottom: 1px solid rgba(17,16,8,.08);
         }
 
-        .top-nav-link {
+        .form-label {
+            font-size: 0.86rem;
             font-weight: 700;
-            text-transform: uppercase;
+            color: var(--panel-text);
+            margin-bottom: 0.38rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 14px;
+            border: 1px solid rgba(17,16,8,.16);
+            padding: 0.78rem 0.88rem;
+            box-shadow: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: var(--surface);
+            color: var(--panel-text);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(75, 174, 82, 0.16);
+        }
+
+        .form-control[readonly] {
+            background: rgba(17,16,8,.05);
+            color: var(--panel-muted);
+        }
+
+        #objectifForm .btn-primary {
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--orange) 0%, var(--red) 100%);
+            padding: 0.72rem 1.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            font-family: 'Syne', sans-serif;
+            box-shadow: 0 8px 24px rgba(217,79,0,.26);
+        }
+
+        #objectifForm .btn-primary:hover {
+            filter: brightness(0.96);
+        }
+
+        #objectifForm .btn-primary:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.22), 0 8px 24px rgba(217,79,0,.26);
+        }
+
+        .survey-intro h2,
+        .form-shell {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .survey-intro::after,
+        .form-shell::after {
+            content: '';
+            position: absolute;
+            inset: auto -18% -20% auto;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(75, 174, 82, 0.08);
+            pointer-events: none;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: 0;
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <div class="container-fluid">
-            <div class="row py-3 border-bottom align-items-center">
-                <div class="col-12 col-md-3 text-center text-md-start mb-3 mb-md-0">
-                    <a href="../front_office/index.html" class="d-inline-block">
-                        <img src="../front_office/images/logo.svg" alt="logo" class="img-fluid" style="max-height: 54px;">
-                    </a>
-                </div>
-
-                <div class="col-12 col-md-5 mb-3 mb-md-0">
-                    <div class="search-bar row bg-light p-2 rounded-4">
-                        <div class="col-11">
-                            <form class="text-center" action="../front_office/index.html" method="post">
-                                <input type="text" class="form-control border-0 bg-transparent" placeholder="Search in Foovia">
-                            </form>
-                        </div>
-                        <div class="col-1 d-flex align-items-center justify-content-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7a7 7 0 0 1-7 7Z"/></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <ul class="navbar-nav list-unstyled d-flex flex-row gap-4 justify-content-center justify-content-md-end align-items-center mb-0">
-                        <li class="nav-item">
-                            <a href="../front_office/index.html" class="nav-link top-nav-link">Home</a>
-                        </li>
-                        <li class="nav-item active">
-                            <a href="form-elements-component.php" class="nav-link top-nav-link text-primary">Add</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="../front_office/objectif-long-terme.php" class="nav-link top-nav-link">View</a>
-                        </li>
-                    </ul>
-                </div>
+    <section class="py-5">
+        <div class="container-lg survey-wrap">
+            <div class="survey-intro">
+                <small>Long term goals</small>
+                <h2>Create a new objective</h2>
             </div>
-        </div>
-    </header>
-
-    <section class="add-hero">
-        <div class="hero-overlay py-5">
-            <div class="container-lg py-4">
-                <p class="text-uppercase fw-semibold text-secondary mb-2">Foovia goals</p>
-                <h1 class="display-4 mb-3"><span class="fw-bold text-primary">Add</span> a long-term goal</h1>
-                <p class="fs-5 mb-0">Create your goal and define your nutrition targets in a few steps.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-5 bg-light">
-        <div class="container-lg">
             <div class="form-shell bg-white p-4 p-md-5">
                 <?php if (!empty($error_message)): ?>
                     <div class="alert alert-danger" role="alert">
@@ -367,48 +434,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </section>
-
-    <footer class="py-5">
-        <div class="container-lg">
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <img src="../front_office/images/logo.svg" width="210" height="60" alt="logo">
-                    <p class="mt-3 mb-0">Foovia helps you manage your health goals with clarity and consistency.</p>
-                </div>
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="widget-title">Navigation</h5>
-                    <ul class="menu-list list-unstyled">
-                        <li class="menu-item"><a href="../front_office/index.html" class="nav-link">Home</a></li>
-                        <li class="menu-item"><a href="form-elements-component.php" class="nav-link">Add</a></li>
-                        <li class="menu-item"><a href="../front_office/objectif-long-terme.php" class="nav-link">View</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="widget-title">Tracking</h5>
-                    <p class="mb-0">Create your weight and nutrition goals, then track how they evolve.</p>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="widget-title">Newsletter</h5>
-                    <form class="d-flex mt-3 gap-0" action="../front_office/index.html">
-                        <input class="form-control rounded-start rounded-0 bg-light" type="email" placeholder="Email Address" aria-label="Email Address">
-                        <button class="btn btn-dark rounded-end rounded-0" type="submit">Subscribe</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <div id="footer-bottom">
-        <div class="container-lg">
-            <div class="row">
-                <div class="col-md-6 copyright">
-                    <p>© 2026 Foovia. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 credit-link text-start text-md-end">
-                </div>
-            </div>
-        </div>
-    </div>
 
 
     <script>

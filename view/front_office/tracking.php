@@ -110,7 +110,15 @@ $objectifs = $controller->list_objectifs();
         <h3 class="ltg-headline">Long term goals list</h3>
       </div>
       <div class="ltg-actions">
-        <a href="../back_office/form-elements-component.php" class="btn-primary">Add Goal</a>
+        <button
+          type="button"
+          class="btn-primary ltg-open-survey"
+          data-survey-url="../back_office/form-elements-component.php"
+          aria-controls="ltg-survey-panel"
+          aria-expanded="false"
+        >
+          Add Goal
+        </button>
       </div>
     </div>
 
@@ -186,6 +194,20 @@ $objectifs = $controller->list_objectifs();
       </table>
     </div>
 
+  </div>
+</section>
+
+<section class="section ltg-survey-section" id="ltg-survey-panel" hidden>
+  <div class="ltg-survey-shell">
+    <div class="ltg-survey-head">
+      <h3 class="ltg-headline">Long term goal survey</h3>
+      <button type="button" class="ltg-close-survey" aria-label="Close survey">Close</button>
+    </div>
+    <iframe
+      class="ltg-survey-frame"
+      title="Long term goal survey"
+      data-src="../back_office/form-elements-component.php"
+    ></iframe>
   </div>
 </section>
 
@@ -337,6 +359,29 @@ $objectifs = $controller->list_objectifs();
       localStorage.setItem('theme', nextTheme);
       setTheme(nextTheme);
     });
+
+    const openSurveyButton = document.querySelector('.ltg-open-survey');
+    const surveyPanel = document.getElementById('ltg-survey-panel');
+    const closeSurveyButton = document.querySelector('.ltg-close-survey');
+    const surveyFrame = document.querySelector('.ltg-survey-frame');
+
+    if (openSurveyButton && surveyPanel && surveyFrame) {
+      openSurveyButton.addEventListener('click', () => {
+        if (!surveyFrame.src) {
+          surveyFrame.src = surveyFrame.getAttribute('data-src') || '';
+        }
+        surveyPanel.hidden = false;
+        openSurveyButton.setAttribute('aria-expanded', 'true');
+        surveyPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    if (closeSurveyButton && surveyPanel && openSurveyButton) {
+      closeSurveyButton.addEventListener('click', () => {
+        surveyPanel.hidden = true;
+        openSurveyButton.setAttribute('aria-expanded', 'false');
+      });
+    }
   })();
 </script>
 

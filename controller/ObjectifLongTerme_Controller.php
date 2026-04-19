@@ -4,6 +4,43 @@ include(__DIR__ . '/../model/ObjectifLongTerme.php');
 
 class ObjectifLongTerme_Controller {
 
+    private function normalize_status_for_date(string $status_obj, ?string $date_deb_obj): string {
+        if ($status_obj === 'termine' || $status_obj === 'en_cours') {
+            return $status_obj;
+        }
+
+        if (empty($date_deb_obj)) {
+            return $status_obj ?: 'en_attente';
+        }
+
+        try {
+            $start_date = new DateTime($date_deb_obj);
+            $today = new DateTime('today');
+
+            if ($start_date < $today) {
+                return 'en_cours';
+            }
+        } catch (Exception $e) {
+            return $status_obj ?: 'en_attente';
+        }
+
+        return $status_obj ?: 'en_attente';
+    }
+
+    private function sync_overdue_objectif_statuses(): void {
+        $sql = "UPDATE objectiflongterme
+                SET status_obj = 'en_cours'
+                WHERE status_obj = 'en_attente'
+                  AND date_deb_obj < CURRENT_DATE()";
+        $db = config::getConnexion();
+
+        try {
+            $db->exec($sql);
+        } catch (Exception $e) {
+            // Silently ignore sync failures so listing still works.
+        }
+    }
+
     public function get_next_objectif_id(): int {
         $sql = "SELECT COALESCE(MAX(id_obj), 0) + 1 AS next_id FROM objectiflongterme";
         $db = config::getConnexion();
@@ -28,6 +65,11 @@ class ObjectifLongTerme_Controller {
         
         $sql = "INSERT INTO objectiflongterme (id_obj, id_user, type_obj, val_cible_obj, val_init_obj, date_deb_obj, date_fin_obj, status_obj, frequency_rappel_obj, consistancy_sport_obj, consistency_alim_obj, obj_cal_obj, obj_fat_obj, obj_prot_obj, obj_carb_obj) 
                 VALUES (:id_obj, :id_user, :type_obj, :val_cible_obj, :val_init_obj, :date_deb_obj, :date_fin_obj, :status_obj, :frequency_rappel_obj, :consistancy_sport_obj, :consistency_alim_obj, :obj_cal_obj, :obj_fat_obj, :obj_prot_obj, :obj_carb_obj)";
+
+        $status_obj = $this->normalize_status_for_date(
+            $data['status_obj'] ?? 'en_attente',
+            $objectif->getDateDebObj()
+        );
         
         $db = config::getConnexion();
         try {
@@ -40,7 +82,7 @@ class ObjectifLongTerme_Controller {
                 'val_init_obj' => $objectif->getValInitObj(),
                 'date_deb_obj' => $objectif->getDateDebObj(),
                 'date_fin_obj' => $objectif->getDateFinObj(),
-                'status_obj' => $data['status_obj'] ?? 'en_attente',  // Valeur par défaut
+                'status_obj' => $status_obj,
                 'frequency_rappel_obj' => $objectif->getFrequencyRappelObj(),
                 'consistancy_sport_obj' => $data['consistancy_sport_obj'] ?? 0,  // Valeur par défaut
                 'consistency_alim_obj' => $data['consistency_alim_obj'] ?? 0,  // Valeur par défaut
@@ -58,6 +100,8 @@ class ObjectifLongTerme_Controller {
     }
 
     public function list_objectifs(): array {
+        $this->sync_overdue_objectif_statuses();
+
         $sql = "SELECT id_obj, id_user, type_obj, val_cible_obj, val_init_obj, date_deb_obj, date_fin_obj, status_obj, frequency_rappel_obj, consistancy_sport_obj, consistency_alim_obj, obj_cal_obj, obj_fat_obj, obj_prot_obj, obj_carb_obj FROM objectiflongterme ORDER BY date_deb_obj DESC, id_obj DESC";
         $db = config::getConnexion();
 
@@ -70,6 +114,8 @@ class ObjectifLongTerme_Controller {
     }
 
     public function get_objectif_by_id(int $id_obj): ?array {
+        $this->sync_overdue_objectif_statuses();
+
         $sql = "SELECT id_obj, id_user, type_obj, val_cible_obj, val_init_obj, date_deb_obj, date_fin_obj, status_obj, frequency_rappel_obj, consistancy_sport_obj, consistency_alim_obj, obj_cal_obj, obj_fat_obj, obj_prot_obj, obj_carb_obj FROM objectiflongterme WHERE id_obj = :id_obj";
         $db = config::getConnexion();
 
