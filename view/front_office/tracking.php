@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once '../../controller/ObjectifLongTerme_Controller.php';
+require_once '../../controller/ObjectifHebdomadaire_Controller.php';
 
 $controller = new ObjectifLongTerme_Controller();
+$hebdo_controller = new ObjectifHebdomadaire_Controller();
 
 function goal_type_label(string $type): string {
   $labels = [
@@ -87,6 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
 }
 
 $objectifs = $controller->list_objectifs();
+$goal_start_date = null;
+$goal_end_date = null;
+if (!empty($objectifs) && !empty($objectifs[0]['date_deb_obj'])) {
+  $goal_start_date = $objectifs[0]['date_deb_obj'];
+}
+if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
+  $goal_end_date = $objectifs[0]['date_fin_obj'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -454,6 +464,17 @@ $objectifs = $controller->list_objectifs();
     font-size: clamp(1.05rem, 2vw, 1.3rem);
   }
 
+  .weekly-calendar-note {
+    font-size: 0.75rem;
+    color: var(--panel-muted);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(75, 174, 82, 0.08);
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+  }
+
   .weekly-cal-controls {
     display: flex;
     gap: 0.45rem;
@@ -487,8 +508,8 @@ $objectifs = $controller->list_objectifs();
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--panel-muted);
-    font-weight: 700;
+    color: var(--panel-text);
+    font-weight: 800;
     padding: 0.35rem 0;
   }
 
@@ -524,14 +545,164 @@ $objectifs = $controller->list_objectifs();
     background: rgba(75, 174, 82, 0.09);
   }
 
+  .weekly-cal-day.is-disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    background: rgba(17, 16, 8, 0.04);
+    pointer-events: none;
+  }
+
+  .weekly-cal-day.is-goal-range {
+    background: rgba(245, 200, 66, 0.22);
+    border-color: rgba(245, 153, 66, 0.55);
+  }
+
+  .weekly-cal-day.is-goal-range small {
+    color: #7d4d11;
+    font-weight: 700;
+  }
+
+  .weekly-cal-day.is-disabled.is-goal-range {
+    opacity: 0.75;
+  }
+
+  .weekly-cal-day:not(.is-today):not(.is-other-month) {
+    opacity: 0.45;
+  }
+
   @media (max-width: 800px) {
     .weekly-cal-day {
       min-height: 62px;
     }
   }
+
+  .weekly-survey-shell {
+    margin-top: 1.5rem;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(17, 16, 8, 0.08);
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(75, 174, 82, .12) 0%, rgba(75, 174, 82, 0) 58%),
+      linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+    padding: 1.25rem;
+    display: none;
+  }
+
+  .weekly-survey-shell.is-visible {
+    display: block;
+  }
+
+  .weekly-survey-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .weekly-survey-head h3 {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: var(--panel-text);
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+  }
+
+  .weekly-survey-close {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem;
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+  }
+
+  .weekly-survey-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .weekly-survey-field {
+    border-radius: 14px;
+    border: 1px solid rgba(17, 16, 8, 0.1);
+    padding: 0.95rem;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .weekly-survey-field label {
+    font-size: 0.78rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.65rem;
+  }
+
+  .weekly-survey-field input,
+  .weekly-survey-field textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(17, 16, 8, 0.16);
+    padding: 0.72rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    background: var(--surface);
+    color: var(--panel-text);
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .weekly-survey-field input:focus,
+  .weekly-survey-field textarea:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(75, 174, 82, 0.16);
+  }
+
+  .weekly-survey-textarea {
+    grid-column: 1 / -1;
+  }
+
+  .weekly-survey-textarea textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .weekly-survey-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .weekly-survey-actions button {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.72rem 1.25rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .weekly-survey-save {
+    background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
+    color: #fff;
+  }
+
+  .weekly-survey-cancel {
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+  }
+
 </style>
 </head>
-<body>
+<body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?>>
 
 <nav>
   <a href="index.html" class="nav-logo">
@@ -816,6 +987,9 @@ $objectifs = $controller->list_objectifs();
         <button type="button" class="weekly-cal-btn" id="weekly-cal-next" aria-label="Next month">&gt;</button>
       </div>
     </div>
+    <div class="weekly-calendar-note">
+      <strong>📅 Today only:</strong> You can complete your daily tracking only for today's date.
+    </div>
     <div class="weekly-cal-weekdays" aria-hidden="true">
       <span>Sun</span>
       <span>Mon</span>
@@ -826,6 +1000,63 @@ $objectifs = $controller->list_objectifs();
       <span>Sat</span>
     </div>
     <div class="weekly-cal-grid" id="weekly-cal-grid"></div>
+  </div>
+
+  <div class="weekly-survey-shell" id="weekly-survey-panel" hidden>
+    <div class="weekly-survey-head">
+      <h3 id="weekly-survey-date">Track for</h3>
+      <button type="button" class="weekly-survey-close" id="weekly-survey-close" aria-label="Close survey">Close</button>
+    </div>
+
+    <form method="post" action="" id="weekly-survey-form">
+      <input type="hidden" name="survey_date" id="survey-date" value="">
+      <input type="hidden" name="add_weekly_objective" value="1">
+
+      <div class="weekly-survey-grid">
+        <div class="weekly-survey-field">
+          <label for="survey-cal">Calories</label>
+          <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-fat">Fat (g)</label>
+          <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-prot">Protein (g)</label>
+          <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-carb">Carbs (g)</label>
+          <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-water">Water (glasses)</label>
+          <input type="number" id="survey-water" name="nb_verre_eau_suiv" min="0" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-sleep">Sleep (hours)</label>
+          <input type="text" id="survey-sleep" name="nb_h_sommeil_suiv" placeholder="e.g., 8" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-steps">Steps</label>
+          <input type="number" id="survey-steps" name="nb_pas_suiv" min="0" value="">
+        </div>
+        <div class="weekly-survey-field">
+          <label for="survey-status">Daily Status</label>
+          <input type="text" id="survey-status" name="status_obj_quot_suiv" placeholder="e.g., On track" value="">
+        </div>
+
+        <div class="weekly-survey-field weekly-survey-textarea">
+          <label for="survey-notes">Notes</label>
+          <textarea id="survey-notes" name="note_suiv" placeholder="Add any notes about your day..."></textarea>
+        </div>
+      </div>
+
+      <div class="weekly-survey-actions">
+        <button type="button" class="weekly-survey-cancel" id="weekly-survey-cancel">Cancel</button>
+        <button type="submit" class="weekly-survey-save">Save tracking</button>
+      </div>
+    </form>
   </div>
 </section>
 
@@ -975,6 +1206,23 @@ $objectifs = $controller->list_objectifs();
       const baseDate = new Date();
       let displayedMonth = baseDate.getMonth();
       let displayedYear = baseDate.getFullYear();
+      
+      const goalStartDateStr = document.body.getAttribute('data-goal-start-date');
+      const goalEndDateStr = document.body.getAttribute('data-goal-end-date');
+      let goalStartDate = null;
+      let goalEndDate = null;
+      if (goalStartDateStr) {
+        const parts = goalStartDateStr.split('-');
+        if (parts.length === 3) {
+          goalStartDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        }
+      }
+      if (goalEndDateStr) {
+        const parts = goalEndDateStr.split('-');
+        if (parts.length === 3) {
+          goalEndDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        }
+      }
 
       const renderCalendar = () => {
         const firstDay = new Date(displayedYear, displayedMonth, 1);
@@ -992,7 +1240,7 @@ $objectifs = $controller->list_objectifs();
           const dayNumber = prevMonthLastDay.getDate() - i + 1;
           const cell = document.createElement('div');
           cell.className = 'weekly-cal-day is-other-month';
-          cell.innerHTML = '<strong>' + dayNumber + '</strong><small>Previous month</small>';
+          cell.innerHTML = '<strong>' + dayNumber + '</strong>';
           calGrid.appendChild(cell);
         }
 
@@ -1002,17 +1250,45 @@ $objectifs = $controller->list_objectifs();
             cellDate.getDate() === baseDate.getDate() &&
             cellDate.getMonth() === baseDate.getMonth() &&
             cellDate.getFullYear() === baseDate.getFullYear();
+          
+          const isBeforeStart = goalStartDate && cellDate < goalStartDate;
+          const isInGoalRange = goalStartDate && goalEndDate && cellDate >= goalStartDate && cellDate <= goalEndDate;
+          const isClickable = isToday && !isBeforeStart;
 
           const cell = document.createElement('div');
-          cell.className = 'weekly-cal-day' + (isToday ? ' is-today' : '');
-          cell.innerHTML = '<strong>' + day + '</strong><small>Track goals</small>';
+          let className = 'weekly-cal-day';
+          if (isToday) className += ' is-today';
+          if (isInGoalRange) className += ' is-goal-range';
+          if (!isClickable) className += ' is-disabled';
+          cell.className = className;
+          cell.innerHTML = '<strong>' + day + '</strong>';
+          if (!isClickable) {
+            cell.style.pointerEvents = 'none';
+          } else {
+            cell.style.cursor = 'pointer';
+            const dateStr = String(displayedYear) + '-' + String(displayedMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+            cell.addEventListener('click', () => {
+              const weeklyPanel = document.getElementById('weekly-survey-panel');
+              const surveyDateInput = document.getElementById('survey-date');
+              const surveyDateTitle = document.getElementById('weekly-survey-date');
+              if (weeklyPanel && surveyDateInput && surveyDateTitle) {
+                const dateObj = new Date(displayedYear, displayedMonth, day);
+                const dateFormatted = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                surveyDateTitle.textContent = 'Track for ' + dateFormatted;
+                surveyDateInput.value = dateStr;
+                weeklyPanel.hidden = false;
+                weeklyPanel.classList.add('is-visible');
+                weeklyPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            });
+          }
           calGrid.appendChild(cell);
         }
 
         for (let day = 1; day <= trailingDays; day += 1) {
           const cell = document.createElement('div');
           cell.className = 'weekly-cal-day is-other-month';
-          cell.innerHTML = '<strong>' + day + '</strong><small>Next month</small>';
+          cell.innerHTML = '<strong>' + day + '</strong>';
           calGrid.appendChild(cell);
         }
       };
@@ -1036,6 +1312,32 @@ $objectifs = $controller->list_objectifs();
       });
 
       renderCalendar();
+    }
+
+    const weeklySurveyPanel = document.getElementById('weekly-survey-panel');
+    const weeklySurveyClose = document.getElementById('weekly-survey-close');
+    const weeklySurveyCancel = document.getElementById('weekly-survey-cancel');
+    const weeklySurveyForm = document.getElementById('weekly-survey-form');
+
+    if (weeklySurveyClose && weeklySurveyPanel) {
+      weeklySurveyClose.addEventListener('click', () => {
+        weeklySurveyPanel.hidden = true;
+        weeklySurveyPanel.classList.remove('is-visible');
+      });
+    }
+
+    if (weeklySurveyCancel && weeklySurveyPanel) {
+      weeklySurveyCancel.addEventListener('click', () => {
+        weeklySurveyPanel.hidden = true;
+        weeklySurveyPanel.classList.remove('is-visible');
+      });
+    }
+
+    if (weeklySurveyForm) {
+      weeklySurveyForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        weeklySurveyForm.submit();
+      });
     }
   })();
 </script>
