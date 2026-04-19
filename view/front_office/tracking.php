@@ -1,3 +1,16 @@
+<?php
+require_once '../../controller/ObjectifLongTerme_Controller.php';
+
+$controller = new ObjectifLongTerme_Controller();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
+  $controller->delete_objectif((int) $_POST['delete_id_obj']);
+  header('Location: tracking.php#long-term-goals');
+  exit;
+}
+
+$objectifs = $controller->list_objectifs();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -95,15 +108,10 @@
     <div class="ltg-head">
       <div>
         <h3 class="ltg-headline">Long term goals list</h3>
-        <p class="ltg-sub">Each goal can be edited or deleted directly from the table actions column.</p>
       </div>
       <div class="ltg-actions">
         <a href="../back_office/form-elements-component.php" class="btn-primary">Add Goal</a>
       </div>
-    </div>
-
-    <div class="ltg-toolbar">
-      <span>Scroll horizontally to view all columns</span>
     </div>
 
     <div class="ltg-table-wrap">
@@ -128,77 +136,56 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>101</td>
-            <td>Weight loss</td>
-            <td>68</td>
-            <td>75</td>
-            <td>2026-04-01</td>
-            <td>2026-07-01</td>
-            <td><span class="ltg-status ltg-status-progress">in progress</span></td>
-            <td>2</td>
-            <td>78</td>
-            <td>72</td>
-            <td>1900</td>
-            <td>55</td>
-            <td>135</td>
-            <td>175</td>
-            <td>
-              <div class="ltg-row-actions">
-                <a href="../back_office/edit-objectif-long-terme.php?id_obj=101" class="ltg-action ltg-edit">Edit</a>
-                <button type="button" class="ltg-action ltg-delete">Delete</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>102</td>
-            <td>Muscle gain</td>
-            <td>80</td>
-            <td>74</td>
-            <td>2026-03-15</td>
-            <td>2026-09-15</td>
-            <td><span class="ltg-status ltg-status-pending">pending</span></td>
-            <td>3</td>
-            <td>60</td>
-            <td>67</td>
-            <td>2600</td>
-            <td>70</td>
-            <td>170</td>
-            <td>280</td>
-            <td>
-              <div class="ltg-row-actions">
-                <a href="../back_office/edit-objectif-long-terme.php?id_obj=102" class="ltg-action ltg-edit">Edit</a>
-                <button type="button" class="ltg-action ltg-delete">Delete</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>103</td>
-            <td>Maintenance</td>
-            <td>72</td>
-            <td>72.2</td>
-            <td>2026-02-10</td>
-            <td>2026-06-10</td>
-            <td><span class="ltg-status ltg-status-completed">completed</span></td>
-            <td>1</td>
-            <td>84</td>
-            <td>88</td>
-            <td>2200</td>
-            <td>65</td>
-            <td>145</td>
-            <td>235</td>
-            <td>
-              <div class="ltg-row-actions">
-                <a href="../back_office/edit-objectif-long-terme.php?id_obj=103" class="ltg-action ltg-edit">Edit</a>
-                <button type="button" class="ltg-action ltg-delete">Delete</button>
-              </div>
-            </td>
-          </tr>
+          <?php if (!empty($objectifs)): ?>
+            <?php foreach ($objectifs as $objectif): ?>
+              <?php
+                $status = str_replace(
+                  ['en_attente', 'en_cours', 'termine'],
+                  ['pending', 'in progress', 'completed'],
+                  (string) $objectif['status_obj']
+                );
+                $statusClass = 'ltg-status-pending';
+                if ($status === 'in progress') {
+                  $statusClass = 'ltg-status-progress';
+                } elseif ($status === 'completed') {
+                  $statusClass = 'ltg-status-completed';
+                }
+              ?>
+              <tr>
+                <td><?php echo htmlspecialchars((string) $objectif['id_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['type_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['val_cible_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['val_init_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['date_deb_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['date_fin_obj']); ?></td>
+                <td><span class="ltg-status <?php echo htmlspecialchars($statusClass); ?>"><?php echo htmlspecialchars($status); ?></span></td>
+                <td><?php echo htmlspecialchars((string) $objectif['frequency_rappel_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['consistancy_sport_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['consistency_alim_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['obj_cal_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['obj_fat_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['obj_prot_obj']); ?></td>
+                <td><?php echo htmlspecialchars((string) $objectif['obj_carb_obj']); ?></td>
+                <td>
+                  <div class="ltg-row-actions">
+                    <a href="../back_office/edit-objectif-long-terme.php?id_obj=<?php echo urlencode((string) $objectif['id_obj']); ?>" class="ltg-action ltg-edit">Edit</a>
+                    <form method="post" action="" onsubmit="return window.confirm('Delete this goal?');">
+                      <input type="hidden" name="delete_id_obj" value="<?php echo htmlspecialchars((string) $objectif['id_obj']); ?>">
+                      <button type="submit" class="ltg-action ltg-delete">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="15" class="ltg-empty">No long-term goals found.</td>
+            </tr>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>
 
-    <p class="ltg-footnote">Use the action buttons in each row to update or remove a goal.</p>
   </div>
 </section>
 
