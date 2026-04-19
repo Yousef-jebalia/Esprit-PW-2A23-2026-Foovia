@@ -426,6 +426,109 @@ $objectifs = $controller->list_objectifs();
     background: rgba(17, 16, 8, 0.08);
     color: var(--panel-text);
   }
+
+  .weekly-calendar-shell {
+    margin-top: 1rem;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(17, 16, 8, 0.08);
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(245, 200, 66, .12) 0%, rgba(245, 200, 66, 0) 58%),
+      linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+    padding: 1.05rem;
+  }
+
+  .weekly-calendar-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.95rem;
+  }
+
+  .weekly-calendar-head h3 {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: var(--panel-text);
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+  }
+
+  .weekly-cal-controls {
+    display: flex;
+    gap: 0.45rem;
+  }
+
+  .weekly-cal-btn {
+    border: 0;
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+  }
+
+  .weekly-cal-btn:hover {
+    background: rgba(17, 16, 8, 0.14);
+  }
+
+  .weekly-cal-weekdays,
+  .weekly-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .weekly-cal-weekdays span {
+    text-align: center;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--panel-muted);
+    font-weight: 700;
+    padding: 0.35rem 0;
+  }
+
+  .weekly-cal-day {
+    border: 1px solid rgba(17,16,8,.11);
+    border-radius: 12px;
+    min-height: 76px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 0.45rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: var(--panel-text);
+  }
+
+  .weekly-cal-day strong {
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .weekly-cal-day small {
+    font-size: 0.72rem;
+    color: var(--panel-muted);
+  }
+
+  .weekly-cal-day.is-other-month {
+    opacity: 0.45;
+  }
+
+  .weekly-cal-day.is-today {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(75, 174, 82, 0.16);
+    background: rgba(75, 174, 82, 0.09);
+  }
+
+  @media (max-width: 800px) {
+    .weekly-cal-day {
+      min-height: 62px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -705,52 +808,24 @@ $objectifs = $controller->list_objectifs();
   <p class="section-label">Weekly tracking</p>
   <h2 class="section-title features-title">Everything you need to stay on track this week.</h2>
 
-  <div class="feat-grid">
-    <div class="feat-row">
-      <div class="feat-card photo-card photo-recipes">
-        <div class="feat-num">01 - Meals</div>
-        <h3>Photo based meal logging</h3>
-        <p>Upload a meal picture and get fast nutritional estimates with auto-filled logging fields.</p>
-        <a href="#" class="feat-btn">Log meal</a>
-      </div>
-
-      <div class="feat-card photo-card photo-macro-tracking">
-        <div class="feat-num">02 - Macros</div>
-        <h3>Protein carbs fat split</h3>
-        <p>Follow your target macro split in real time and receive actionable recommendations.</p>
-        <a href="#" class="feat-btn">Check macros</a>
-      </div>
-
-      <div class="feat-card photo-card photo-sport">
-        <div class="feat-num">03 - Workouts</div>
-        <h3>Exercise completion tracking</h3>
-        <p>Track completed sessions, effort level, and weekly streaks linked to your plan.</p>
-        <a href="#" class="feat-btn">Update workout</a>
+  <div class="weekly-calendar-shell" aria-label="Weekly tracking calendar">
+    <div class="weekly-calendar-head">
+      <h3 id="weekly-cal-title">Month Year</h3>
+      <div class="weekly-cal-controls">
+        <button type="button" class="weekly-cal-btn" id="weekly-cal-prev" aria-label="Previous month">&lt;</button>
+        <button type="button" class="weekly-cal-btn" id="weekly-cal-next" aria-label="Next month">&gt;</button>
       </div>
     </div>
-
-    <div class="feat-row">
-      <div class="feat-card photo-card photo-marketplace">
-        <div class="feat-num">04 - Hydration</div>
-        <h3>Water and supplement reminders</h3>
-        <p>Set smart reminders for hydration and supplements based on your routine and weather.</p>
-        <a href="#" class="feat-btn">Set reminders</a>
-      </div>
-
-      <div class="feat-card photo-card photo-survey-user">
-        <div class="feat-num">05 - Goals</div>
-        <h3>Weekly objective review</h3>
-        <p>Compare planned versus completed targets and adjust your next week strategy quickly.</p>
-        <a href="#" class="feat-btn">Review goals</a>
-      </div>
-
-      <div class="feat-card photo-card photo-support">
-        <div class="feat-num">06 - Insights</div>
-        <h3>Progress summary and support</h3>
-        <p>See trend summaries, receive chatbot coaching, and ask for support when blocked.</p>
-        <a href="#" class="feat-btn">View insights</a>
-      </div>
+    <div class="weekly-cal-weekdays" aria-hidden="true">
+      <span>Sun</span>
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
     </div>
+    <div class="weekly-cal-grid" id="weekly-cal-grid"></div>
   </div>
 </section>
 
@@ -885,6 +960,82 @@ $objectifs = $controller->list_objectifs();
         surveyPanel.hidden = true;
         openSurveyButton.setAttribute('aria-expanded', 'false');
       });
+    }
+
+    const calTitle = document.getElementById('weekly-cal-title');
+    const calGrid = document.getElementById('weekly-cal-grid');
+    const calPrev = document.getElementById('weekly-cal-prev');
+    const calNext = document.getElementById('weekly-cal-next');
+
+    if (calTitle && calGrid && calPrev && calNext) {
+      const monthLabels = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const baseDate = new Date();
+      let displayedMonth = baseDate.getMonth();
+      let displayedYear = baseDate.getFullYear();
+
+      const renderCalendar = () => {
+        const firstDay = new Date(displayedYear, displayedMonth, 1);
+        const lastDay = new Date(displayedYear, displayedMonth + 1, 0);
+        const prevMonthLastDay = new Date(displayedYear, displayedMonth, 0);
+
+        const totalDays = lastDay.getDate();
+        const firstWeekDayIndex = firstDay.getDay();
+        const trailingDays = 42 - (firstWeekDayIndex + totalDays);
+
+        calTitle.textContent = monthLabels[displayedMonth] + ' ' + displayedYear;
+        calGrid.innerHTML = '';
+
+        for (let i = firstWeekDayIndex; i > 0; i -= 1) {
+          const dayNumber = prevMonthLastDay.getDate() - i + 1;
+          const cell = document.createElement('div');
+          cell.className = 'weekly-cal-day is-other-month';
+          cell.innerHTML = '<strong>' + dayNumber + '</strong><small>Previous month</small>';
+          calGrid.appendChild(cell);
+        }
+
+        for (let day = 1; day <= totalDays; day += 1) {
+          const cellDate = new Date(displayedYear, displayedMonth, day);
+          const isToday =
+            cellDate.getDate() === baseDate.getDate() &&
+            cellDate.getMonth() === baseDate.getMonth() &&
+            cellDate.getFullYear() === baseDate.getFullYear();
+
+          const cell = document.createElement('div');
+          cell.className = 'weekly-cal-day' + (isToday ? ' is-today' : '');
+          cell.innerHTML = '<strong>' + day + '</strong><small>Track goals</small>';
+          calGrid.appendChild(cell);
+        }
+
+        for (let day = 1; day <= trailingDays; day += 1) {
+          const cell = document.createElement('div');
+          cell.className = 'weekly-cal-day is-other-month';
+          cell.innerHTML = '<strong>' + day + '</strong><small>Next month</small>';
+          calGrid.appendChild(cell);
+        }
+      };
+
+      calPrev.addEventListener('click', () => {
+        displayedMonth -= 1;
+        if (displayedMonth < 0) {
+          displayedMonth = 11;
+          displayedYear -= 1;
+        }
+        renderCalendar();
+      });
+
+      calNext.addEventListener('click', () => {
+        displayedMonth += 1;
+        if (displayedMonth > 11) {
+          displayedMonth = 0;
+          displayedYear += 1;
+        }
+        renderCalendar();
+      });
+
+      renderCalendar();
     }
   })();
 </script>
