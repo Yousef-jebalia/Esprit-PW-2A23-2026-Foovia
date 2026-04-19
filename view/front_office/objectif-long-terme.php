@@ -3,6 +3,60 @@ require_once '../../controller/ObjectifLongTerme_Controller.php';
 
 $controller = new ObjectifLongTerme_Controller();
 
+$edit_error_message = '';
+$edit_objectif = null;
+$edit_panel_visible = false;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id_obj'])) {
+  $update_id_obj = (int) $_POST['update_id_obj'];
+  $existing_objectif = $controller->get_objectif_by_id($update_id_obj);
+
+  if (!$existing_objectif) {
+    $edit_error_message = 'The selected goal could not be found.';
+    $edit_panel_visible = true;
+  } else {
+    $data = [
+      'val_cible_obj' => (float) ($_POST['val_cible_obj'] ?? 0),
+      'val_init_obj' => (float) ($_POST['val_init_obj'] ?? 0),
+      'date_deb_obj' => $_POST['date_deb_obj'] ?? '',
+      'date_fin_obj' => $_POST['date_fin_obj'] ?? '',
+      'obj_cal_obj' => (float) ($_POST['obj_cal_obj'] ?? 0),
+      'obj_fat_obj' => (float) ($_POST['obj_fat_obj'] ?? 0),
+      'obj_prot_obj' => (float) ($_POST['obj_prot_obj'] ?? 0),
+      'obj_carb_obj' => (float) ($_POST['obj_carb_obj'] ?? 0)
+    ];
+
+    if ($data['val_cible_obj'] <= 0 || $data['val_init_obj'] <= 0 || $data['obj_cal_obj'] <= 0 || $data['obj_fat_obj'] <= 0 || $data['obj_prot_obj'] <= 0 || $data['obj_carb_obj'] <= 0) {
+      $edit_error_message = 'All numeric values must be strictly positive.';
+      $edit_panel_visible = true;
+    } elseif (empty($data['date_deb_obj']) || empty($data['date_fin_obj'])) {
+      $edit_error_message = 'Start and end dates are required.';
+      $edit_panel_visible = true;
+    } elseif ($data['date_deb_obj'] > $data['date_fin_obj']) {
+      $edit_error_message = 'The start date cannot be later than the end date.';
+      $edit_panel_visible = true;
+    } else {
+      $updated = $controller->update_objectif_fields($update_id_obj, $data);
+      if ($updated) {
+        header('Location: objectif-long-terme.php#long-term-goals');
+        exit;
+      }
+
+      $edit_error_message = 'The update failed.';
+      $edit_panel_visible = true;
+    }
+
+    $edit_objectif = array_merge($existing_objectif, $data);
+    $edit_objectif['id_obj'] = $existing_objectif['id_obj'];
+    $edit_objectif['id_user'] = $existing_objectif['id_user'];
+    $edit_objectif['type_obj'] = $existing_objectif['type_obj'];
+    $edit_objectif['status_obj'] = $existing_objectif['status_obj'];
+    $edit_objectif['frequency_rappel_obj'] = $existing_objectif['frequency_rappel_obj'];
+    $edit_objectif['consistancy_sport_obj'] = $existing_objectif['consistancy_sport_obj'];
+    $edit_objectif['consistency_alim_obj'] = $existing_objectif['consistency_alim_obj'];
+  }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
   $controller->delete_objectif((int) $_POST['delete_id_obj']);
   header('Location: objectif-long-terme.php');
@@ -328,6 +382,226 @@ $objectifs = $controller->list_objectifs();
       color: #fff;
     }
 
+    .goal-delete-panel {
+      display: none;
+      margin: 0 26px 22px;
+      padding: 0.95rem 1.05rem;
+      border-radius: 16px;
+      background: rgba(245, 200, 66, 0.12);
+      border: 1px solid rgba(17, 16, 8, 0.12);
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .goal-delete-panel.is-visible {
+      display: flex;
+    }
+
+    .goal-delete-panel span {
+      font-size: 0.86rem;
+      line-height: 1.35;
+      color: var(--panel-text);
+      font-weight: 600;
+    }
+
+    .goal-delete-actions {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .goal-delete-actions button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.38rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .goal-delete-yes {
+      background: #c0381a;
+      color: #fff;
+    }
+
+    .goal-delete-no {
+      background: rgba(17, 16, 8, 0.08);
+      color: var(--panel-text);
+    }
+
+    .goal-delete-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .goal-delete-confirm {
+      display: none;
+      flex-direction: column;
+      gap: 0.45rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 14px;
+      background: rgba(245, 200, 66, 0.12);
+      border: 1px solid rgba(17, 16, 8, 0.12);
+      min-width: 190px;
+    }
+
+    .goal-delete-confirm.is-visible {
+      display: flex;
+    }
+
+    .goal-delete-confirm span {
+      font-size: 0.86rem;
+      line-height: 1.35;
+      color: var(--panel-text);
+      font-weight: 600;
+    }
+
+    .goal-delete-actions {
+      display: flex;
+      gap: 0.45rem;
+    }
+
+    .goal-delete-actions button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.38rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .goal-delete-yes {
+      background: #c0381a;
+      color: #fff;
+    }
+
+    .goal-delete-no {
+      background: rgba(17, 16, 8, 0.08);
+      color: var(--panel-text);
+    }
+
+    .goal-edit-trigger {
+      border: 0;
+    }
+
+    .goal-edit-panel {
+      display: none;
+      margin: 0 26px 22px;
+      padding: 1.15rem 1.15rem 1.25rem;
+      border-radius: 18px;
+      border: 1px solid rgba(17, 16, 8, 0.12);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(245, 200, 66, 0.14) 0%, rgba(245, 200, 66, 0) 58%),
+        linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+      box-shadow: 0 16px 34px rgba(17, 16, 8, 0.08);
+    }
+
+    .goal-edit-panel.is-visible {
+      display: block;
+    }
+
+    .goal-edit-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .goal-edit-head small {
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 0.4rem;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .goal-edit-head h3 {
+      margin: 0;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      color: var(--panel-text);
+    }
+
+    .goal-edit-close {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.45rem 0.85rem;
+      background: rgba(17, 16, 8, 0.08);
+      color: var(--panel-text);
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+    }
+
+    .goal-edit-error {
+      margin: 0 0 1rem;
+      color: #9d2f14;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .goal-edit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .goal-edit-card {
+      border-radius: 14px;
+      border: 1px solid rgba(17, 16, 8, 0.1);
+      padding: 0.95rem;
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .goal-edit-card h4 {
+      margin: 0 0 0.85rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--green);
+      font-family: 'Syne', sans-serif;
+    }
+
+    .goal-edit-card .form-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .goal-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .goal-edit-save,
+    .goal-edit-cancel {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.72rem 1.25rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .goal-edit-save {
+      background: #c0381a;
+      color: #fff;
+    }
+
+    .goal-edit-cancel {
+      background: rgba(17, 16, 8, 0.08);
+      color: var(--panel-text);
+    }
+
     @media (max-width: 900px) {
       .goal-main {
         padding-top: 82px;
@@ -434,16 +708,8 @@ $objectifs = $controller->list_objectifs();
                     <td><?php echo htmlspecialchars((string) $objectif['obj_carb_obj']); ?></td>
                     <td>
                       <div class="goal-row-actions">
-                        <a href="../back_office/edit-objectif-long-terme.php?id_obj=<?php echo urlencode((string) $objectif['id_obj']); ?>" class="goal-action goal-edit">Edit</a>
-                        <button
-                          type="button"
-                          class="goal-action goal-delete"
-                          data-bs-toggle="modal"
-                          data-bs-target="#deleteConfirmModal"
-                          data-id="<?php echo htmlspecialchars((string) $objectif['id_obj']); ?>"
-                        >
-                          Delete
-                        </button>
+                        <button type="button" class="goal-action goal-edit goal-edit-trigger" data-objectif="<?php echo htmlspecialchars(json_encode($objectif, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>">Edit</button>
+                        <button type="button" class="goal-action goal-delete goal-delete-trigger" data-id="<?php echo htmlspecialchars((string) $objectif['id_obj']); ?>">Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -457,31 +723,116 @@ $objectifs = $controller->list_objectifs();
           </table>
         </div>
 
+        <div class="goal-delete-panel" id="goal-delete-panel" hidden>
+          <span>Are you sure you want to delete this goal?</span>
+          <form method="post" action="" class="goal-delete-actions" id="goal-delete-form">
+            <input type="hidden" name="delete_id_obj" id="goal-delete-id" value="">
+            <button type="submit" class="goal-delete-yes">Yes</button>
+            <button type="button" class="goal-delete-no" id="goal-delete-cancel">No</button>
+          </form>
+        </div>
+
+        <div class="goal-edit-panel <?php echo $edit_panel_visible ? 'is-visible' : ''; ?>" id="goal-edit-panel" <?php echo $edit_panel_visible ? '' : 'hidden'; ?>>
+          <div class="goal-edit-head">
+            <div>
+              <small>Edit long-term goal</small>
+              <h3 id="goal-edit-title">Goal details</h3>
+            </div>
+            <button type="button" class="goal-edit-close" id="goal-edit-cancel">Close</button>
+          </div>
+
+          <?php if (!empty($edit_error_message)): ?>
+            <p class="goal-edit-error"><?php echo htmlspecialchars($edit_error_message); ?></p>
+          <?php endif; ?>
+
+          <form method="post" action="" id="goal-edit-form">
+            <input type="hidden" name="update_id_obj" id="goal-edit-id" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_obj'] ?? '')); ?>">
+
+            <div class="goal-edit-grid">
+              <div class="goal-edit-card">
+                <h4>Locked information</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-id-display">Goal ID</label>
+                    <input type="text" class="form-control" id="goal-edit-id-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-user-display">User ID</label>
+                    <input type="text" class="form-control" id="goal-edit-user-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_user'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-type-display">Goal type</label>
+                    <input type="text" class="form-control" id="goal-edit-type-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['type_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-status-display">Status</label>
+                    <input type="text" class="form-control" id="goal-edit-status-display" value="<?php echo htmlspecialchars(str_replace(['en_attente', 'en_cours', 'termine'], ['pending', 'in progress', 'completed'], (string) ($edit_objectif['status_obj'] ?? ''))); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-reminder-display">Reminder frequency</label>
+                    <input type="text" class="form-control" id="goal-edit-reminder-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['frequency_rappel_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="goal-edit-sport-display">Sport consistency</label>
+                    <input type="text" class="form-control" id="goal-edit-sport-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['consistancy_sport_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="goal-edit-diet-display">Diet consistency</label>
+                    <input type="text" class="form-control" id="goal-edit-diet-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['consistency_alim_obj'] ?? '')); ?>" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <div class="goal-edit-card">
+                <h4>Editable fields</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-val-init">Initial value (kg)</label>
+                    <input type="number" class="form-control" id="goal-edit-val-init" name="val_init_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['val_init_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-val-cible">Target value (kg)</label>
+                    <input type="number" class="form-control" id="goal-edit-val-cible" name="val_cible_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['val_cible_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-date-deb">Start date</label>
+                    <input type="date" class="form-control" id="goal-edit-date-deb" name="date_deb_obj" required value="<?php echo htmlspecialchars((string) ($edit_objectif['date_deb_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="goal-edit-date-fin">End date</label>
+                    <input type="date" class="form-control" id="goal-edit-date-fin" name="date_fin_obj" required value="<?php echo htmlspecialchars((string) ($edit_objectif['date_fin_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="goal-edit-cal">Calories</label>
+                    <input type="number" class="form-control" id="goal-edit-cal" name="obj_cal_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_cal_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="goal-edit-fat">Fat</label>
+                    <input type="number" class="form-control" id="goal-edit-fat" name="obj_fat_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_fat_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="goal-edit-prot">Protein</label>
+                    <input type="number" class="form-control" id="goal-edit-prot" name="obj_prot_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_prot_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="goal-edit-carb">Carbs</label>
+                    <input type="number" class="form-control" id="goal-edit-carb" name="obj_carb_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_carb_obj'] ?? '')); ?>">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="goal-edit-actions">
+              <button type="button" class="goal-edit-cancel" id="goal-edit-cancel-bottom">Cancel</button>
+              <button type="submit" class="goal-edit-save">Save changes</button>
+            </div>
+          </form>
+        </div>
+
         <p class="goal-footnote">Tip: open this page directly for a focused management view, or use it inside the tracking page in Long Term Goals.</p>
       </div>
     </section>
   </main>
-
-  <div class="modal fade goal-modal" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm deletion</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          Do you really want to delete this goal?
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="goal-modal-btn goal-modal-cancel" data-bs-dismiss="modal">Cancel</button>
-          <form id="deleteObjectifForm" method="post" action="" class="d-inline">
-            <input type="hidden" name="delete_id_obj" id="delete_id_obj" value="">
-            <button type="submit" class="goal-modal-btn goal-modal-delete">Delete</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
   <script>
@@ -513,16 +864,109 @@ $objectifs = $controller->list_objectifs();
         });
       }
 
-      const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-      if (deleteConfirmModal) {
-        deleteConfirmModal.addEventListener('show.bs.modal', function (event) {
-          const triggerButton = event.relatedTarget;
-          const objectifId = triggerButton.getAttribute('data-id');
-          const hiddenInput = document.getElementById('delete_id_obj');
-          if (hiddenInput) {
-            hiddenInput.value = objectifId;
+      const deletePanel = document.getElementById('goal-delete-panel');
+      const deleteInput = document.getElementById('goal-delete-id');
+      const deleteCancel = document.getElementById('goal-delete-cancel');
+      const editPanel = document.getElementById('goal-edit-panel');
+      const editId = document.getElementById('goal-edit-id');
+      const editTitle = document.getElementById('goal-edit-title');
+      const editCancelTop = document.getElementById('goal-edit-cancel');
+      const editCancelBottom = document.getElementById('goal-edit-cancel-bottom');
+
+      function fillEditPanel(objectif) {
+        const fieldMap = {
+          'goal-edit-id-display': objectif.id_obj,
+          'goal-edit-user-display': objectif.id_user,
+          'goal-edit-type-display': objectif.type_obj,
+          'goal-edit-status-display': objectif.status_obj,
+          'goal-edit-reminder-display': objectif.frequency_rappel_obj,
+          'goal-edit-sport-display': objectif.consistancy_sport_obj,
+          'goal-edit-diet-display': objectif.consistency_alim_obj,
+          'goal-edit-val-init': objectif.val_init_obj,
+          'goal-edit-val-cible': objectif.val_cible_obj,
+          'goal-edit-date-deb': objectif.date_deb_obj,
+          'goal-edit-date-fin': objectif.date_fin_obj,
+          'goal-edit-cal': objectif.obj_cal_obj,
+          'goal-edit-fat': objectif.obj_fat_obj,
+          'goal-edit-prot': objectif.obj_prot_obj,
+          'goal-edit-carb': objectif.obj_carb_obj
+        };
+
+        Object.keys(fieldMap).forEach(function (fieldId) {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.value = fieldMap[fieldId] ?? '';
           }
         });
+
+        if (editId) {
+          editId.value = objectif.id_obj || '';
+        }
+
+        if (editTitle) {
+          editTitle.textContent = 'Goal #' + (objectif.id_obj || '');
+        }
+      }
+
+      document.querySelectorAll('.goal-delete-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          if (!deletePanel || !deleteInput) {
+            return;
+          }
+
+          deleteInput.value = trigger.getAttribute('data-id') || '';
+          deletePanel.hidden = false;
+          deletePanel.classList.add('is-visible');
+        });
+      });
+
+      if (deleteCancel && deletePanel && deleteInput) {
+        deleteCancel.addEventListener('click', function () {
+          deleteInput.value = '';
+          deletePanel.hidden = true;
+          deletePanel.classList.remove('is-visible');
+        });
+      }
+
+      document.querySelectorAll('.goal-edit-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          if (!editPanel) {
+            return;
+          }
+
+          let objectif = null;
+          try {
+            objectif = JSON.parse(trigger.getAttribute('data-objectif') || '{}');
+          } catch (error) {
+            objectif = null;
+          }
+
+          if (!objectif) {
+            return;
+          }
+
+          fillEditPanel(objectif);
+          editPanel.hidden = false;
+          editPanel.classList.add('is-visible');
+          editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      function closeEditPanel() {
+        if (!editPanel) {
+          return;
+        }
+
+        editPanel.hidden = true;
+        editPanel.classList.remove('is-visible');
+      }
+
+      if (editCancelTop) {
+        editCancelTop.addEventListener('click', closeEditPanel);
+      }
+
+      if (editCancelBottom) {
+        editCancelBottom.addEventListener('click', closeEditPanel);
       }
     })();
   </script>

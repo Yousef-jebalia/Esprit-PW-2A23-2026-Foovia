@@ -3,6 +3,60 @@ require_once '../../controller/ObjectifLongTerme_Controller.php';
 
 $controller = new ObjectifLongTerme_Controller();
 
+$edit_error_message = '';
+$edit_objectif = null;
+$edit_panel_visible = false;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id_obj'])) {
+  $update_id_obj = (int) $_POST['update_id_obj'];
+  $existing_objectif = $controller->get_objectif_by_id($update_id_obj);
+
+  if (!$existing_objectif) {
+    $edit_error_message = 'The selected goal could not be found.';
+    $edit_panel_visible = true;
+  } else {
+    $data = [
+      'val_cible_obj' => (float) ($_POST['val_cible_obj'] ?? 0),
+      'val_init_obj' => (float) ($_POST['val_init_obj'] ?? 0),
+      'date_deb_obj' => $_POST['date_deb_obj'] ?? '',
+      'date_fin_obj' => $_POST['date_fin_obj'] ?? '',
+      'obj_cal_obj' => (float) ($_POST['obj_cal_obj'] ?? 0),
+      'obj_fat_obj' => (float) ($_POST['obj_fat_obj'] ?? 0),
+      'obj_prot_obj' => (float) ($_POST['obj_prot_obj'] ?? 0),
+      'obj_carb_obj' => (float) ($_POST['obj_carb_obj'] ?? 0)
+    ];
+
+    if ($data['val_cible_obj'] <= 0 || $data['val_init_obj'] <= 0 || $data['obj_cal_obj'] <= 0 || $data['obj_fat_obj'] <= 0 || $data['obj_prot_obj'] <= 0 || $data['obj_carb_obj'] <= 0) {
+      $edit_error_message = 'All numeric values must be strictly positive.';
+      $edit_panel_visible = true;
+    } elseif (empty($data['date_deb_obj']) || empty($data['date_fin_obj'])) {
+      $edit_error_message = 'Start and end dates are required.';
+      $edit_panel_visible = true;
+    } elseif ($data['date_deb_obj'] > $data['date_fin_obj']) {
+      $edit_error_message = 'The start date cannot be later than the end date.';
+      $edit_panel_visible = true;
+    } else {
+      $updated = $controller->update_objectif_fields($update_id_obj, $data);
+      if ($updated) {
+        header('Location: tracking.php#long-term-goals');
+        exit;
+      }
+
+      $edit_error_message = 'The update failed.';
+      $edit_panel_visible = true;
+    }
+
+    $edit_objectif = array_merge($existing_objectif, $data);
+    $edit_objectif['id_obj'] = $existing_objectif['id_obj'];
+    $edit_objectif['id_user'] = $existing_objectif['id_user'];
+    $edit_objectif['type_obj'] = $existing_objectif['type_obj'];
+    $edit_objectif['status_obj'] = $existing_objectif['status_obj'];
+    $edit_objectif['frequency_rappel_obj'] = $existing_objectif['frequency_rappel_obj'];
+    $edit_objectif['consistancy_sport_obj'] = $existing_objectif['consistancy_sport_obj'];
+    $edit_objectif['consistency_alim_obj'] = $existing_objectif['consistency_alim_obj'];
+  }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
   $controller->delete_objectif((int) $_POST['delete_id_obj']);
   header('Location: tracking.php#long-term-goals');
@@ -36,8 +90,285 @@ $objectifs = $controller->list_objectifs();
         styleLink.href = candidates[idx];
       }
     });
+
+    function bindInlineDeleteConfirm() {
+      const panel = document.getElementById('ltg-delete-panel');
+      const hiddenInput = document.getElementById('ltg-delete-id');
+      const cancelButton = document.getElementById('ltg-delete-cancel');
+      const editPanel = document.getElementById('ltg-edit-panel');
+      const editId = document.getElementById('ltg-edit-id');
+      const editTitle = document.getElementById('ltg-edit-title');
+      const editCancelTop = document.getElementById('ltg-edit-cancel');
+      const editCancelBottom = document.getElementById('ltg-edit-cancel-bottom');
+
+      function fillEditPanel(objectif) {
+        const fieldMap = {
+          'ltg-edit-id-display': objectif.id_obj,
+          'ltg-edit-user-display': objectif.id_user,
+          'ltg-edit-type-display': objectif.type_obj,
+          'ltg-edit-status-display': objectif.status_obj,
+          'ltg-edit-reminder-display': objectif.frequency_rappel_obj,
+          'ltg-edit-sport-display': objectif.consistancy_sport_obj,
+          'ltg-edit-diet-display': objectif.consistency_alim_obj,
+          'ltg-edit-val-init': objectif.val_init_obj,
+          'ltg-edit-val-cible': objectif.val_cible_obj,
+          'ltg-edit-date-deb': objectif.date_deb_obj,
+          'ltg-edit-date-fin': objectif.date_fin_obj,
+          'ltg-edit-cal': objectif.obj_cal_obj,
+          'ltg-edit-fat': objectif.obj_fat_obj,
+          'ltg-edit-prot': objectif.obj_prot_obj,
+          'ltg-edit-carb': objectif.obj_carb_obj
+        };
+
+        Object.keys(fieldMap).forEach(function (fieldId) {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.value = fieldMap[fieldId] ?? '';
+          }
+        });
+
+        if (editId) {
+          editId.value = objectif.id_obj || '';
+        }
+
+        if (editTitle) {
+          editTitle.textContent = 'Goal #' + (objectif.id_obj || '');
+        }
+      }
+
+      document.querySelectorAll('.ltg-delete-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          if (!panel || !hiddenInput) {
+            return;
+          }
+
+          hiddenInput.value = trigger.getAttribute('data-id') || '';
+          panel.hidden = false;
+          panel.classList.add('is-visible');
+        });
+      });
+
+      if (cancelButton && panel && hiddenInput) {
+        cancelButton.addEventListener('click', function () {
+          hiddenInput.value = '';
+          panel.hidden = true;
+          panel.classList.remove('is-visible');
+        });
+      }
+
+      document.querySelectorAll('.ltg-edit-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          if (!editPanel) {
+            return;
+          }
+
+          let objectif = null;
+          try {
+            objectif = JSON.parse(trigger.getAttribute('data-objectif') || '{}');
+          } catch (error) {
+            objectif = null;
+          }
+
+          if (!objectif) {
+            return;
+          }
+
+          fillEditPanel(objectif);
+          editPanel.hidden = false;
+          editPanel.classList.add('is-visible');
+          editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      function closeEditPanel() {
+        if (!editPanel) {
+          return;
+        }
+
+        editPanel.hidden = true;
+        editPanel.classList.remove('is-visible');
+      }
+
+      if (editCancelTop) {
+        editCancelTop.addEventListener('click', closeEditPanel);
+      }
+
+      if (editCancelBottom) {
+        editCancelBottom.addEventListener('click', closeEditPanel);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindInlineDeleteConfirm);
+    } else {
+      bindInlineDeleteConfirm();
+    }
   })();
 </script>
+<style>
+  .ltg-delete-panel {
+    display: none;
+    margin: 0 26px 22px;
+    padding: 0.95rem 1.05rem;
+    border-radius: 16px;
+    background: rgba(245, 200, 66, 0.12);
+    border: 1px solid rgba(17, 16, 8, 0.12);
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ltg-delete-panel.is-visible {
+    display: flex;
+  }
+
+  .ltg-delete-panel span {
+    font-size: 0.86rem;
+    line-height: 1.35;
+    color: var(--panel-text);
+    font-weight: 600;
+  }
+
+  .ltg-delete-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .ltg-delete-actions button {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.38rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .ltg-delete-yes {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .ltg-delete-no {
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+  }
+
+  .ltg-edit-panel {
+    display: none;
+    margin: 0 26px 22px;
+    padding: 1.15rem 1.15rem 1.25rem;
+    border-radius: 18px;
+    border: 1px solid rgba(17, 16, 8, 0.12);
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(245, 200, 66, 0.14) 0%, rgba(245, 200, 66, 0) 58%),
+      linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+    box-shadow: 0 16px 34px rgba(17, 16, 8, 0.08);
+  }
+
+  .ltg-edit-panel.is-visible {
+    display: block;
+  }
+
+  .ltg-edit-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .ltg-edit-head small {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 0.4rem;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .ltg-edit-head h3 {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: var(--panel-text);
+  }
+
+  .ltg-edit-close {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem;
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+  }
+
+  .ltg-edit-error {
+    margin: 0 0 1rem;
+    color: #9d2f14;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .ltg-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .ltg-edit-card {
+    border-radius: 14px;
+    border: 1px solid rgba(17, 16, 8, 0.1);
+    padding: 0.95rem;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .ltg-edit-card h4 {
+    margin: 0 0 0.85rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-family: 'Syne', sans-serif;
+  }
+
+  .ltg-edit-card .form-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .ltg-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .ltg-edit-save,
+  .ltg-edit-cancel {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.72rem 1.25rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .ltg-edit-save {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--red) 100%);
+    color: #fff;
+  }
+
+  .ltg-edit-cancel {
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+  }
+</style>
 </head>
 <body>
 
@@ -176,11 +507,8 @@ $objectifs = $controller->list_objectifs();
                 <td><?php echo htmlspecialchars((string) $objectif['obj_carb_obj']); ?></td>
                 <td>
                   <div class="ltg-row-actions">
-                    <a href="../back_office/edit-objectif-long-terme.php?id_obj=<?php echo urlencode((string) $objectif['id_obj']); ?>" class="ltg-action ltg-edit">Edit</a>
-                    <form method="post" action="" onsubmit="return window.confirm('Delete this goal?');">
-                      <input type="hidden" name="delete_id_obj" value="<?php echo htmlspecialchars((string) $objectif['id_obj']); ?>">
-                      <button type="submit" class="ltg-action ltg-delete">Delete</button>
-                    </form>
+                    <button type="button" class="ltg-action ltg-edit ltg-edit-trigger" data-objectif="<?php echo htmlspecialchars(json_encode($objectif, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>">Edit</button>
+                    <button type="button" class="ltg-action ltg-delete ltg-delete-trigger" data-id="<?php echo htmlspecialchars((string) $objectif['id_obj']); ?>">Delete</button>
                   </div>
                 </td>
               </tr>
@@ -193,6 +521,112 @@ $objectifs = $controller->list_objectifs();
         </tbody>
       </table>
     </div>
+
+        <div class="ltg-delete-panel" id="ltg-delete-panel" hidden>
+          <span>Are you sure you want to delete this goal?</span>
+          <form method="post" action="" class="ltg-delete-actions" id="ltg-delete-form">
+            <input type="hidden" name="delete_id_obj" id="ltg-delete-id" value="">
+            <button type="submit" class="ltg-delete-yes">Yes</button>
+            <button type="button" class="ltg-delete-no" id="ltg-delete-cancel">No</button>
+          </form>
+        </div>
+
+        <div class="ltg-edit-panel <?php echo $edit_panel_visible ? 'is-visible' : ''; ?>" id="ltg-edit-panel" <?php echo $edit_panel_visible ? '' : 'hidden'; ?>>
+          <div class="ltg-edit-head">
+            <div>
+              <small>Edit long-term goal</small>
+              <h3 id="ltg-edit-title">Goal details</h3>
+            </div>
+            <button type="button" class="ltg-edit-close" id="ltg-edit-cancel">Close</button>
+          </div>
+
+          <?php if (!empty($edit_error_message)): ?>
+            <p class="ltg-edit-error"><?php echo htmlspecialchars($edit_error_message); ?></p>
+          <?php endif; ?>
+
+          <form method="post" action="" id="ltg-edit-form">
+            <input type="hidden" name="update_id_obj" id="ltg-edit-id" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_obj'] ?? '')); ?>">
+
+            <div class="ltg-edit-grid">
+              <div class="ltg-edit-card">
+                <h4>Locked information</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-id-display">Goal ID</label>
+                    <input type="text" class="form-control" id="ltg-edit-id-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-user-display">User ID</label>
+                    <input type="text" class="form-control" id="ltg-edit-user-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_user'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-type-display">Goal type</label>
+                    <input type="text" class="form-control" id="ltg-edit-type-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['type_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-status-display">Status</label>
+                    <input type="text" class="form-control" id="ltg-edit-status-display" value="<?php echo htmlspecialchars(str_replace(['en_attente', 'en_cours', 'termine'], ['pending', 'in progress', 'completed'], (string) ($edit_objectif['status_obj'] ?? ''))); ?>" readonly>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-reminder-display">Reminder frequency</label>
+                    <input type="text" class="form-control" id="ltg-edit-reminder-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['frequency_rappel_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="ltg-edit-sport-display">Sport consistency</label>
+                    <input type="text" class="form-control" id="ltg-edit-sport-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['consistancy_sport_obj'] ?? '')); ?>" readonly>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="ltg-edit-diet-display">Diet consistency</label>
+                    <input type="text" class="form-control" id="ltg-edit-diet-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['consistency_alim_obj'] ?? '')); ?>" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ltg-edit-card">
+                <h4>Editable fields</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-val-init">Initial value (kg)</label>
+                    <input type="number" class="form-control" id="ltg-edit-val-init" name="val_init_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['val_init_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-val-cible">Target value (kg)</label>
+                    <input type="number" class="form-control" id="ltg-edit-val-cible" name="val_cible_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['val_cible_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-date-deb">Start date</label>
+                    <input type="date" class="form-control" id="ltg-edit-date-deb" name="date_deb_obj" required value="<?php echo htmlspecialchars((string) ($edit_objectif['date_deb_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="ltg-edit-date-fin">End date</label>
+                    <input type="date" class="form-control" id="ltg-edit-date-fin" name="date_fin_obj" required value="<?php echo htmlspecialchars((string) ($edit_objectif['date_fin_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="ltg-edit-cal">Calories</label>
+                    <input type="number" class="form-control" id="ltg-edit-cal" name="obj_cal_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_cal_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="ltg-edit-fat">Fat</label>
+                    <input type="number" class="form-control" id="ltg-edit-fat" name="obj_fat_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_fat_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="ltg-edit-prot">Protein</label>
+                    <input type="number" class="form-control" id="ltg-edit-prot" name="obj_prot_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_prot_obj'] ?? '')); ?>">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label" for="ltg-edit-carb">Carbs</label>
+                    <input type="number" class="form-control" id="ltg-edit-carb" name="obj_carb_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_carb_obj'] ?? '')); ?>">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ltg-edit-actions">
+              <button type="button" class="ltg-edit-cancel" id="ltg-edit-cancel-bottom">Cancel</button>
+              <button type="submit" class="ltg-edit-save">Save changes</button>
+            </div>
+          </form>
+        </div>
 
   </div>
 </section>
