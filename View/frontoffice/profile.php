@@ -237,7 +237,7 @@ $user_data = $controller->get_user($_SESSION['user_id']) ?? [];
                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                         Delete Account
                     </button>
-                    <a href="index.php" class="btn btn-secondary">Back to Home</a>
+                    <a href="foovia.php" class="btn btn-secondary">Back to Home</a>
                 </div>
 
             </div><!-- card-body -->

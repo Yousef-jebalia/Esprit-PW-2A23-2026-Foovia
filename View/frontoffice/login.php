@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                     $_SESSION['user_name'] = $user['name_user'];
                     $_SESSION['user_email'] = $user['email_user'];
                     $success_message = 'Connected successfully! Redirecting...';
-                    header('refresh:2;url=index.php');
+                    header('refresh:2;url=foovia.php');
                     exit;
                 } else {
                     $error_message = 'Username or password is false';
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
     <div class="login-container">
         <div class="login-card">
             <div class="back-link">
-                <a href="index.php">← Back to Home</a>
+                <a href="foovia.php">← Back to Home</a>
             </div>
 
             <?php if (!empty($error_message)): ?>
