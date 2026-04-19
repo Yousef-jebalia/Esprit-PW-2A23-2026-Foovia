@@ -89,13 +89,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
 }
 
 $objectifs = $controller->list_objectifs();
+$current_user_goal = null;
+foreach ($objectifs as $objectif) {
+  if ((int) ($objectif['id_user'] ?? 0) === $current_user_id) {
+    $current_user_goal = $objectif;
+    break;
+  }
+}
+
 $goal_start_date = null;
 $goal_end_date = null;
-if (!empty($objectifs) && !empty($objectifs[0]['date_deb_obj'])) {
-  $goal_start_date = $objectifs[0]['date_deb_obj'];
+if (!empty($current_user_goal) && !empty($current_user_goal['date_deb_obj'])) {
+  $goal_start_date = $current_user_goal['date_deb_obj'];
 }
-if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
-  $goal_end_date = $objectifs[0]['date_fin_obj'];
+if (!empty($current_user_goal) && !empty($current_user_goal['date_fin_obj'])) {
+  $goal_end_date = $current_user_goal['date_fin_obj'];
+}
+
+$today_date = date('Y-m-d');
+$weekly_today_objectif = $hebdo_controller->get_objectif_by_user_and_date($current_user_id, $today_date);
+$weekly_error_message = '';
+$weekly_form_objectif = $weekly_today_objectif ?: [
+  'id_suiv' => '',
+  'id_obj' => !empty($current_user_goal['id_obj']) ? (int) $current_user_goal['id_obj'] : 0,
+  'date_suiv' => $today_date,
+  'val_cal_suiv' => '',
+  'val_fat_suiv' => '',
+  'val_prot_suiv' => '',
+  'val_carb_suiv' => '',
+  'note_suiv' => '',
+  'status_obj_quot_suiv' => '',
+  'nb_verre_eau_suiv' => '',
+  'nb_h_sommeil_suiv' => '',
+  'nb_pas_suiv' => '',
+  'id_user' => $current_user_id,
+];
+$weekly_has_record = !empty($weekly_today_objectif);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_save_objective'])) {
+  if (empty($current_user_goal)) {
+    $weekly_error_message = 'You need a long-term goal before saving daily tracking.';
+  } else {
+    $postedDate = $_POST['survey_date'] ?? '';
+    if ($postedDate !== $today_date) {
+      $weekly_error_message = 'You can only save tracking for today.';
+    } else {
+      $postedId = (int) ($_POST['weekly_objectif_id'] ?? 0);
+      $weekly_form_objectif = [
+        'id_suiv' => $postedId,
+        'id_obj' => (int) $current_user_goal['id_obj'],
+        'date_suiv' => $today_date,
+        'val_cal_suiv' => (float) ($_POST['val_cal_suiv'] ?? 0),
+        'val_fat_suiv' => (float) ($_POST['val_fat_suiv'] ?? 0),
+        'val_prot_suiv' => (float) ($_POST['val_prot_suiv'] ?? 0),
+        'val_carb_suiv' => (float) ($_POST['val_carb_suiv'] ?? 0),
+        'note_suiv' => trim((string) ($_POST['note_suiv'] ?? '')),
+        'status_obj_quot_suiv' => trim((string) ($_POST['status_obj_quot_suiv'] ?? '')),
+        'nb_verre_eau_suiv' => (int) ($_POST['nb_verre_eau_suiv'] ?? 0),
+        'nb_h_sommeil_suiv' => trim((string) ($_POST['nb_h_sommeil_suiv'] ?? '')),
+        'nb_pas_suiv' => (int) ($_POST['nb_pas_suiv'] ?? 0),
+        'id_user' => $current_user_id,
+      ];
+
+      $saved = $hebdo_controller->save_objectif_hebdo($weekly_form_objectif, $weekly_has_record ? (int) $weekly_today_objectif['id_suiv'] : null);
+      if ($saved) {
+        header('Location: tracking.php#weekly-tracking');
+        exit;
+      }
+
+      $weekly_error_message = 'The daily tracking could not be saved.';
+    }
+  }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objective_id'])) {
+  $deleteWeeklyId = (int) $_POST['weekly_delete_objective_id'];
+  if ($deleteWeeklyId > 0) {
+    $deleted = $hebdo_controller->delete_objectif_hebdo($deleteWeeklyId, $current_user_id);
+    if ($deleted) {
+      header('Location: tracking.php#weekly-tracking');
+      exit;
+    }
+  }
 }
 ?>
 <!DOCTYPE html>
@@ -475,6 +550,94 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
     border-left: 3px solid var(--green);
   }
 
+  .weekly-calendar-action-wrap {
+    display: none;
+    margin-top: 1rem;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .weekly-calendar-action-wrap.is-visible {
+    display: flex;
+  }
+
+  .weekly-calendar-action-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.72rem 1.2rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(17, 16, 8, 0.12);
+  }
+
+  .weekly-calendar-add-btn,
+  .weekly-calendar-edit-btn {
+    background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
+    color: #fff;
+  }
+
+  .weekly-calendar-delete-btn {
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+  }
+
+  .weekly-delete-panel {
+    display: none;
+    margin-top: 0.85rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: rgba(245, 200, 66, 0.12);
+    border: 1px solid rgba(17, 16, 8, 0.12);
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .weekly-delete-panel.is-visible {
+    display: flex;
+  }
+
+  .weekly-delete-panel span {
+    font-size: 0.86rem;
+    line-height: 1.35;
+    color: var(--panel-text);
+    font-weight: 700;
+  }
+
+  .weekly-delete-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .weekly-delete-actions button {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.38rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .weekly-delete-yes {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .weekly-delete-no {
+    background: rgba(17, 16, 8, 0.08);
+    color: var(--panel-text);
+  }
+
+  .weekly-survey-error {
+    margin: 0 0 1rem;
+    color: #9d2f14;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
   .weekly-cal-controls {
     display: flex;
     gap: 0.45rem;
@@ -702,7 +865,7 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
 
 </style>
 </head>
-<body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?>>
+<body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?><?php echo $weekly_has_record ? ' data-weekly-has-record="1" data-weekly-id="' . htmlspecialchars((string) $weekly_today_objectif['id_suiv']) . '"' : ' data-weekly-has-record="0"'; ?>>
 
 <nav>
   <a href="index.html" class="nav-logo">
@@ -1000,6 +1163,18 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
       <span>Sat</span>
     </div>
     <div class="weekly-cal-grid" id="weekly-cal-grid"></div>
+    <div class="weekly-calendar-action-wrap" id="weekly-calendar-action-wrap">
+      <button type="button" class="weekly-calendar-action-btn weekly-calendar-add-btn" id="weekly-calendar-add-btn" <?php echo $weekly_has_record ? 'hidden' : ''; ?>>Add</button>
+      <button type="button" class="weekly-calendar-action-btn weekly-calendar-edit-btn" id="weekly-calendar-edit-btn" <?php echo $weekly_has_record ? '' : 'hidden'; ?>>Edit</button>
+      <button type="button" class="weekly-calendar-action-btn weekly-calendar-delete-btn" id="weekly-calendar-delete-btn" <?php echo $weekly_has_record ? '' : 'hidden'; ?>>Delete</button>
+    </div>
+    <div class="weekly-delete-panel" id="weekly-delete-panel" hidden>
+      <span>Are you sure you want to delete your daily tracking?</span>
+      <div class="weekly-delete-actions">
+        <button type="button" class="weekly-delete-yes" id="weekly-delete-confirm">Yes</button>
+        <button type="button" class="weekly-delete-no" id="weekly-delete-cancel">No</button>
+      </div>
+    </div>
   </div>
 
   <div class="weekly-survey-shell" id="weekly-survey-panel" hidden>
@@ -1008,56 +1183,64 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
       <button type="button" class="weekly-survey-close" id="weekly-survey-close" aria-label="Close survey">Close</button>
     </div>
 
+    <?php if (!empty($weekly_error_message)): ?>
+      <p class="weekly-survey-error"><?php echo htmlspecialchars($weekly_error_message); ?></p>
+    <?php endif; ?>
+
     <form method="post" action="" id="weekly-survey-form">
       <input type="hidden" name="survey_date" id="survey-date" value="">
-      <input type="hidden" name="add_weekly_objective" value="1">
+      <input type="hidden" name="weekly_objectif_id" id="weekly-objectif-id" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['id_suiv'] ?? '')); ?>">
+      <input type="hidden" name="weekly_save_objective" value="1">
 
       <div class="weekly-survey-grid">
         <div class="weekly-survey-field">
           <label for="survey-cal">Calories</label>
-          <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="">
+          <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-fat">Fat (g)</label>
-          <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="">
+          <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-prot">Protein (g)</label>
-          <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="">
+          <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_prot_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-carb">Carbs (g)</label>
-          <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="">
+          <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_carb_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-water">Water (glasses)</label>
-          <input type="number" id="survey-water" name="nb_verre_eau_suiv" min="0" value="">
+          <input type="number" id="survey-water" name="nb_verre_eau_suiv" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_verre_eau_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-sleep">Sleep (hours)</label>
-          <input type="text" id="survey-sleep" name="nb_h_sommeil_suiv" placeholder="e.g., 8" value="">
+          <input type="text" id="survey-sleep" name="nb_h_sommeil_suiv" placeholder="e.g., 8" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_h_sommeil_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-steps">Steps</label>
-          <input type="number" id="survey-steps" name="nb_pas_suiv" min="0" value="">
+          <input type="number" id="survey-steps" name="nb_pas_suiv" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_pas_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field">
           <label for="survey-status">Daily Status</label>
-          <input type="text" id="survey-status" name="status_obj_quot_suiv" placeholder="e.g., On track" value="">
+          <input type="text" id="survey-status" name="status_obj_quot_suiv" placeholder="e.g., On track" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['status_obj_quot_suiv'] ?? '')); ?>">
         </div>
 
         <div class="weekly-survey-field weekly-survey-textarea">
           <label for="survey-notes">Notes</label>
-          <textarea id="survey-notes" name="note_suiv" placeholder="Add any notes about your day..."></textarea>
+          <textarea id="survey-notes" name="note_suiv" placeholder="Add any notes about your day..."><?php echo htmlspecialchars((string) ($weekly_form_objectif['note_suiv'] ?? '')); ?></textarea>
         </div>
       </div>
 
       <div class="weekly-survey-actions">
         <button type="button" class="weekly-survey-cancel" id="weekly-survey-cancel">Cancel</button>
-        <button type="submit" class="weekly-survey-save">Save tracking</button>
+        <button type="submit" class="weekly-survey-save"><?php echo $weekly_has_record ? 'Update tracking' : 'Save tracking'; ?></button>
       </div>
     </form>
   </div>
+  <form method="post" action="" id="weekly-delete-form" hidden>
+    <input type="hidden" name="weekly_delete_objective_id" id="weekly-delete-id" value="<?php echo htmlspecialchars((string) ($weekly_today_objectif['id_suiv'] ?? '')); ?>">
+  </form>
 </section>
 
 <section class="how" id="progress">
@@ -1197,6 +1380,15 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
     const calGrid = document.getElementById('weekly-cal-grid');
     const calPrev = document.getElementById('weekly-cal-prev');
     const calNext = document.getElementById('weekly-cal-next');
+    const weeklyCalendarActionWrap = document.getElementById('weekly-calendar-action-wrap');
+    const weeklyCalendarAddBtn = document.getElementById('weekly-calendar-add-btn');
+    const weeklyCalendarEditBtn = document.getElementById('weekly-calendar-edit-btn');
+    const weeklyCalendarDeleteBtn = document.getElementById('weekly-calendar-delete-btn');
+    const weeklyDeletePanel = document.getElementById('weekly-delete-panel');
+    const weeklyDeleteConfirmBtn = document.getElementById('weekly-delete-confirm');
+    const weeklyDeleteCancelBtn = document.getElementById('weekly-delete-cancel');
+    const weeklyHasRecord = document.body.getAttribute('data-weekly-has-record') === '1';
+    const weeklyRecordId = document.body.getAttribute('data-weekly-id') || '';
 
     if (calTitle && calGrid && calPrev && calNext) {
       const monthLabels = [
@@ -1266,19 +1458,24 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
             cell.style.pointerEvents = 'none';
           } else {
             cell.style.cursor = 'pointer';
-            const dateStr = String(displayedYear) + '-' + String(displayedMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
             cell.addEventListener('click', () => {
-              const weeklyPanel = document.getElementById('weekly-survey-panel');
-              const surveyDateInput = document.getElementById('survey-date');
-              const surveyDateTitle = document.getElementById('weekly-survey-date');
-              if (weeklyPanel && surveyDateInput && surveyDateTitle) {
-                const dateObj = new Date(displayedYear, displayedMonth, day);
-                const dateFormatted = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                surveyDateTitle.textContent = 'Track for ' + dateFormatted;
-                surveyDateInput.value = dateStr;
-                weeklyPanel.hidden = false;
-                weeklyPanel.classList.add('is-visible');
-                weeklyPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              if (weeklyCalendarActionWrap) {
+                weeklyCalendarActionWrap.classList.add('is-visible');
+              }
+              if (weeklyDeletePanel) {
+                weeklyDeletePanel.hidden = true;
+                weeklyDeletePanel.classList.remove('is-visible');
+              }
+
+              if (weeklyCalendarAddBtn && weeklyCalendarEditBtn && weeklyCalendarDeleteBtn) {
+                weeklyCalendarAddBtn.hidden = weeklyHasRecord;
+                weeklyCalendarEditBtn.hidden = !weeklyHasRecord;
+                weeklyCalendarDeleteBtn.hidden = !weeklyHasRecord;
+                weeklyCalendarAddBtn.dataset.date = String(displayedYear) + '-' + String(displayedMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                weeklyCalendarAddBtn.dataset.label = new Date(displayedYear, displayedMonth, day).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                weeklyCalendarEditBtn.dataset.date = weeklyCalendarAddBtn.dataset.date;
+                weeklyCalendarEditBtn.dataset.label = weeklyCalendarAddBtn.dataset.label;
+                weeklyCalendarDeleteBtn.dataset.id = weeklyRecordId;
               }
             });
           }
@@ -1318,6 +1515,92 @@ if (!empty($objectifs) && !empty($objectifs[0]['date_fin_obj'])) {
     const weeklySurveyClose = document.getElementById('weekly-survey-close');
     const weeklySurveyCancel = document.getElementById('weekly-survey-cancel');
     const weeklySurveyForm = document.getElementById('weekly-survey-form');
+    const weeklySurveyObjectifId = document.getElementById('weekly-objectif-id');
+    const weeklySurveyDeleteForm = document.getElementById('weekly-delete-form');
+    const weeklySurveyDeleteId = document.getElementById('weekly-delete-id');
+
+    if (weeklyCalendarAddBtn && weeklySurveyPanel) {
+      weeklyCalendarAddBtn.addEventListener('click', () => {
+        const surveyDateInput = document.getElementById('survey-date');
+        const surveyDateTitle = document.getElementById('weekly-survey-date');
+        const dateValue = weeklyCalendarAddBtn.dataset.date || '';
+        const dateLabel = weeklyCalendarAddBtn.dataset.label || '';
+
+        if (weeklySurveyForm) {
+          weeklySurveyForm.reset();
+        }
+        if (weeklySurveyObjectifId) {
+          weeklySurveyObjectifId.value = '';
+        }
+        if (surveyDateInput) {
+          surveyDateInput.value = dateValue;
+        }
+        if (surveyDateTitle) {
+          surveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
+        }
+
+        weeklySurveyPanel.hidden = false;
+        weeklySurveyPanel.classList.add('is-visible');
+        weeklySurveyPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (weeklyDeletePanel) {
+          weeklyDeletePanel.hidden = true;
+          weeklyDeletePanel.classList.remove('is-visible');
+        }
+      });
+    }
+
+    if (weeklyCalendarEditBtn && weeklySurveyPanel) {
+      weeklyCalendarEditBtn.addEventListener('click', () => {
+        const surveyDateInput = document.getElementById('survey-date');
+        const surveyDateTitle = document.getElementById('weekly-survey-date');
+        const dateValue = weeklyCalendarEditBtn.dataset.date || '';
+        const dateLabel = weeklyCalendarEditBtn.dataset.label || '';
+
+        if (weeklySurveyObjectifId) {
+          weeklySurveyObjectifId.value = weeklyRecordId;
+        }
+        if (surveyDateInput) {
+          surveyDateInput.value = dateValue;
+        }
+        if (surveyDateTitle) {
+          surveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
+        }
+
+        weeklySurveyPanel.hidden = false;
+        weeklySurveyPanel.classList.add('is-visible');
+        weeklySurveyPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (weeklyDeletePanel) {
+          weeklyDeletePanel.hidden = true;
+          weeklyDeletePanel.classList.remove('is-visible');
+        }
+      });
+    }
+
+    if (weeklyCalendarDeleteBtn && weeklySurveyDeleteForm && weeklySurveyDeleteId) {
+      weeklyCalendarDeleteBtn.addEventListener('click', () => {
+        weeklySurveyDeleteId.value = weeklyCalendarDeleteBtn.dataset.id || weeklyRecordId;
+        if (weeklyDeletePanel) {
+          weeklyDeletePanel.hidden = false;
+          weeklyDeletePanel.classList.add('is-visible');
+        }
+      });
+    }
+
+    if (weeklyDeleteCancelBtn && weeklyDeletePanel) {
+      weeklyDeleteCancelBtn.addEventListener('click', () => {
+        weeklyDeletePanel.hidden = true;
+        weeklyDeletePanel.classList.remove('is-visible');
+      });
+    }
+
+    if (weeklyDeleteConfirmBtn && weeklySurveyDeleteForm && weeklySurveyDeleteId) {
+      weeklyDeleteConfirmBtn.addEventListener('click', () => {
+        if (!weeklySurveyDeleteId.value) {
+          weeklySurveyDeleteId.value = weeklyRecordId;
+        }
+        weeklySurveyDeleteForm.submit();
+      });
+    }
 
     if (weeklySurveyClose && weeklySurveyPanel) {
       weeklySurveyClose.addEventListener('click', () => {
