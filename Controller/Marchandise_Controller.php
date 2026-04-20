@@ -27,6 +27,16 @@ final class MarchandiseController
             return;
         }
 
+        if ($action === 'reserve' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->reserve();
+            return;
+        }
+
+        if ($action === 'reset_reservations' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->resetReservations();
+            return;
+        }
+
         if ($action === 'image') {
             $this->showImage();
             return;
@@ -63,6 +73,37 @@ final class MarchandiseController
         }
     }
 
+    private function reserve(): void
+    {
+        $productId = (int) ($_POST['id_march'] ?? 0);
+        $storeId = (int) ($_POST['id_mag'] ?? 0);
+        $quantity = (int) ($_POST['quantity_reservation'] ?? 1);
+
+        try {
+            if ($productId <= 0 || $storeId <= 0) {
+                throw new InvalidArgumentException('Missing product or magasin.');
+            }
+
+            $this->marchandise->reserveFromStore($productId, $storeId, max(1, $quantity));
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => true]);
+        } catch (Throwable $exception) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false]);
+        }
+    }
+
+    private function resetReservations(): void
+    {
+        try {
+            $this->marchandise->resetReservations((int) ($_POST['id_march'] ?? 0));
+            $this->redirect('../View/back_office/material_able-main/products.php?status=reservations_reset');
+        } catch (Throwable $exception) {
+            $this->redirect('../View/back_office/material_able-main/products.php?status=reservationerror');
+        }
+    }
+
     private function showImage(): void
     {
         $productId = (int) ($_GET['id'] ?? 0);
@@ -94,12 +135,19 @@ final class MarchandiseController
         }
         $storeIds = array_values(array_filter(array_map('intval', $storeIds)));
 
+        $categoryIds = $_POST['id_categ'] ?? [];
+        if (!is_array($categoryIds)) {
+            $categoryIds = [$categoryIds];
+        }
+        $categoryIds = array_values(array_filter(array_map('intval', $categoryIds)));
+
         return [
             'id_march' => (int) ($_POST['id_march'] ?? 0),
             'id_mag' => $storeIds,
+            'id_categ' => $categoryIds,
             'name_march' => (string) ($_POST['name_march'] ?? ''),
             'description_march' => (string) ($_POST['description_march'] ?? ''),
-            'price_march' => (int) ($_POST['price_march'] ?? 0),
+            'price_march' => (float) str_replace(',', '.', (string) ($_POST['price_march'] ?? 0)),
             'quantity_march' => (int) ($_POST['quantity_march'] ?? 0),
             'date_expiration_march' => (string) ($_POST['date_expiration_march'] ?? ''),
             'point_acces_march' => (string) ($_POST['point_acces_march'] ?? ''),

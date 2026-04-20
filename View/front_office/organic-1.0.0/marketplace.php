@@ -10,6 +10,11 @@ $magasinModel = new Magasin();
 
 $products = $marchandiseModel->fetchAllWithStores();
 $stores = $magasinModel->fetchAll();
+$storesById = [];
+foreach ($stores as $store) {
+    $storesById[(int) $store['id_mag']] = $store;
+}
+$formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((float) $price, 3, '.', ''), '0'), '.');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,7 +27,7 @@ $stores = $magasinModel->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css">
+    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=add-popup-friendly-1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -88,9 +93,10 @@ $stores = $magasinModel->fetchAll();
                         <span aria-label="Saved">
                             <svg width="24" height="24" aria-hidden="true"><use xlink:href="#bookmark-icon"></use></svg>
                         </span>
-                        <span aria-label="Cart">
+                        <button type="button" class="foovia-cart-toggle" data-cart-toggle aria-label="Open cart">
                             <svg width="24" height="24" aria-hidden="true"><use xlink:href="#cart-icon"></use></svg>
-                        </span>
+                            <span data-cart-count>0</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -196,6 +202,22 @@ $stores = $magasinModel->fetchAll();
 
                 <div class="row market-grid">
                     <?php foreach ($products as $product): ?>
+                        <?php
+                            $storeIds = array_filter(explode(',', (string) ($product['store_ids'] ?? '')));
+                            $storeNames = array_filter(array_map('trim', explode(',', (string) ($product['store_names'] ?? ''))));
+                            $storePayload = [];
+                            foreach ($storeIds as $index => $storeId) {
+                                $store = $storesById[(int) $storeId] ?? null;
+                                $storePayload[] = [
+                                    'id' => (int) $storeId,
+                                    'name' => $storeNames[$index] ?? (string) ($store['name_mag'] ?? 'Store'),
+                                    'address' => (string) ($store['adress_mag'] ?? ''),
+                                    'phone' => (string) ($store['phone_mag'] ?? ''),
+                                    'email' => (string) ($store['email_mag'] ?? ''),
+                                    'image' => '../../../Controller/Magasin_Controller.php?action=image&id=' . (int) $storeId,
+                                ];
+                            }
+                        ?>
                         <div class="col-md-6 col-xl-4" data-product-card data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>" data-store-name="<?= htmlspecialchars(strtolower((string) ($product['store_names'] ?? '')), ENT_QUOTES) ?>" data-product-description="<?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?>">
                             <article class="market-card">
                                 <div class="market-card-media">
@@ -207,9 +229,31 @@ $stores = $magasinModel->fetchAll();
                                     <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                                         <div>
                                             <h3 class="h5 mb-1"><a href="product-details.php?id=<?= (int) $product['id_march'] ?>" class="market-product-link"><?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?></a></h3>
-                                            <span class="market-badge"><?= htmlspecialchars($product['store_names'] ?? 'No store', ENT_QUOTES) ?></span>
+                                            <span class="market-store-badges">
+                                                <?php if ($storePayload === []): ?>
+                                                    <span class="market-badge">No store</span>
+                                                <?php endif; ?>
+                                                <?php foreach ($storePayload as $store): ?>
+                                                    <span class="market-badge market-store-hover">
+                                                        <?= htmlspecialchars($store['name'], ENT_QUOTES) ?>
+                                                        <span class="market-store-popover">
+                                                            <img src="<?= htmlspecialchars($store['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($store['name'], ENT_QUOTES) ?>">
+                                                            <b><?= htmlspecialchars($store['name'], ENT_QUOTES) ?></b>
+                                                            <?php if ($store['address'] !== ''): ?>
+                                                                <small>Address: <?= htmlspecialchars($store['address'], ENT_QUOTES) ?></small>
+                                                            <?php endif; ?>
+                                                            <?php if ($store['phone'] !== ''): ?>
+                                                                <small>Phone: <?= htmlspecialchars($store['phone'], ENT_QUOTES) ?></small>
+                                                            <?php endif; ?>
+                                                            <?php if ($store['email'] !== ''): ?>
+                                                                <small>Email: <?= htmlspecialchars($store['email'], ENT_QUOTES) ?></small>
+                                                            <?php endif; ?>
+                                                        </span>
+                                                    </span>
+                                                <?php endforeach; ?>
+                                            </span>
                                         </div>
-                                        <span class="market-price"><?= (int) $product['price_march'] ?> TND</span>
+                                        <span class="market-price"><?= htmlspecialchars($formatPrice($product['price_march']), ENT_QUOTES) ?> TND</span>
                                     </div>
                                     <p class="market-meta mb-3"><?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?></p>
                                     <div class="d-flex flex-wrap gap-2 mb-3">
@@ -218,7 +262,19 @@ $stores = $magasinModel->fetchAll();
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted">Expires <?= htmlspecialchars($product['date_expiration_march'], ENT_QUOTES) ?></small>
-                                        <a href="product-details.php?id=<?= (int) $product['id_march'] ?>" class="btn btn-outline-success rounded-pill px-3">Details</a>
+                                        <div class="d-flex gap-2">
+                                            <button
+                                                type="button"
+                                                class="btn btn-success rounded-pill px-3"
+                                                data-open-cart-picker
+                                                data-product-id="<?= (int) $product['id_march'] ?>"
+                                                data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>"
+                                                data-product-price="<?= htmlspecialchars($formatPrice($product['price_march']), ENT_QUOTES) ?>"
+                                                data-product-image="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>"
+                                                data-product-stores="<?= htmlspecialchars(json_encode($storePayload), ENT_QUOTES) ?>"
+                                            >Add</button>
+                                            <a href="product-details.php?id=<?= (int) $product['id_march'] ?>" class="btn btn-outline-success rounded-pill px-3">Details</a>
+                                        </div>
                                     </div>
                                 </div>
                             </article>
@@ -242,7 +298,44 @@ $stores = $magasinModel->fetchAll();
         </section>
     </main>
 
+    <div class="foovia-cart-picker" data-cart-picker hidden>
+        <div class="foovia-cart-picker-panel">
+            <button type="button" class="foovia-picker-close" data-picker-close aria-label="Close">x</button>
+            <strong class="foovia-picker-price" data-picker-price>0 TND</strong>
+            <p class="foovia-picker-product" data-picker-product-name></p>
+            <div class="foovia-quantity-row">
+                <span>Quantity</span>
+                <input type="text" value="1" data-picker-quantity>
+            </div>
+            <div class="foovia-store-choice-box">
+                <span class="foovia-store-label">Choose store</span>
+                <div data-picker-store></div>
+            </div>
+            <button type="button" class="foovia-cart-btn" data-picker-confirm>Add to cart</button>
+            <button type="button" class="foovia-reserve-btn" data-picker-reserve>Reserve</button>
+            <p class="foovia-reservation-total" data-picker-reservation-total>0 reservations</p>
+        </div>
+    </div>
+
+    <div class="foovia-cart-modal" data-cart-modal hidden>
+        <div class="foovia-cart-panel">
+            <div class="foovia-cart-header">
+                <h2>Your cart</h2>
+                <button type="button" data-cart-close aria-label="Close cart">x</button>
+            </div>
+            <div class="foovia-cart-items" data-cart-items></div>
+            <div class="foovia-cart-footer">
+                <strong>Total: <span data-cart-total>0 TND</span></strong>
+                <button type="button" class="foovia-cart-btn" data-cart-checkout>Checkout</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.FOOVIA_RESERVATION_ENDPOINT = '../../../Controller/Marchandise_Controller.php?action=reserve';
+    </script>
     <script src="../../assets/js/frontoffice-filters.js"></script>
+    <script src="../../assets/js/foovia-cart.js?v=add-popup-card-1"></script>
 </body>
 </html>

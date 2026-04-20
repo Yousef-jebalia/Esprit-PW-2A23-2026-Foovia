@@ -36,7 +36,7 @@ $message = match ($status) {
     <link rel="stylesheet" type="text/css" href="assets/icon/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/css/jquery.mCustomScrollbar.css">
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
-    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css">
+    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=store-action-buttons-1">
 </head>
 <body>
     <div id="pcoded" class="pcoded">
@@ -222,11 +222,11 @@ $message = match ($status) {
                                                                                 <td><?= htmlspecialchars($store['email_mag'], ENT_QUOTES) ?></td>
                                                                                 <td><?= htmlspecialchars((string) $store['phone_mag'], ENT_QUOTES) ?></td>
                                                                                 <td><?= htmlspecialchars($store['adress_mag'], ENT_QUOTES) ?></td>
-                                                                                <td>
-                                                                                    <a href="magasins.php?edit=<?= (int) $store['id_mag'] ?>" class="btn btn-info btn-sm waves-effect waves-light m-r-5">Modify</a>
+                                                                                <td class="admin-action-cell">
+                                                                                    <a href="magasins.php?edit=<?= (int) $store['id_mag'] ?>" class="admin-action-btn admin-action-modify">Modify</a>
                                                                                     <form action="../../../Controller/Magasin_Controller.php?action=delete" method="post" data-delete-store-form data-store-name="<?= htmlspecialchars($store['name_mag'], ENT_QUOTES) ?>">
                                                                                         <input type="hidden" name="id_mag" value="<?= (int) $store['id_mag'] ?>">
-                                                                                        <button type="submit" class="btn btn-danger btn-sm waves-effect waves-light">Delete</button>
+                                                                                        <button type="submit" class="admin-action-btn admin-action-delete">Delete</button>
                                                                                     </form>
                                                                                 </td>
                                                                             </tr>

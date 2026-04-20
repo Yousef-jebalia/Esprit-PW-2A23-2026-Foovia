@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fields = {
     id_mag: Array.from(form.querySelectorAll('[name="id_mag[]"]')),
+    id_categ: Array.from(form.querySelectorAll('[name="id_categ[]"]')),
     name_march: form.querySelector('[name="name_march"]'),
     description_march: form.querySelector('[name="description_march"]'),
     price_march: form.querySelector('[name="price_march"]'),
@@ -34,6 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
       clearError('id_mag');
+      return true;
+    },
+    id_categ: () => {
+      const hasSelectedCategory = fields.id_categ.some((field) => field.checked);
+      if (!hasSelectedCategory) {
+        setError('id_categ', 'Choose at least one food category.');
+        return false;
+      }
+      clearError('id_categ');
       return true;
     },
     name_march: () => {
@@ -68,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('price_march', 'Price is required.');
         return false;
       }
-      if (!/^\d+$/.test(value)) {
-        setError('price_march', 'Price must be a positive integer.');
+      if (!/^\d+([.,]\d{1,3})?$/.test(value)) {
+        setError('price_march', 'Price must be a positive number with up to 3 decimals.');
         return false;
       }
       clearError('price_march');

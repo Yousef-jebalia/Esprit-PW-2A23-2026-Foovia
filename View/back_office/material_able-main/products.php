@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../../Model/Marchandise.php';
 require_once __DIR__ . '/../../../Model/Magasin.php';
+require_once __DIR__ . '/../../../Model/Categorie.php';
 
 $marchandiseModel = new Marchandise();
 $magasinModel = new Magasin();
+$categorieModel = new Categorie();
 
 $stores = $magasinModel->fetchAll();
+$categories = $categorieModel->fetchAll();
 $products = $marchandiseModel->fetchAllWithStores();
 $summary = $marchandiseModel->fetchSummary();
+$reservationsByProduct = $marchandiseModel->fetchReservationsByProduct();
 $status = (string) ($_GET['status'] ?? '');
 $editId = (int) ($_GET['edit'] ?? 0);
 $editingProduct = $editId > 0 ? $marchandiseModel->findById($editId) : null;
@@ -18,14 +22,20 @@ $isEditing = $editingProduct !== null;
 $selectedStoreIds = $isEditing && !empty($editingProduct['store_ids'])
     ? array_map('intval', explode(',', (string) $editingProduct['store_ids']))
     : [];
+$selectedCategoryIds = $isEditing && !empty($editingProduct['category_ids'])
+    ? array_map('intval', explode(',', (string) $editingProduct['category_ids']))
+    : [];
+$formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((float) $price, 3, '.', ''), '0'), '.');
 
 $message = match ($status) {
     'success' => ['class' => 'alert-success', 'text' => 'Product added successfully. It is now available in the front office.'],
     'updated' => ['class' => 'alert-success', 'text' => 'Product updated successfully in both back office and front office.'],
     'deleted' => ['class' => 'alert-success', 'text' => 'Product removed successfully from the back office and front office.'],
+    'reservations_reset' => ['class' => 'alert-success', 'text' => 'Reservations reset successfully for the selected product.'],
     'error' => ['class' => 'alert-warning', 'text' => 'Some product information is missing. Please complete the form and try again.'],
     'dberror' => ['class' => 'alert-danger', 'text' => 'The product could not be saved. Check the DB connection and table structure.'],
     'deleteerror' => ['class' => 'alert-danger', 'text' => 'The product could not be deleted. Please try again.'],
+    'reservationerror' => ['class' => 'alert-danger', 'text' => 'Reservations could not be reset. Please try again.'],
     default => null,
 };
 ?>
@@ -162,7 +172,7 @@ $message = match ($status) {
                                                 <div class="card admin-form-card">
                                                     <div class="card-header">
                                                         <h5><?= $isEditing ? 'Modify Selected Product' : 'Add New Marchandise' ?></h5>
-                                                        <span><?= $isEditing ? 'Select a product, modify the fields below, then save the changes.' : 'The HTML stays clean while the validation lives in JavaScript only.' ?></span>
+                                                        <span><?= $isEditing ? 'Select a product, modify the fields below, then save the changes.' : 'Choose stores and food categories before publishing.' ?></span>
                                                     </div>
                                                     <div class="card-block">
                                                         <form action="../../../Controller/Marchandise_Controller.php?action=save" method="post" enctype="multipart/form-data" data-product-form data-editing-mode="<?= $isEditing ? 'true' : 'false' ?>">
@@ -192,6 +202,19 @@ $message = match ($status) {
                                                             </div>
 
                                                             <div class="form-group">
+                                                                <label>Food Categories</label>
+                                                                <div class="admin-checkbox-list" data-category-checkboxes>
+                                                                    <?php foreach ($categories as $category): ?>
+                                                                        <label class="admin-checkbox-option">
+                                                                            <input type="checkbox" name="id_categ[]" value="<?= (int) $category['id_categ'] ?>" <?= in_array((int) $category['id_categ'], $selectedCategoryIds, true) ? 'checked' : '' ?>>
+                                                                            <span><?= htmlspecialchars($category['name_categ'], ENT_QUOTES) ?></span>
+                                                                        </label>
+                                                                    <?php endforeach; ?>
+                                                                </div>
+                                                                <span class="validation-message" data-error-for="id_categ"></span>
+                                                            </div>
+
+                                                            <div class="form-group">
                                                                 <label for="description_march">Description</label>
                                                                 <textarea id="description_march" name="description_march" rows="4" class="form-control" placeholder="Short product description"><?= htmlspecialchars($isEditing ? (string) $editingProduct['description_march'] : '', ENT_QUOTES) ?></textarea>
                                                                 <span class="validation-message" data-error-for="description_march"></span>
@@ -201,7 +224,7 @@ $message = match ($status) {
                                                                 <div class="col-md-4">
                                                                     <div class="form-group">
                                                                         <label for="price_march">Price</label>
-                                                                        <input id="price_march" name="price_march" type="text" class="form-control" placeholder="45" value="<?= htmlspecialchars($isEditing ? (string) $editingProduct['price_march'] : '', ENT_QUOTES) ?>">
+                                                                        <input id="price_march" name="price_march" type="text" class="form-control" placeholder="45.500" value="<?= htmlspecialchars($isEditing ? $formatPrice($editingProduct['price_march']) : '', ENT_QUOTES) ?>">
                                                                         <span class="validation-message" data-error-for="price_march"></span>
                                                                     </div>
                                                                 </div>
@@ -262,7 +285,7 @@ $message = match ($status) {
                                                 <div class="card">
                                                     <div class="card-header">
                                                         <h5>Available Stores</h5>
-                                                        <span>The selected store is linked through the <code>vendre</code> table.</span>
+                                                        <span>Products can be linked to one or more magasins.</span>
                                                     </div>
                                                     <div class="card-block">
                                                         <?php if ($stores === []): ?>
@@ -281,14 +304,14 @@ $message = match ($status) {
                                             </div>
                                         </div>
 
-                                        <div class="card">
+                                        <div class="card foovia-admin-products-card">
                                             <div class="card-header">
                                                 <h5>Recently Published Products</h5>
-                                                <span>The same items are rendered in the front office page.</span>
+                                                <span>Manage product edits, reservations, and visibility from here.</span>
                                             </div>
                                             <div class="card-block table-border-style">
                                                 <div class="table-responsive">
-                                                    <table class="table table-hover">
+                                                    <table class="table table-hover foovia-admin-products-table">
                                                         <thead>
                                                             <tr>
                                                                 <th>Image</th>
@@ -297,26 +320,37 @@ $message = match ($status) {
                                                                 <th>Price</th>
                                                                 <th>Stock</th>
                                                                 <th>Expires</th>
+                                                                <th>Reservations</th>
                                                                 <th>Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <?php if ($products === []): ?>
-                                                                <tr><td colspan="7" class="text-center">No products available yet.</td></tr>
+                                                                <tr><td colspan="8" class="text-center">No products available yet.</td></tr>
                                                             <?php else: ?>
                                                                 <?php foreach ($products as $product): ?>
                                                                     <tr>
                                                                         <td><img class="admin-table-thumb" src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>"></td>
                                                                         <td><strong><?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?></strong><br><small><?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?></small></td>
                                                                         <td><?= htmlspecialchars($product['store_names'] ?? 'No store', ENT_QUOTES) ?></td>
-                                                                        <td><?= (int) $product['price_march'] ?> TND</td>
+                                                                        <td><?= htmlspecialchars($formatPrice($product['price_march']), ENT_QUOTES) ?> TND</td>
                                                                         <td><?= (int) $product['quantity_march'] ?></td>
                                                                         <td><?= htmlspecialchars($product['date_expiration_march'], ENT_QUOTES) ?></td>
                                                                         <td>
-                                                                            <a href="products.php?edit=<?= (int) $product['id_march'] ?>" class="btn btn-info btn-sm waves-effect waves-light m-r-5">Modify</a>
+                                                                            <strong><?= (int) ($product['reserved_count_march'] ?? 0) ?></strong>
+                                                                            <?php if (!empty($reservationsByProduct[(int) $product['id_march']])): ?>
+                                                                                <br><small><?= htmlspecialchars($reservationsByProduct[(int) $product['id_march']], ENT_QUOTES) ?></small>
+                                                                            <?php endif; ?>
+                                                                        </td>
+                                                                        <td class="admin-action-cell">
+                                                                            <a href="products.php?edit=<?= (int) $product['id_march'] ?>" class="admin-action-btn admin-action-modify">Modify</a>
+                                                                            <form action="../../../Controller/Marchandise_Controller.php?action=reset_reservations" method="post">
+                                                                                <input type="hidden" name="id_march" value="<?= (int) $product['id_march'] ?>">
+                                                                                <button type="submit" class="admin-action-btn admin-action-reset">Reset</button>
+                                                                            </form>
                                                                             <form action="../../../Controller/Marchandise_Controller.php?action=delete" method="post" data-delete-product-form data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>">
                                                                                 <input type="hidden" name="id_march" value="<?= (int) $product['id_march'] ?>">
-                                                                                <button type="submit" class="btn btn-danger btn-sm waves-effect waves-light">Delete</button>
+                                                                                <button type="submit" class="admin-action-btn admin-action-delete">Delete</button>
                                                                             </form>
                                                                         </td>
                                                                     </tr>
@@ -349,7 +383,7 @@ $message = match ($status) {
     <script src="assets/js/pcoded.min.js"></script>
     <script src="assets/js/vertical/vertical-layout.min.js"></script>
     <script src="assets/js/script.js"></script>
-    <script src="../../assets/js/backoffice-validation.js"></script>
+    <script src="../../assets/js/backoffice-validation.js?v=decimal-price-2"></script>
     <script src="../../assets/js/backoffice-actions.js"></script>
 </body>
 </html>
