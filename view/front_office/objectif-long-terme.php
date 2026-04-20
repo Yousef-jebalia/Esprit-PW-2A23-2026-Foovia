@@ -704,7 +704,7 @@ $objectifs = $controller->list_objectifs();
               class="goal-chip goal-chip-add"
               id="goal-add-trigger"
               data-can-add="<?php echo $user_has_goal ? '0' : '1'; ?>"
-              data-add-url="../back_office/form-elements-component.php"
+              data-add-url="../front_office/form-elements-component.php"
               style="border:0;"
             >
               Add Goal

@@ -178,14 +178,31 @@ class ObjectifLongTerme_Controller {
     }
 
     public function delete_objectif(int $id_obj): bool {
-        $sql = "DELETE FROM objectiflongterme WHERE id_obj = :id_obj";
         $db = config::getConnexion();
 
         try {
+            $db->beginTransaction();
+
+            $deleteWeeklySql = "DELETE FROM objectifhebdomadaire WHERE id_obj = :id_obj";
+            $weeklyQuery = $db->prepare($deleteWeeklySql);
+            $weeklyQuery->execute(['id_obj' => $id_obj]);
+
+            $sql = "DELETE FROM objectiflongterme WHERE id_obj = :id_obj";
             $query = $db->prepare($sql);
             $query->execute(['id_obj' => $id_obj]);
-            return $query->rowCount() > 0;
+
+            $deleted = $query->rowCount() > 0;
+            if ($deleted) {
+                $db->commit();
+                return true;
+            }
+
+            $db->rollBack();
+            return false;
         } catch (Exception $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             return false;
         }
     }

@@ -27,6 +27,7 @@ function goal_status_label(string $status): string {
 }
 
 $edit_error_message = '';
+$goal_action_error = '';
 $edit_objectif = null;
 $edit_panel_visible = false;
 $current_user_id = (int) ($_SESSION['user_id'] ?? 1);
@@ -83,9 +84,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id_obj'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
-  $controller->delete_objectif((int) $_POST['delete_id_obj']);
-  header('Location: tracking.php#long-term-goals');
-  exit;
+  $delete_id_obj = (int) $_POST['delete_id_obj'];
+  $goal_to_delete = $delete_id_obj > 0 ? $controller->get_objectif_by_id($delete_id_obj) : null;
+
+  if (!empty($goal_to_delete) && (int) ($goal_to_delete['id_user'] ?? 0) === $current_user_id) {
+    if ($controller->delete_objectif($delete_id_obj)) {
+      header('Location: tracking.php#long-term-goals');
+      exit;
+    }
+
+    $goal_action_error = 'The goal could not be deleted.';
+  } else {
+    $goal_action_error = 'You can only delete your own long-term goal.';
+  }
 }
 
 $objectifs = $controller->list_objectifs();
@@ -1548,6 +1559,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   <p class="section-label">Long Term Goals</p>
   <h2 class="section-title features-title">Manage your long-term goals in one place.</h2>
 
+  <?php if (!empty($goal_action_error)): ?>
+    <div style="margin: 0 0 1rem; padding: 0.85rem 1rem; border-radius: 14px; background: rgba(192, 56, 26, 0.12); color: var(--red); font-weight: 700; border: 1px solid rgba(192, 56, 26, 0.18);">
+      <?php echo htmlspecialchars($goal_action_error); ?>
+    </div>
+  <?php endif; ?>
+
   <div class="ltg-shell">
     <div class="ltg-head">
       <div>
@@ -1557,7 +1574,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         <button
           type="button"
           class="btn-primary ltg-open-survey"
-          data-survey-url="../back_office/form-elements-component.php"
+          data-survey-url="../front_office/form-elements-component.php"
           data-can-add="<?php echo $user_has_goal ? '0' : '1'; ?>"
           aria-controls="ltg-survey-panel"
           aria-expanded="false"
@@ -1567,6 +1584,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         <small id="ltg-add-warning" style="display:none;margin-top:8px;color:var(--panel-muted);font-size:.82rem;">Delete your existing goal before adding a new one.</small>
       </div>
     </div>
+
+    <?php if (!empty($current_user_goal)): ?>
+      <div style="margin: 0 26px 18px; padding: 0.95rem 1rem; border-radius: 16px; background: rgba(245, 200, 66, 0.12); border: 1px solid rgba(17, 16, 8, 0.12); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div style="min-width: 220px;">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--panel-text);margin-bottom:0.25rem;">Your current goal</div>
+          <div style="font-size:0.88rem;color:var(--panel-text);line-height:1.45;">
+            Goal #<?php echo htmlspecialchars((string) $current_user_goal['id_obj']); ?> · <?php echo htmlspecialchars(goal_type_label((string) $current_user_goal['type_obj'])); ?>
+            <br>
+            <?php echo htmlspecialchars((string) $current_user_goal['date_deb_obj']); ?> to <?php echo htmlspecialchars((string) $current_user_goal['date_fin_obj']); ?>
+          </div>
+        </div>
+        <button type="button" class="ltg-action ltg-delete ltg-delete-trigger" data-id="<?php echo htmlspecialchars((string) $current_user_goal['id_obj']); ?>" style="border:0;border-radius:999px;padding:0.55rem 0.9rem;font-weight:700;cursor:pointer;background:var(--red);color:#fff;box-shadow:0 10px 18px rgba(17,16,8,0.12);">
+          Delete my goal
+        </button>
+      </div>
+    <?php endif; ?>
 
     <div class="ltg-table-wrap">
       <table class="ltg-table" aria-label="Long term goals table">
@@ -1751,7 +1784,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     <iframe
       class="ltg-survey-frame"
       title="Long term goal survey"
-      data-src="../back_office/form-elements-component.php"
+      data-src="../front_office/form-elements-component.php"
     ></iframe>
   </div>
 </section>
