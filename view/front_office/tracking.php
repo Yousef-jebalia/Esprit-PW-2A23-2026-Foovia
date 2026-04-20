@@ -535,6 +535,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     border: 1.5px solid rgba(0, 0, 0, .07);
     padding: 0.9rem;
     max-width: 560px;
+    position: sticky;
+    top: 88px;
   }
 
   .weekly-calendar-head {
@@ -1050,6 +1052,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     background: transparent;
   }
 
+  .weekly-survey-field.weekly-water-field {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
   .weekly-survey-field label {
     font-size: 0.78rem;
     letter-spacing: 0.13em;
@@ -1164,8 +1171,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     border-radius: 16px;
     padding: 0.95rem;
     background: rgba(255, 255, 255, 0.5);
-    width: min(540px, 100%);
-    margin: 0.25rem auto 0;
+    /*width: min(540px, 100%);
+    /*margin: 0.25rem auto 0;*/
   }
 
   .weekly-tracker-sec-label {
@@ -1175,36 +1182,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #7c6fcd;
-    margin-bottom: 4px;
+    /*margin-bottom: 4px;*/
   }
-
-  .weekly-tracker-card-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1rem;
-    color: var(--panel-text);
-    margin: 0 0 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .weekly-tracker-emoji {
-    font-size: 1rem;
-  }
-
-  .weekly-tracker-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.9rem;
-    margin-bottom: 1rem;
-  }
-
-  .weekly-tracker-field label {
+  .weeklytracker-field label {
     display: block;
     font-family: 'Boldonse', system-ui;
     font-size: 0.72rem;
-    margin-bottom: 0.45rem;
+    
   }
 
   .weekly-tracker-field.sleep label { color: #7c6fcd; }
@@ -1212,10 +1196,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
   .weekly-tracker-field input {
     width: 100%;
-    height: 44px;
     border: 1.5px solid rgba(0,0,0,.1);
     border-radius: 12px;
-    padding: 0 14px;
+    padding: 10px 10px;
     font-family: 'DM Sans', sans-serif;
     font-size: .95rem;
     background: var(--off-white);
@@ -1229,14 +1212,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
   .weekly-tracker-summary {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.9rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 18px;
   }
 
   .weekly-tracker-bubble {
     background: var(--dark);
     border-radius: 18px;
-    padding: 1rem 0.95rem 0.85rem;
+    padding: 18px 16px 14px;
     position: relative;
     overflow: hidden;
   }
@@ -1244,38 +1228,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   .weekly-tracker-bubble::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0; left: 0; right: 0;
     height: 4px;
+    border-radius: 0 0 18px 18px;
   }
 
-  .weekly-tracker-bubble.sleep::after { background: #7c6fcd; }
+  .weekly-tracker-bubble.sleep::after {
+    background: #7c6fcd !important;
+    opacity: 1;
+  }
   .weekly-tracker-bubble.steps::after { background: #0ea5a0; }
+  .weekly-tracker-bubble.steps { margin: 0; }
 
   .weekly-tracker-bubble-val {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.55rem;
-    line-height: 1;
-    margin-bottom: 0.2rem;
+    font-family: 'Boldonse', system-ui;
+    font-size: 1.7rem; line-height: 1;
+    margin-bottom: 2px;
   }
 
   .weekly-tracker-bubble.sleep .weekly-tracker-bubble-val { color: #a99ef5; }
   .weekly-tracker-bubble.steps .weekly-tracker-bubble-val { color: #3dd5cf; }
 
-  .weekly-tracker-bubble-lbl {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,.5);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-  }
+  .weekly-tracker-bubble-lbl {font-size: .72rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .08em;}
 
-  .weekly-tracker-bubble-sub {
-    font-size: 0.66rem;
-    color: rgba(255,255,255,.35);
-    margin-top: 0.3rem;
-  }
+  .weekly-tracker-bubble-sub {font-size: .68rem; color: rgba(255,255,255,.35); margin-top: 4px;}
 
   .weekly-tracker-bars {
     margin-top: 1rem;
@@ -1344,10 +1320,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     border-color: rgba(255, 255, 255, 0.14);
   }
 
-  [data-theme='dark'] .weekly-tracker-card-title {
-    color: #f3f1e8;
-  }
-
   [data-theme='dark'] .weekly-tracker-field input {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.14);
@@ -1357,6 +1329,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   [data-theme='dark'] .weekly-tracker-bar-row .weekly-tracker-bar-nums,
   [data-theme='dark'] .weekly-tracker-bar-sub .consumed {
     color: rgba(243, 241, 232, 0.78);
+  }
+
+  .weekly-daily-log {
+    grid-column: 1 / -1;
+    margin-top: 0.2rem;
+  }
+
+  .weekly-daily-log-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .weekly-daily-log-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .weekly-daily-log-field.wide {
+    grid-column: span 2;
+  }
+
+  .weekly-daily-log-field label {
+    display: block;
+    font-family: 'Boldonse', system-ui;
+    font-size: .72rem;
+    margin-bottom: 6px;
+  }
+
+  .weekly-daily-log-field .label-status { color: var(--orange); }
+  .weekly-daily-log-field .label-notes { color: #555; }
+
+  .weekly-daily-log-textarea {
+    width: 100%;
+    border: 1.5px solid rgba(0,0,0,.1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .92rem;
+    background: var(--off-white);
+    color: var(--dark);
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.55;
+    transition: border-color .2s;
+  }
+
+  .weekly-daily-log-textarea:focus {
+    border-color: var(--green);
+  }
+
+  .weekly-daily-log-select {
+    width: 100%;
+    border: 1.5px solid rgba(0,0,0,.1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .92rem;
+    background: var(--off-white);
+    color: var(--dark);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px;
+    padding-right: 36px;
+    transition: border-color .2s;
+  }
+
+  .weekly-daily-log-select:focus {
+    border-color: var(--orange);
+  }
+
+  .weekly-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-family: 'Boldonse', system-ui;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    transition: background .25s, color .25s;
+  }
+
+  .weekly-status-badge.on-track { background: rgba(75,174,82,.12); color: var(--forest); }
+  .weekly-status-badge.great-day { background: rgba(245,200,66,.22); color: #7a5c00; }
+  .weekly-status-badge.needs-work { background: rgba(217,79,0,.12); color: var(--orange); }
+  .weekly-status-badge.off-track { background: rgba(192,56,26,.12); color: var(--red); }
+  .weekly-status-badge.rest-day { background: rgba(90,181,245,.12); color: #1a80c4; }
+  .weekly-status-badge.hidden { display: none; }
+
+  .weekly-status-badge::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .weekly-daily-log-char-count {
+    text-align: right;
+    font-size: .68rem;
+    color: #bbb;
+    margin-top: 5px;
+    font-weight: 500;
+  }
+
+  .weekly-daily-log-char-count.warn {
+    color: var(--orange);
   }
 
   .weekly-survey-textarea {
@@ -1804,16 +1891,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           <label for="survey-carb">Carbs (g)</label>
           <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_carb_suiv'] ?? '')); ?>">
         </div>
-        <div class="weekly-survey-field">
+        <div class="weekly-survey-field weekly-water-field">
           <label for="survey-water">Water (glasses)</label>
           <input type="hidden" id="survey-water" name="nb_verre_eau_suiv" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_verre_eau_suiv'] ?? '')); ?>">
           <div class="weekly-water-glasses" id="weekly-water-glasses" data-target="8"></div>
           <div class="weekly-water-summary"><span id="weekly-water-count">0</span> / 8 glasses</div>
         </div>
         <div class="weekly-tracker-overview">
-          <p class="weekly-tracker-sec-label">Recovery &amp; Activity</p>
-          <h3 class="weekly-tracker-card-title"><span class="weekly-tracker-emoji">🌙</span> Sleep &amp; Steps</h3>
-
           <div class="weekly-tracker-row">
             <div class="weekly-tracker-field sleep">
               <label for="survey-sleep">Hours of sleep</label>
@@ -1867,14 +1951,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
             </div>
           </div>
         </div>
-        <div class="weekly-survey-field">
-          <label for="survey-status">Daily Status</label>
-          <input type="text" id="survey-status" name="status_obj_quot_suiv" placeholder="e.g., On track" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['status_obj_quot_suiv'] ?? '')); ?>">
-        </div>
+        <div class="weekly-daily-log">
+          <div class="weekly-daily-log-grid">
+            <div class="weekly-daily-log-field">
+              <label class="label-status" for="survey-status">Daily Status</label>
+              <select class="weekly-daily-log-select" id="survey-status" name="status_obj_quot_suiv">
+                <option value="">- Pick a status -</option>
+                <option value="On track" data-tone="on-track" <?php echo (($weekly_form_objectif['status_obj_quot_suiv'] ?? '') === 'On track') ? 'selected' : ''; ?>>On track</option>
+                <option value="Great day" data-tone="great-day" <?php echo (($weekly_form_objectif['status_obj_quot_suiv'] ?? '') === 'Great day') ? 'selected' : ''; ?>>Great day</option>
+                <option value="Needs work" data-tone="needs-work" <?php echo (($weekly_form_objectif['status_obj_quot_suiv'] ?? '') === 'Needs work') ? 'selected' : ''; ?>>Needs work</option>
+                <option value="Off track" data-tone="off-track" <?php echo (($weekly_form_objectif['status_obj_quot_suiv'] ?? '') === 'Off track') ? 'selected' : ''; ?>>Off track</option>
+                <option value="Rest day" data-tone="rest-day" <?php echo (($weekly_form_objectif['status_obj_quot_suiv'] ?? '') === 'Rest day') ? 'selected' : ''; ?>>Rest day</option>
+              </select>
+              <span class="weekly-status-badge hidden" id="weekly-status-badge"></span>
+            </div>
 
-        <div class="weekly-survey-field weekly-survey-textarea">
-          <label for="survey-notes">Notes</label>
-          <textarea id="survey-notes" name="note_suiv" placeholder="Add any notes about your day..."><?php echo htmlspecialchars((string) ($weekly_form_objectif['note_suiv'] ?? '')); ?></textarea>
+            <div class="weekly-daily-log-field wide" style="margin-top:4px;">
+              <label class="label-notes" for="survey-notes">Notes</label>
+              <textarea class="weekly-daily-log-textarea" id="survey-notes" name="note_suiv" maxlength="500" placeholder="How did today go? Any observations about your nutrition, energy levels, or mood..." ><?php echo htmlspecialchars((string) ($weekly_form_objectif['note_suiv'] ?? '')); ?></textarea>
+              <div class="weekly-daily-log-char-count" id="weekly-notes-char-count">0 / 500</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2176,6 +2273,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMacroInputFat = document.getElementById('survey-fat');
     const weeklyTrackerSleepInput = document.getElementById('survey-sleep');
     const weeklyTrackerStepsInput = document.getElementById('survey-steps');
+    const weeklyStatusInput = document.getElementById('survey-status');
+    const weeklyStatusBadge = document.getElementById('weekly-status-badge');
+    const weeklyNotesInput = document.getElementById('survey-notes');
+    const weeklyNotesCharCount = document.getElementById('weekly-notes-char-count');
+
+    const updateWeeklyStatusBadge = () => {
+      if (!weeklyStatusInput || !weeklyStatusBadge) {
+        return;
+      }
+
+      const selectedOption = weeklyStatusInput.options[weeklyStatusInput.selectedIndex];
+      const statusValue = weeklyStatusInput.value;
+      const statusTone = selectedOption ? (selectedOption.getAttribute('data-tone') || '') : '';
+
+      if (!statusValue) {
+        weeklyStatusBadge.className = 'weekly-status-badge hidden';
+        weeklyStatusBadge.textContent = '';
+        return;
+      }
+
+      weeklyStatusBadge.className = 'weekly-status-badge ' + (statusTone || 'on-track');
+      weeklyStatusBadge.textContent = statusValue;
+    };
+
+    const updateWeeklyNotesCharCount = () => {
+      if (!weeklyNotesInput || !weeklyNotesCharCount) {
+        return;
+      }
+
+      const length = weeklyNotesInput.value.length;
+      weeklyNotesCharCount.textContent = String(length) + ' / 500';
+      weeklyNotesCharCount.className = 'weekly-daily-log-char-count' + (length > 400 ? ' warn' : '');
+    };
 
     const weeklyTrackerTargets = {
       sleep: 8,
@@ -2342,6 +2472,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       }
     });
 
+    if (weeklyStatusInput) {
+      weeklyStatusInput.addEventListener('change', updateWeeklyStatusBadge);
+    }
+
+    if (weeklyNotesInput) {
+      weeklyNotesInput.addEventListener('input', updateWeeklyNotesCharCount);
+    }
+
     const renderWeeklyWaterSelector = () => {
       if (!weeklyWaterInput || !weeklyWaterGlasses || !weeklyWaterCount) {
         return;
@@ -2371,6 +2509,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     renderWeeklyWaterSelector();
     renderWeeklyMacroOverview();
     renderWeeklyTrackerOverview();
+    updateWeeklyStatusBadge();
+    updateWeeklyNotesCharCount();
 
     if (weeklyCalendarAddBtn && weeklySurveyPanel) {
       weeklyCalendarAddBtn.addEventListener('click', () => {
@@ -2388,6 +2528,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         renderWeeklyWaterSelector();
         renderWeeklyMacroOverview();
         renderWeeklyTrackerOverview();
+        updateWeeklyStatusBadge();
+        updateWeeklyNotesCharCount();
         if (surveyDateInput) {
           surveyDateInput.value = dateValue;
         }
@@ -2421,6 +2563,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         renderWeeklyWaterSelector();
         renderWeeklyMacroOverview();
         renderWeeklyTrackerOverview();
+        updateWeeklyStatusBadge();
+        updateWeeklyNotesCharCount();
         if (surveyDateInput) {
           surveyDateInput.value = dateValue;
         }
