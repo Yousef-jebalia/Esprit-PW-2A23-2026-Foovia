@@ -185,6 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
 
     <div class="nav-btns">
       <button type="button" class="btn-next" onclick="goNext(1)">Continue →</button>
+      <a href="../frontoffice/foovia.php" class="btn-skip">Skip</a>
     </div>
   </div>
 
@@ -263,6 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
     <div class="nav-btns">
       <button type="button" class="btn-back" onclick="goBack(2)">← Back</button>
       <button type="button" class="btn-next" onclick="goNext(2)">Continue →</button>
+      <a href="../frontoffice/foovia.php" class="btn-skip">Skip</a>
     </div>
   </div>
 
@@ -322,6 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
     <div class="nav-btns">
       <button type="button" class="btn-back" onclick="goBack(3)">← Back</button>
       <button type="button" class="btn-next" onclick="goNext(3)">Continue →</button>
+      <a href="../frontoffice/foovia.php" class="btn-skip">Skip</a>
     </div>
   </div>
 
@@ -402,6 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
     <div class="nav-btns">
       <button type="button" class="btn-back" onclick="goBack(4)">← Back</button>
       <button type="button" class="btn-next finish" onclick="goNext(4)">Complete my profile ✓</button>
+      <a href="../frontoffice/foovia.php" class="btn-skip">Skip</a>
     </div>
   </div>
 
