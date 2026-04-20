@@ -12,14 +12,14 @@ $user_name = $_SESSION['user_name'] ?? '';
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
-<link rel="stylesheet" href="style1.css">
+<link rel="stylesheet" href="foovia.css">
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
+    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-img">
     FOOVIA
   </a>
   <ul class="nav-links">
@@ -201,19 +201,19 @@ $user_name = $_SESSION['user_name'] ?? '';
       <p>Complete a short health survey. We map your goals, restrictions, and challenges to build your personalised plan.</p>
     </div>
     <div class="step">
-      <div class="step-dot" style="background:var(--yellow)"></div>
+      <div class="step-dot step-dot-yellow"></div>
       <div class="step-num">02</div>
       <h3>Snap & track</h3>
       <p>Photograph ingredients or meals. Foovia calculates macros and suggests what to cook next based on your goals.</p>
     </div>
     <div class="step">
-      <div class="step-dot" style="background:var(--orange)"></div>
+      <div class="step-dot step-dot-orange"></div>
       <div class="step-num">03</div>
       <h3>Train smarter</h3>
       <p>Tap the mannequin, pick your target muscles, and get a workout plan built for your body and today's energy level.</p>
     </div>
     <div class="step">
-      <div class="step-dot" style="background:var(--peach)"></div>
+      <div class="step-dot step-dot-peach"></div>
       <div class="step-num">04</div>
       <h3>Shop & connect</h3>
       <p>Browse the marketplace for fresh, local, and surplus produce — reducing waste while fuelling your healthy lifestyle.</p>
@@ -227,7 +227,7 @@ $user_name = $_SESSION['user_name'] ?? '';
     <p class="section-label">Marketplace</p>
     <h2 class="section-title">Fresh from producer to plate.</h2>
     <p>Our marketplace connects you directly with local farmers and food producers. Buy surplus items at great prices — tackling food waste while keeping your kitchen stocked with quality ingredients.</p>
-    <a href="#" class="btn-primary" style="align-self:flex-start">Browse the market</a>
+    <a href="#" class="btn-primary btn-primary-start">Browse the market</a>
   </div>
   <div class="mkt-visual">
     <div class="mkt-cards">
@@ -289,7 +289,7 @@ $user_name = $_SESSION['user_name'] ?? '';
 <!-- FOOTER -->
 <footer>
   <div class="footer-brand">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 36px; width: auto;">
+    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="footer-logo-img">
     FOOVIA
   </div>
   <p>© 2026 Foovia. All rights reserved.</p>
