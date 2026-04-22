@@ -26,62 +26,12 @@ function goal_status_label(string $status): string {
   return $labels[$status] ?? $status;
 }
 
-$edit_error_message = '';
 $goal_action_error = '';
-$edit_objectif = null;
-$edit_panel_visible = false;
+$long_term_error_message = '';
 $current_user_id = (int) ($_SESSION['user_id'] ?? 1);
+$system_date = date('Y-m-d');
+$next_objectif_id = $controller->get_next_objectif_id();
 $user_has_goal = $controller->user_has_goal($current_user_id);
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id_obj'])) {
-  $update_id_obj = (int) $_POST['update_id_obj'];
-  $existing_objectif = $controller->get_objectif_by_id($update_id_obj);
-
-  if (!$existing_objectif) {
-    $edit_error_message = 'The selected goal could not be found.';
-    $edit_panel_visible = true;
-  } else {
-    $data = [
-      'val_cible_obj' => (float) ($_POST['val_cible_obj'] ?? 0),
-      'val_init_obj' => (float) ($_POST['val_init_obj'] ?? 0),
-      'date_deb_obj' => $_POST['date_deb_obj'] ?? '',
-      'date_fin_obj' => $_POST['date_fin_obj'] ?? '',
-      'obj_cal_obj' => (float) ($_POST['obj_cal_obj'] ?? 0),
-      'obj_fat_obj' => (float) ($_POST['obj_fat_obj'] ?? 0),
-      'obj_prot_obj' => (float) ($_POST['obj_prot_obj'] ?? 0),
-      'obj_carb_obj' => (float) ($_POST['obj_carb_obj'] ?? 0)
-    ];
-
-    if ($data['val_cible_obj'] <= 0 || $data['val_init_obj'] <= 0 || $data['obj_cal_obj'] <= 0 || $data['obj_fat_obj'] <= 0 || $data['obj_prot_obj'] <= 0 || $data['obj_carb_obj'] <= 0) {
-      $edit_error_message = 'All numeric values must be strictly positive.';
-      $edit_panel_visible = true;
-    } elseif (empty($data['date_deb_obj']) || empty($data['date_fin_obj'])) {
-      $edit_error_message = 'Start and end dates are required.';
-      $edit_panel_visible = true;
-    } elseif ($data['date_deb_obj'] > $data['date_fin_obj']) {
-      $edit_error_message = 'The start date cannot be later than the end date.';
-      $edit_panel_visible = true;
-    } else {
-      $updated = $controller->update_objectif_fields($update_id_obj, $data);
-      if ($updated) {
-        header('Location: tracking.php#long-term-goals');
-        exit;
-      }
-
-      $edit_error_message = 'The update failed.';
-      $edit_panel_visible = true;
-    }
-
-    $edit_objectif = array_merge($existing_objectif, $data);
-    $edit_objectif['id_obj'] = $existing_objectif['id_obj'];
-    $edit_objectif['id_user'] = $existing_objectif['id_user'];
-    $edit_objectif['type_obj'] = $existing_objectif['type_obj'];
-    $edit_objectif['status_obj'] = $existing_objectif['status_obj'];
-    $edit_objectif['frequency_rappel_obj'] = $existing_objectif['frequency_rappel_obj'];
-    $edit_objectif['consistancy_sport_obj'] = $existing_objectif['consistancy_sport_obj'];
-    $edit_objectif['consistency_alim_obj'] = $existing_objectif['consistency_alim_obj'];
-  }
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
   $delete_id_obj = (int) $_POST['delete_id_obj'];
@@ -108,8 +58,200 @@ foreach ($objectifs as $objectif) {
   }
 }
 
+$long_term_form = [
+  'id_obj' => !empty($current_user_goal['id_obj']) ? (int) $current_user_goal['id_obj'] : (int) $next_objectif_id,
+  'id_user' => $current_user_id,
+  'type_obj' => (string) ($current_user_goal['type_obj'] ?? ''),
+  'val_init_obj' => (string) ($current_user_goal['val_init_obj'] ?? ''),
+  'val_cible_obj' => (string) ($current_user_goal['val_cible_obj'] ?? ''),
+  'date_deb_obj' => (string) ($current_user_goal['date_deb_obj'] ?? ''),
+  'date_fin_obj' => (string) ($current_user_goal['date_fin_obj'] ?? ''),
+  'status_obj' => (string) ($current_user_goal['status_obj'] ?? 'en_attente'),
+  'frequency_rappel_obj' => (string) ($current_user_goal['frequency_rappel_obj'] ?? ''),
+  'consistancy_sport_obj' => (string) ($current_user_goal['consistancy_sport_obj'] ?? '70'),
+  'consistency_alim_obj' => (string) ($current_user_goal['consistency_alim_obj'] ?? '70'),
+  'obj_cal_obj' => (string) ($current_user_goal['obj_cal_obj'] ?? ''),
+  'obj_fat_obj' => (string) ($current_user_goal['obj_fat_obj'] ?? ''),
+  'obj_prot_obj' => (string) ($current_user_goal['obj_prot_obj'] ?? ''),
+  'obj_carb_obj' => (string) ($current_user_goal['obj_carb_obj'] ?? '')
+];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_save_goal']) && empty($current_user_goal)) {
+  $long_term_form = array_merge($long_term_form, [
+    'type_obj' => (string) ($_POST['type_obj'] ?? ''),
+    'val_init_obj' => (string) ($_POST['val_init_obj'] ?? ''),
+    'val_cible_obj' => (string) ($_POST['val_cible_obj'] ?? ''),
+    'date_deb_obj' => (string) ($_POST['date_deb_obj'] ?? ''),
+    'date_fin_obj' => (string) ($_POST['date_fin_obj'] ?? ''),
+    'frequency_rappel_obj' => (string) ($_POST['frequency_rappel_obj'] ?? ''),
+    'consistancy_sport_obj' => (string) ($_POST['consistancy_sport_obj'] ?? '70'),
+    'consistency_alim_obj' => (string) ($_POST['consistency_alim_obj'] ?? '70'),
+    'obj_cal_obj' => (string) ($_POST['obj_cal_obj'] ?? ''),
+    'obj_fat_obj' => (string) ($_POST['obj_fat_obj'] ?? ''),
+    'obj_prot_obj' => (string) ($_POST['obj_prot_obj'] ?? ''),
+    'obj_carb_obj' => (string) ($_POST['obj_carb_obj'] ?? ''),
+  ]);
+
+  $data = [
+    'id_obj' => (int) $long_term_form['id_obj'],
+    'id_user' => (int) $long_term_form['id_user'],
+    'type_obj' => $long_term_form['type_obj'],
+    'val_cible_obj' => (float) $long_term_form['val_cible_obj'],
+    'val_init_obj' => (float) $long_term_form['val_init_obj'],
+    'date_deb_obj' => $long_term_form['date_deb_obj'],
+    'date_fin_obj' => $long_term_form['date_fin_obj'],
+    'status_obj' => 'en_attente',
+    'frequency_rappel_obj' => (int) $long_term_form['frequency_rappel_obj'],
+    'consistancy_sport_obj' => (int) $long_term_form['consistancy_sport_obj'],
+    'consistency_alim_obj' => (int) $long_term_form['consistency_alim_obj'],
+    'obj_cal_obj' => (float) $long_term_form['obj_cal_obj'],
+    'obj_fat_obj' => (float) $long_term_form['obj_fat_obj'],
+    'obj_prot_obj' => (float) $long_term_form['obj_prot_obj'],
+    'obj_carb_obj' => (float) $long_term_form['obj_carb_obj'],
+  ];
+
+  $errors = [];
+  $required_fields = [
+    'type_obj' => 'Goal type',
+    'val_init_obj' => 'Initial weight',
+    'val_cible_obj' => 'Target weight',
+    'date_deb_obj' => 'Start date',
+    'date_fin_obj' => 'End date',
+    'frequency_rappel_obj' => 'Reminder frequency',
+    'obj_cal_obj' => 'Calories',
+    'obj_fat_obj' => 'Fat',
+    'obj_prot_obj' => 'Protein',
+    'obj_carb_obj' => 'Carbs',
+  ];
+  $missing_fields = [];
+  foreach ($required_fields as $field_key => $field_label) {
+    if (trim((string) ($long_term_form[$field_key] ?? '')) === '') {
+      $missing_fields[] = $field_label;
+    }
+  }
+
+  if (!empty($missing_fields)) {
+    $errors[] = 'Please complete all required fields: ' . implode(', ', $missing_fields) . '.';
+  }
+
+  if (empty($missing_fields) && ($data['val_init_obj'] <= 0 || $data['val_cible_obj'] <= 0 || $data['obj_cal_obj'] <= 0 || $data['obj_fat_obj'] <= 0 || $data['obj_prot_obj'] <= 0 || $data['obj_carb_obj'] <= 0 || $data['frequency_rappel_obj'] <= 0)) {
+    $errors[] = 'All numeric values must be strictly positive.';
+  }
+
+  if (empty($data['date_deb_obj']) || empty($data['date_fin_obj'])) {
+    $errors[] = 'Start and end dates are required.';
+  } elseif ($data['date_deb_obj'] < $system_date) {
+    $errors[] = 'The start date cannot be before today.';
+  } elseif ($data['date_deb_obj'] > $data['date_fin_obj']) {
+    $errors[] = 'The start date cannot be later than the end date.';
+  } else {
+    $start_timestamp = strtotime($data['date_deb_obj']);
+    $end_timestamp = strtotime($data['date_fin_obj']);
+    if ($start_timestamp === false || $end_timestamp === false || (($end_timestamp - $start_timestamp) < 30 * 24 * 60 * 60)) {
+      $errors[] = 'The goal period must be at least 30 days.';
+    }
+  }
+
+  if (empty($missing_fields) && $data['type_obj'] === 'prise_de_poids' && $data['val_cible_obj'] <= $data['val_init_obj']) {
+    $errors[] = 'For weight gain, target value must be greater than initial value.';
+  }
+  if (empty($missing_fields) && $data['type_obj'] === 'perte_de_poids' && $data['val_cible_obj'] >= $data['val_init_obj']) {
+    $errors[] = 'For weight loss, target value must be lower than initial value.';
+  }
+  if (empty($missing_fields) && $data['type_obj'] === 'maintien_de_poids' && abs($data['val_cible_obj'] - $data['val_init_obj']) > 0.000001) {
+    $errors[] = 'For weight maintenance, target value must be equal to initial value.';
+  }
+
+  if (empty($errors)) {
+    $objectif = new ObjectifLongTerme(
+      $data['id_obj'],
+      $data['id_user'],
+      $data['type_obj'],
+      $data['val_cible_obj'],
+      $data['val_init_obj'],
+      $data['date_deb_obj'],
+      $data['date_fin_obj'],
+      $data['status_obj'],
+      $data['frequency_rappel_obj'],
+      $data['consistancy_sport_obj'],
+      $data['consistency_alim_obj'],
+      $data['obj_cal_obj'],
+      $data['obj_fat_obj'],
+      $data['obj_prot_obj'],
+      $data['obj_carb_obj']
+    );
+
+    ob_start();
+    $saved = $controller->add_objectif($objectif, $data);
+    ob_end_clean();
+
+    if ($saved) {
+      header('Location: tracking.php#long-term-goals');
+      exit;
+    }
+
+    $long_term_error_message = 'The goal could not be saved.';
+  } else {
+    $long_term_error_message = implode(' ', $errors);
+  }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_update_goal']) && !empty($current_user_goal)) {
+  $long_term_form = array_merge($long_term_form, [
+    'val_init_obj' => (string) ($_POST['val_init_obj'] ?? $long_term_form['val_init_obj']),
+    'val_cible_obj' => (string) ($_POST['val_cible_obj'] ?? $long_term_form['val_cible_obj']),
+    'date_deb_obj' => (string) ($_POST['date_deb_obj'] ?? $long_term_form['date_deb_obj']),
+    'date_fin_obj' => (string) ($_POST['date_fin_obj'] ?? $long_term_form['date_fin_obj']),
+    'obj_cal_obj' => (string) ($_POST['obj_cal_obj'] ?? $long_term_form['obj_cal_obj']),
+    'obj_fat_obj' => (string) ($_POST['obj_fat_obj'] ?? $long_term_form['obj_fat_obj']),
+    'obj_prot_obj' => (string) ($_POST['obj_prot_obj'] ?? $long_term_form['obj_prot_obj']),
+    'obj_carb_obj' => (string) ($_POST['obj_carb_obj'] ?? $long_term_form['obj_carb_obj']),
+  ]);
+
+  $update_data = [
+    'type_obj' => (string) $long_term_form['type_obj'],
+    'val_cible_obj' => (float) $long_term_form['val_cible_obj'],
+    'val_init_obj' => (float) $long_term_form['val_init_obj'],
+    'date_deb_obj' => $long_term_form['date_deb_obj'],
+    'date_fin_obj' => $long_term_form['date_fin_obj'],
+    'obj_cal_obj' => (float) $long_term_form['obj_cal_obj'],
+    'obj_fat_obj' => (float) $long_term_form['obj_fat_obj'],
+    'obj_prot_obj' => (float) $long_term_form['obj_prot_obj'],
+    'obj_carb_obj' => (float) $long_term_form['obj_carb_obj'],
+  ];
+
+  if ($update_data['val_cible_obj'] <= 0 || $update_data['val_init_obj'] <= 0 || $update_data['obj_cal_obj'] <= 0 || $update_data['obj_fat_obj'] <= 0 || $update_data['obj_prot_obj'] <= 0 || $update_data['obj_carb_obj'] <= 0) {
+    $long_term_error_message = 'All numeric values must be strictly positive.';
+  } elseif (empty($update_data['date_deb_obj']) || empty($update_data['date_fin_obj'])) {
+    $long_term_error_message = 'Start and end dates are required.';
+  } elseif ($update_data['date_deb_obj'] < $system_date) {
+    $long_term_error_message = 'The start date cannot be before today.';
+  } elseif ($update_data['date_deb_obj'] > $update_data['date_fin_obj']) {
+    $long_term_error_message = 'The start date cannot be later than the end date.';
+  } elseif ((strtotime($update_data['date_fin_obj']) - strtotime($update_data['date_deb_obj'])) < 30 * 24 * 60 * 60) {
+    $long_term_error_message = 'The goal period must be at least 30 days.';
+  } elseif ($update_data['type_obj'] === 'prise_de_poids' && $update_data['val_cible_obj'] <= $update_data['val_init_obj']) {
+    $long_term_error_message = 'For weight gain, target value must be greater than initial value.';
+  } elseif ($update_data['type_obj'] === 'perte_de_poids' && $update_data['val_cible_obj'] >= $update_data['val_init_obj']) {
+    $long_term_error_message = 'For weight loss, target value must be lower than initial value.';
+  } elseif ($update_data['type_obj'] === 'maintien_de_poids' && abs($update_data['val_cible_obj'] - $update_data['val_init_obj']) > 0.000001) {
+    $long_term_error_message = 'For weight maintenance, target value must be equal to initial value.';
+  } else {
+    $updated = $controller->update_objectif_fields((int) $current_user_goal['id_obj'], $update_data);
+    if ($updated) {
+      header('Location: tracking.php#long-term-goals');
+      exit;
+    }
+
+    $long_term_error_message = 'The goal could not be updated.';
+  }
+}
+
+$user_has_goal = !empty($current_user_goal);
+
 $goal_start_date = null;
 $goal_end_date = null;
+$long_term_edit_mode = $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_update_goal']) && !empty($long_term_error_message);
 if (!empty($current_user_goal) && !empty($current_user_goal['date_deb_obj'])) {
   $goal_start_date = $current_user_goal['date_deb_obj'];
 }
@@ -184,6 +326,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 }
 ?>
+
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -335,6 +483,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     }
   })();
 </script>
+
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+
 <style>
   .ltg-delete-panel {
     display: none;
@@ -346,6 +500,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+  }
+
+  .lt-goal-banner .ltg-delete-panel {
+    margin: 0.75rem 0 0;
   }
 
   .ltg-delete-panel.is-visible {
@@ -598,10 +756,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     box-shadow: 0 10px 20px rgba(17, 16, 8, 0.12);
   }
 
-  .weekly-calendar-add-btn,
   .weekly-calendar-edit-btn {
-    background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
+    background: var(--green);
     color: #fff;
+    border: 1.5px solid transparent;
+  }
+
+  .weekly-calendar-edit-btn:hover {
+    background: var(--forest);
+    transform: translateY(-1px);
+  }
+
+  .weekly-calendar-add-btn {
+    background: var(--green);
+    color: #fff;
+    border: 1.5px solid transparent;
+  }
+
+  .weekly-calendar-add-btn:hover {
+    background: var(--forest);
+    transform: translateY(-1px);
   }
 
   .weekly-calendar-delete-btn {
@@ -656,6 +830,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   .weekly-delete-no {
     background: rgba(17, 16, 8, 0.08);
     color: var(--panel-text);
+  }
+
+  .weekly-calendar-error {
+    margin-top: 0.65rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 12px;
+    background: rgba(192, 56, 26, 0.12);
+    border: 1px solid rgba(192, 56, 26, 0.18);
+    color: #9d2f14;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: none;
+  }
+
+  .weekly-calendar-error.is-visible {
+    display: block;
   }
 
   .weekly-survey-error {
@@ -1203,7 +1393,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 
   .weekly-tracker-field.sleep label { color: #7c6fcd; }
-  .weekly-tracker-field.steps label { color: #0ea5a0; }
+  .weekly-tracker-field.tracker-steps label { color: #0ea5a0; }
 
   .weekly-tracker-field input {
     width: 100%;
@@ -1219,7 +1409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 
   .weekly-tracker-field.sleep input:focus { border-color: #7c6fcd; }
-  .weekly-tracker-field.steps input:focus { border-color: #0ea5a0; }
+  .weekly-tracker-field.tracker-steps input:focus { border-color: #0ea5a0; }
 
   .weekly-tracker-summary {
     display: grid;
@@ -1248,8 +1438,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     background: #7c6fcd !important;
     opacity: 1;
   }
-  .weekly-tracker-bubble.steps::after { background: #0ea5a0; }
-  .weekly-tracker-bubble.steps { margin: 0; }
+  .weekly-tracker-bubble.tracker-steps::after { background: #0ea5a0; }
+  .weekly-tracker-bubble.tracker-steps { margin: 0; }
 
   .weekly-tracker-bubble-val {
     font-family: 'Boldonse', system-ui;
@@ -1258,7 +1448,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 
   .weekly-tracker-bubble.sleep .weekly-tracker-bubble-val { color: #a99ef5; }
-  .weekly-tracker-bubble.steps .weekly-tracker-bubble-val { color: #3dd5cf; }
+  .weekly-tracker-bubble.tracker-steps .weekly-tracker-bubble-val { color: #3dd5cf; }
 
   .weekly-tracker-bubble-lbl {font-size: .72rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .08em;}
 
@@ -1308,7 +1498,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 
   .weekly-tracker-bar-fill.sleep { background: #7c6fcd; }
-  .weekly-tracker-bar-fill.steps { background: #0ea5a0; }
+  .weekly-tracker-bar-fill.tracker-steps { background: #0ea5a0; }
   .weekly-tracker-bar-fill.over { background: var(--red) !important; }
 
   .weekly-tracker-bar-sub {
@@ -1483,8 +1673,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 
   .weekly-survey-save {
-    background: linear-gradient(135deg, var(--green) 0%, var(--orange) 100%);
+    background: var(--green);
     color: #fff;
+    border: 1.5px solid transparent;
+  }
+
+  .weekly-survey-save:hover {
+    background: var(--forest);
+    transform: translateY(-1px);
   }
 
   .weekly-survey-cancel {
@@ -1492,9 +1688,357 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     color: var(--panel-text);
   }
 
+  .lt-goal-banner {
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgba(75, 174, 82, .12) 0%, rgba(75, 174, 82, 0) 58%),
+      linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+    border-radius: 22px;
+    padding: 28px;
+    border: 1.5px solid var(--surface-border);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(17, 16, 8, 0.08);
+  }
+
+  .lt-goal-banner::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(75,174,82,.08);
+  }
+
+  .lt-goal-banner .sec-label {
+    color: var(--green);
+  }
+
+  .lt-goal-banner .card-title {
+    color: var(--panel-text);
+    margin-bottom: 18px;
+  }
+
+  .lt-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .68rem;
+    letter-spacing: .05em;
+    background: rgba(245,200,66,.12);
+    color: var(--yellow);
+    border: 1.5px solid rgba(245,200,66,.2);
+    margin-left: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+  }
+
+  .lt-status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .lt-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 18px;
+  }
+
+  .lt-divider::before,
+  .lt-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(17, 16, 8, 0.12);
+  }
+
+  .lt-divider span {
+    font-family: 'Syne', sans-serif;
+    font-size: .62rem;
+    letter-spacing: .12em;
+    color: var(--panel-muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  .lt-grid,
+  .lt-consistency-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .lt-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lt-field-warning {
+    margin-top: 0.42rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: #9d2f14;
+    font-weight: 700;
+    display: none;
+  }
+
+  .lt-field-warning.is-visible {
+    display: block;
+  }
+
+  .lt-macro-pill .lt-field-warning {
+    text-align: left;
+    font-size: 0.74rem;
+    margin-top: 0.45rem;
+  }
+
+  .lt-field label {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: .68rem;
+    margin-bottom: 6px;
+    color: var(--panel-muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .lt-field label.accent-green { color: var(--green-light); }
+  .lt-field label.accent-yellow { color: var(--yellow); }
+  .lt-field label.accent-orange { color: var(--peach); }
+
+  .lt-input,
+  .lt-select {
+    width: 100%;
+    border: 1.5px solid rgba(17, 16, 8, .16);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .93rem;
+    background: var(--surface);
+    color: var(--panel-text);
+    outline: none;
+    transition: border-color .2s, background .2s;
+  }
+
+  .lt-input::placeholder { color: rgba(17, 16, 8, .35); }
+  .lt-input:focus,
+  .lt-select:focus {
+    border-color: var(--green);
+    background: var(--surface);
+  }
+
+  .lt-input.is-invalid,
+  .lt-select.is-invalid {
+    border-color: #c0381a !important;
+    box-shadow: 0 0 0 2px rgba(192, 56, 26, 0.16);
+  }
+
+  .lt-input.is-valid,
+  .lt-select.is-valid {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 2px rgba(75, 174, 82, 0.16);
+  }
+
+  .lt-input[readonly] {
+    background: rgba(17,16,8,.05);
+    color: var(--panel-muted);
+    border-color: rgba(17, 16, 8, .12);
+  }
+
+  .lt-select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A8C45A' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px;
+    padding-right: 36px;
+  }
+
+  .lt-select option {
+    background: #ffffff;
+    color: var(--panel-text);
+  }
+
+  .lt-consistency-row {
+    margin-bottom: 18px;
+  }
+
+  .lt-slider-wrap label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .lt-slider-wrap label span {
+    font-size: .8rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+  }
+
+  .lt-slider-wrap label.sport-lbl span { color: #3dd5cf; }
+  .lt-slider-wrap label.diet-lbl span { color: var(--yellow); }
+
+  .lt-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 100px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .lt-slider.sport {
+    background: linear-gradient(to right, #3dd5cf var(--val, 70%), rgba(17,16,8,.14) var(--val, 70%));
+  }
+
+  .lt-slider.diet {
+    background: linear-gradient(to right, var(--yellow) var(--val, 70%), rgba(17,16,8,.14) var(--val, 70%));
+  }
+
+  .lt-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2.5px solid #fff;
+    box-shadow: 0 2px 8px rgba(17,16,8,.22);
+    cursor: pointer;
+  }
+
+  .lt-slider.sport::-webkit-slider-thumb { background: #3dd5cf; }
+  .lt-slider.diet::-webkit-slider-thumb { background: var(--yellow); }
+
+  .lt-macros-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .lt-macro-pill {
+    background: rgba(255,255,255,.45);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align: center;
+    border: 1.5px solid rgba(17,16,8,.1);
+  }
+
+  .lt-macro-pill label {
+    font-size: .62rem;
+    display: block;
+    margin-bottom: 8px;
+    letter-spacing: .06em;
+  }
+
+  .lt-macro-pill.m-kcal label { color: var(--orange); }
+  .lt-macro-pill.m-prot label { color: var(--green-light); }
+  .lt-macro-pill.m-carb label { color: var(--yellow); }
+  .lt-macro-pill.m-fat label { color: var(--peach); }
+
+  .lt-macro-pill input {
+    width: 100%;
+    border: 1.5px solid rgba(17,16,8,.14);
+    border-radius: 9px;
+    padding: 7px 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    background: var(--surface);
+    color: var(--panel-text);
+    outline: none;
+    text-align: center;
+  }
+
+  .lt-macro-pill input::placeholder { color: rgba(17,16,8,.35); }
+
+  .lt-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+
+  .lt-action-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.72rem 1.25rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(17, 16, 8, 0.15);
+  }
+
+  .lt-action-btn.edit {
+    background: var(--green);
+    color: #fff;
+    border: 1.5px solid transparent;
+  }
+
+  .lt-action-btn.edit:hover {
+    background: var(--forest);
+    transform: translateY(-1px);
+  }
+
+  .lt-action-btn.save {
+    background: var(--green);
+    color: #fff;
+    border: 1.5px solid transparent;
+  }
+
+  .lt-action-btn.save:hover {
+    background: var(--forest);
+    transform: translateY(-1px);
+  }
+
+  .lt-action-btn.delete {
+    background: var(--red);
+    color: #fff;
+  }
+
+  @media (max-width: 980px) {
+    .lt-macros-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .lt-grid,
+    .lt-consistency-row,
+    .lt-macros-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .lt-actions {
+      flex-direction: column;
+    }
+
+    .lt-action-btn {
+      width: 100%;
+    }
+  }
+
 </style>
+
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+
 </head>
-<body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?><?php echo $weekly_has_record ? ' data-weekly-has-record="1" data-weekly-id="' . htmlspecialchars((string) $weekly_today_objectif['id_suiv']) . '"' : ' data-weekly-has-record="0"'; ?>>
+<body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?><?php echo $weekly_has_record ? ' data-weekly-has-record="1" data-weekly-id="' . htmlspecialchars((string) $weekly_today_objectif['id_suiv']) . '"' : ' data-weekly-has-record="0"'; ?> data-has-long-term-goal="<?php echo !empty($current_user_goal) ? '1' : '0'; ?>" data-long-term-edit-mode="<?php echo $long_term_edit_mode ? '1' : '0'; ?>">
 
 <nav>
   <a href="index.html" class="nav-logo">
@@ -1522,42 +2066,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     <a href="signup.html" class="nav-btn nav-signup">Sign Up</a>
   </div>
 </nav>
-<!-- 
-<section class="hero hero-tracking">
-  <div class="hero-text">
-    <h1 class="hero-title">
-      Track smarter.<br>
-      Improve <span class="accent">daily.</span><br>
-      Stay <span class="accent2">consistent.</span>
-    </h1>
-
-    <div class="hero-actions">
-      <a href="#weekly-tracking" class="btn-primary">Open tracker</a>
-      <a href="index.html" class="btn-secondary">Back to welcome</a>
-    </div>
-  </div>
-</section>
-
-<div class="features-strip">
-  <div class="marquee-track">
-    <span>Meal Logging</span><span class="sep">*</span>
-    <span>Macro Tracking</span><span class="sep">*</span>
-    <span>Hydration Goals</span><span class="sep">*</span>
-    <span>Workout Consistency</span><span class="sep">*</span>
-    <span>Daily Reminders</span><span class="sep">*</span>
-    <span>Weekly Reports</span><span class="sep">*</span>
-    <span>Meal Logging</span><span class="sep">*</span>
-    <span>Macro Tracking</span><span class="sep">*</span>
-    <span>Hydration Goals</span><span class="sep">*</span>
-    <span>Workout Consistency</span><span class="sep">*</span>
-    <span>Daily Reminders</span><span class="sep">*</span>
-    <span>Weekly Reports</span><span class="sep">*</span>
-  </div>
-</div> -->
 
 <section class="section" id="long-term-goals">
-  <p class="section-label">Long Term Goals</p>
-  <h2 class="section-title features-title">Manage your long-term goals in one place.</h2>
+  <p class="section-label">Long Term Goal</p>
+  <h2 class="section-title features-title">Set and manage your long-term goal directly.</h2>
 
   <?php if (!empty($goal_action_error)): ?>
     <div style="margin: 0 0 1rem; padding: 0.85rem 1rem; border-radius: 14px; background: rgba(192, 56, 26, 0.12); color: var(--red); font-weight: 700; border: 1px solid rgba(192, 56, 26, 0.18);">
@@ -1565,227 +2077,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     </div>
   <?php endif; ?>
 
-  <div class="ltg-shell">
-    <div class="ltg-head">
-      <div>
-        <h3 class="ltg-headline">Long term goals list</h3>
-      </div>
-      <div class="ltg-actions">
-        <button
-          type="button"
-          class="btn-primary ltg-open-survey"
-          data-survey-url="../front_office/form-elements-component.php"
-          data-can-add="<?php echo $user_has_goal ? '0' : '1'; ?>"
-          aria-controls="ltg-survey-panel"
-          aria-expanded="false"
-        >
-          Add Goal
-        </button>
-        <small id="ltg-add-warning" style="display:none;margin-top:8px;color:var(--panel-muted);font-size:.82rem;">Delete your existing goal before adding a new one.</small>
-      </div>
+  <?php if (!empty($long_term_error_message)): ?>
+    <div style="margin: 0 0 1rem; padding: 0.85rem 1rem; border-radius: 14px; background: rgba(192, 56, 26, 0.12); color: var(--red); font-weight: 700; border: 1px solid rgba(192, 56, 26, 0.18);">
+      <?php echo htmlspecialchars($long_term_error_message); ?>
     </div>
+  <?php endif; ?>
 
-    <?php if (!empty($current_user_goal)): ?>
-      <div style="margin: 0 26px 18px; padding: 0.95rem 1rem; border-radius: 16px; background: rgba(245, 200, 66, 0.12); border: 1px solid rgba(17, 16, 8, 0.12); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: center;">
-        <div style="min-width: 220px;">
-          <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--panel-text);margin-bottom:0.25rem;">Your current goal</div>
-          <div style="font-size:0.88rem;color:var(--panel-text);line-height:1.45;">
-            Goal #<?php echo htmlspecialchars((string) $current_user_goal['id_obj']); ?> · <?php echo htmlspecialchars(goal_type_label((string) $current_user_goal['type_obj'])); ?>
-            <br>
-            <?php echo htmlspecialchars((string) $current_user_goal['date_deb_obj']); ?> to <?php echo htmlspecialchars((string) $current_user_goal['date_fin_obj']); ?>
-          </div>
+  <div class="lt-goal-banner">
+    <p class="sec-label">Long-term objective</p>
+    <h2 class="card-title"><span class="emoji">Set Your Goal</span>
+      <span class="lt-status-badge"><?php echo $user_has_goal ? 'Active' : 'Pending'; ?></span>
+    </h2>
+
+    <form method="post" action="">
+      <div class="lt-grid">
+        <div class="lt-field">
+          <label for="lt-id-objectif">Goal ID</label>
+          <input class="lt-input" type="text" id="lt-id-objectif" name="id_obj" value="<?php echo htmlspecialchars((string) $long_term_form['id_obj']); ?>" readonly>
         </div>
-        <button type="button" class="ltg-action ltg-delete ltg-delete-trigger" data-id="<?php echo htmlspecialchars((string) $current_user_goal['id_obj']); ?>" style="border:0;border-radius:999px;padding:0.55rem 0.9rem;font-weight:700;cursor:pointer;background:var(--red);color:#fff;box-shadow:0 10px 18px rgba(17,16,8,0.12);">
-          Delete my goal
-        </button>
+        <div class="lt-field">
+          <label for="lt-id-user">User ID</label>
+          <input class="lt-input" type="text" id="lt-id-user" name="id_user" value="<?php echo htmlspecialchars((string) $long_term_form['id_user']); ?>" readonly>
+        </div>
       </div>
-    <?php endif; ?>
 
-    <div class="ltg-table-wrap">
-      <table class="ltg-table" aria-label="Long term goals table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Type</th>
-            <th>Target</th>
-            <th>Initial</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Status</th>
-            <th>Reminder</th>
-            <th>Sport</th>
-            <th>Diet</th>
-            <th>Calories</th>
-            <th>Fat</th>
-            <th>Protein</th>
-            <th>Carbs</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php if (!empty($objectifs)): ?>
-            <?php foreach ($objectifs as $objectif): ?>
-              <?php
-                $status = goal_status_label((string) $objectif['status_obj']);
-                $statusClass = 'ltg-status-pending';
-                if ($status === 'in progress') {
-                  $statusClass = 'ltg-status-progress';
-                } elseif ($status === 'completed') {
-                  $statusClass = 'ltg-status-completed';
-                }
-              ?>
-              <tr>
-                <td><?php echo htmlspecialchars((string) $objectif['id_obj']); ?></td>
-                <td><?php echo htmlspecialchars(goal_type_label((string) $objectif['type_obj'])); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['val_cible_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['val_init_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['date_deb_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['date_fin_obj']); ?></td>
-                <td><span class="ltg-status <?php echo htmlspecialchars($statusClass); ?>"><?php echo htmlspecialchars($status); ?></span></td>
-                <td><?php echo htmlspecialchars((string) $objectif['frequency_rappel_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['consistancy_sport_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['consistency_alim_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['obj_cal_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['obj_fat_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['obj_prot_obj']); ?></td>
-                <td><?php echo htmlspecialchars((string) $objectif['obj_carb_obj']); ?></td>
-                <td>
-                  <div class="ltg-row-actions">
-                    <button type="button" class="ltg-action ltg-edit ltg-edit-trigger" data-objectif="<?php echo htmlspecialchars(json_encode($objectif, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>">Edit</button>
-                    <button type="button" class="ltg-action ltg-delete ltg-delete-trigger" data-id="<?php echo htmlspecialchars((string) $objectif['id_obj']); ?>">Delete</button>
-                  </div>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <tr>
-              <td colspan="15" class="ltg-empty">No long-term goals found.</td>
-            </tr>
+      <div class="lt-divider"><span>Goal parameters</span></div>
+
+      <div class="lt-grid">
+        <div class="lt-field">
+          <label class="accent-green" for="lt-goal-type">Goal type</label>
+          <select class="lt-select" id="lt-goal-type" name="type_obj" required <?php echo $user_has_goal ? 'disabled' : ''; ?>>
+            <option value="">Select a goal</option>
+            <option value="prise_de_poids" <?php echo $long_term_form['type_obj'] === 'prise_de_poids' ? 'selected' : ''; ?>>Weight gain</option>
+            <option value="perte_de_poids" <?php echo $long_term_form['type_obj'] === 'perte_de_poids' ? 'selected' : ''; ?>>Weight loss</option>
+            <option value="maintien_de_poids" <?php echo $long_term_form['type_obj'] === 'maintien_de_poids' ? 'selected' : ''; ?>>Weight maintenance</option>
+          </select>
+          <?php if ($user_has_goal): ?>
+            <input type="hidden" name="type_obj" value="<?php echo htmlspecialchars((string) $long_term_form['type_obj']); ?>">
           <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
+        </div>
+        <div class="lt-field">
+          <label class="accent-green" for="lt-reminder">Reminder frequency (days)</label>
+          <input class="lt-input" type="number" id="lt-reminder" name="frequency_rappel_obj" min="1" required value="<?php echo htmlspecialchars((string) $long_term_form['frequency_rappel_obj']); ?>" <?php echo $user_has_goal ? 'readonly' : ''; ?>>
+          <p class="lt-field-warning" id="lt-reminder-warning" aria-live="polite">Reminder frequency must be a positive value.</p>
+        </div>
+      </div>
 
+      <div class="lt-grid">
+        <div class="lt-field">
+          <label class="accent-yellow" for="val_init_obj">Initial weight (kg)</label>
+          <input class="lt-input" type="number" id="val_init_obj" name="val_init_obj" step="0.01" min="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?>">
+          <p class="lt-field-warning" id="val-init-warning" aria-live="polite">Initial weight must be a positive value.</p>
+        </div>
+        <div class="lt-field">
+          <label class="accent-yellow" for="val_cible_obj">Target weight (kg)</label>
+          <input class="lt-input" type="number" id="val_cible_obj" name="val_cible_obj" step="0.01" min="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?>">
+          <p class="lt-field-warning" id="val-cible-warning" aria-live="polite">Target weight must be a positive value.</p>
+          <p class="lt-field-warning" id="val-cible-goal-warning" aria-live="polite">Target weight is not valid for the selected goal type.</p>
+        </div>
+      </div>
+
+      <div class="lt-grid">
+        <div class="lt-field">
+          <label for="date_deb_obj">Start date</label>
+          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" min="<?php echo htmlspecialchars($system_date); ?>" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
+        </div>
+        <div class="lt-field">
+          <label for="date_fin_obj">End date</label>
+          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
+          <p class="lt-field-warning" id="lt-goal-period-warning" aria-live="polite">The goal period must be at least 30 days.</p>
+        </div>
+      </div>
+
+      <div class="lt-divider"><span>Consistency targets</span></div>
+
+      <div class="lt-consistency-row">
+        <div class="lt-slider-wrap lt-field">
+          <label class="sport-lbl" for="consistancy_sport_obj">Sport consistency</label>
+          <input class="lt-input" type="text" id="consistancy_sport_obj" name="consistancy_sport_obj" value="0" readonly>
+        </div>
+        <div class="lt-slider-wrap lt-field">
+          <label class="diet-lbl" for="consistency_alim_obj">Diet consistency</label>
+          <input class="lt-input" type="text" id="consistency_alim_obj" name="consistency_alim_obj" value="0" readonly>
+        </div>
+      </div>
+
+      <div class="lt-divider"><span>Macronutrient targets</span></div>
+
+      <div class="lt-macros-grid">
+        <div class="lt-macro-pill m-kcal">
+          <label for="obj_cal_obj">Calories</label>
+          <input type="number" id="obj_cal_obj" name="obj_cal_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_cal_obj']); ?>">
+          <p class="lt-field-warning" id="obj-cal-warning" aria-live="polite">Calories must be a positive value.</p>
+        </div>
+        <div class="lt-macro-pill m-prot">
+          <label for="obj_prot_obj">Protein</label>
+          <input type="number" id="obj_prot_obj" name="obj_prot_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_prot_obj']); ?>">
+          <p class="lt-field-warning" id="obj-prot-warning" aria-live="polite">Protein must be a positive value.</p>
+        </div>
+        <div class="lt-macro-pill m-carb">
+          <label for="obj_carb_obj">Carbs</label>
+          <input type="number" id="obj_carb_obj" name="obj_carb_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_carb_obj']); ?>">
+          <p class="lt-field-warning" id="obj-carb-warning" aria-live="polite">Carbs must be a positive value.</p>
+        </div>
+        <div class="lt-macro-pill m-fat">
+          <label for="obj_fat_obj">Fat</label>
+          <input type="number" id="obj_fat_obj" name="obj_fat_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_fat_obj']); ?>">
+          <p class="lt-field-warning" id="obj-fat-warning" aria-live="polite">Fat must be a positive value.</p>
+        </div>
+      </div>
+
+      <div class="lt-actions">
+        <?php if ($user_has_goal): ?>
+          <button type="button" id="lt-edit-start-btn" class="lt-action-btn edit">Edit</button>
+          <button type="submit" name="long_term_update_goal" id="lt-save-changes-btn" class="lt-action-btn save" hidden>Save</button>
+          <button
+            type="button"
+            class="lt-action-btn delete ltg-delete-trigger"
+            data-id="<?php echo htmlspecialchars((string) $long_term_form['id_obj']); ?>"
+            formnovalidate
+          >Delete</button>
+        <?php else: ?>
+          <button type="submit" name="long_term_save_goal" class="lt-action-btn save">Save long-term goal</button>
+        <?php endif; ?>
+      </div>
+
+      <?php if ($user_has_goal): ?>
+        <input type="hidden" id="ltg-delete-id" name="delete_id_obj" value="">
         <div class="ltg-delete-panel" id="ltg-delete-panel" hidden>
-          <span>Are you sure you want to delete this goal?</span>
-          <form method="post" action="" class="ltg-delete-actions" id="ltg-delete-form">
-            <input type="hidden" name="delete_id_obj" id="ltg-delete-id" value="">
-            <button type="submit" class="ltg-delete-yes">Yes</button>
+          <span>Are you sure you want to delete your long-term goal? This also deletes linked daily tracking entries.</span>
+          <div class="ltg-delete-actions">
+            <button type="submit" class="ltg-delete-yes" formnovalidate>Yes</button>
             <button type="button" class="ltg-delete-no" id="ltg-delete-cancel">No</button>
-          </form>
-        </div>
-
-        <div class="ltg-edit-panel <?php echo $edit_panel_visible ? 'is-visible' : ''; ?>" id="ltg-edit-panel" <?php echo $edit_panel_visible ? '' : 'hidden'; ?>>
-          <div class="ltg-edit-head">
-            <div>
-              <small>Edit long-term goal</small>
-              <h3 id="ltg-edit-title">Goal details</h3>
-            </div>
-            <button type="button" class="ltg-edit-close" id="ltg-edit-cancel">Close</button>
           </div>
-
-          <?php if (!empty($edit_error_message)): ?>
-            <p class="ltg-edit-error"><?php echo htmlspecialchars($edit_error_message); ?></p>
-          <?php endif; ?>
-
-          <form method="post" action="" id="ltg-edit-form">
-            <input type="hidden" name="update_id_obj" id="ltg-edit-id" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_obj'] ?? '')); ?>">
-
-            <div class="ltg-edit-grid">
-              <div class="ltg-edit-card">
-                <h4>Locked information</h4>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-id-display">Goal ID</label>
-                    <input type="text" class="form-control" id="ltg-edit-id-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_obj'] ?? '')); ?>" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-user-display">User ID</label>
-                    <input type="text" class="form-control" id="ltg-edit-user-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['id_user'] ?? '')); ?>" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-type-display">Goal type</label>
-                    <input type="text" class="form-control" id="ltg-edit-type-display" value="<?php echo htmlspecialchars(goal_type_label((string) ($edit_objectif['type_obj'] ?? ''))); ?>" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-status-display">Status</label>
-                    <input type="text" class="form-control" id="ltg-edit-status-display" value="<?php echo htmlspecialchars(goal_status_label((string) ($edit_objectif['status_obj'] ?? ''))); ?>" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-reminder-display">Reminder frequency</label>
-                    <input type="text" class="form-control" id="ltg-edit-reminder-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['frequency_rappel_obj'] ?? '')); ?>" readonly>
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label" for="ltg-edit-sport-display">Sport consistency</label>
-                    <input type="text" class="form-control" id="ltg-edit-sport-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['consistancy_sport_obj'] ?? '')); ?>" readonly>
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label" for="ltg-edit-diet-display">Diet consistency</label>
-                    <input type="text" class="form-control" id="ltg-edit-diet-display" value="<?php echo htmlspecialchars((string) ($edit_objectif['consistency_alim_obj'] ?? '')); ?>" readonly>
-                  </div>
-                </div>
-              </div>
-
-              <div class="ltg-edit-card">
-                <h4>Editable fields</h4>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-val-init">Initial value (kg)</label>
-                    <input type="number" class="form-control" id="ltg-edit-val-init" name="val_init_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['val_init_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-val-cible">Target value (kg)</label>
-                    <input type="number" class="form-control" id="ltg-edit-val-cible" name="val_cible_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['val_cible_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-date-deb">Start date</label>
-                    <input type="date" class="form-control" id="ltg-edit-date-deb" name="date_deb_obj" required value="<?php echo htmlspecialchars((string) ($edit_objectif['date_deb_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="ltg-edit-date-fin">End date</label>
-                    <input type="date" class="form-control" id="ltg-edit-date-fin" name="date_fin_obj" required value="<?php echo htmlspecialchars((string) ($edit_objectif['date_fin_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label" for="ltg-edit-cal">Calories</label>
-                    <input type="number" class="form-control" id="ltg-edit-cal" name="obj_cal_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_cal_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label" for="ltg-edit-fat">Fat</label>
-                    <input type="number" class="form-control" id="ltg-edit-fat" name="obj_fat_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_fat_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label" for="ltg-edit-prot">Protein</label>
-                    <input type="number" class="form-control" id="ltg-edit-prot" name="obj_prot_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_prot_obj'] ?? '')); ?>">
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label" for="ltg-edit-carb">Carbs</label>
-                    <input type="number" class="form-control" id="ltg-edit-carb" name="obj_carb_obj" step="0.01" min="0.01" required value="<?php echo htmlspecialchars((string) ($edit_objectif['obj_carb_obj'] ?? '')); ?>">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="ltg-edit-actions">
-              <button type="button" class="ltg-edit-cancel" id="ltg-edit-cancel-bottom">Cancel</button>
-              <button type="submit" class="ltg-edit-save">Save changes</button>
-            </div>
-          </form>
         </div>
-
-  </div>
-</section>
-
-<section class="section ltg-survey-section" id="ltg-survey-panel" hidden>
-  <div class="ltg-survey-shell">
-    <div class="ltg-survey-head">
-      <h3 class="ltg-headline">Long term goal survey</h3>
-      <button type="button" class="ltg-close-survey" aria-label="Close survey">Close</button>
-    </div>
-    <iframe
-      class="ltg-survey-frame"
-      title="Long term goal survey"
-      data-src="../front_office/form-elements-component.php"
-    ></iframe>
+      <?php endif; ?>
+    </form>
   </div>
 </section>
 
@@ -1820,6 +2247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       <button type="button" class="weekly-calendar-action-btn weekly-calendar-edit-btn" id="weekly-calendar-edit-btn" <?php echo $weekly_has_record ? '' : 'hidden'; ?>>Edit</button>
       <button type="button" class="weekly-calendar-action-btn weekly-calendar-delete-btn" id="weekly-calendar-delete-btn" <?php echo $weekly_has_record ? '' : 'hidden'; ?>>Delete</button>
     </div>
+    <div class="weekly-calendar-error" id="weekly-goal-required-msg">You must complete the long-term goal survey first before adding weekly tracking.</div>
     <div class="weekly-delete-panel" id="weekly-delete-panel" hidden>
       <span>Are you sure you want to delete your daily tracking?</span>
       <div class="weekly-delete-actions">
@@ -1936,7 +2364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
               <label for="survey-sleep">Hours of sleep</label>
               <input type="number" id="survey-sleep" name="nb_h_sommeil_suiv" placeholder="0" min="0" max="24" step="0.5" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_h_sommeil_suiv'] ?? '')); ?>">
             </div>
-            <div class="weekly-tracker-field steps">
+            <div class="weekly-tracker-field tracker-steps">
               <label for="survey-steps">Steps taken</label>
               <input type="number" id="survey-steps" name="nb_pas_suiv" placeholder="0" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_pas_suiv'] ?? '')); ?>">
             </div>
@@ -1948,7 +2376,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
               <div class="weekly-tracker-bubble-lbl">Sleep</div>
               <div class="weekly-tracker-bubble-sub" id="weekly-tracker-sleep-goal">Goal: 8h</div>
             </div>
-            <div class="weekly-tracker-bubble steps">
+            <div class="weekly-tracker-bubble tracker-steps">
               <div class="weekly-tracker-bubble-val" id="weekly-tracker-steps-display">0</div>
               <div class="weekly-tracker-bubble-lbl">Steps</div>
               <div class="weekly-tracker-bubble-sub" id="weekly-tracker-steps-goal">Goal: 10 000</div>
@@ -1975,7 +2403,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
                 <span class="weekly-tracker-bar-nums"><strong id="weekly-tracker-steps-num">0</strong> / <span id="weekly-tracker-steps-target">10 000</span></span>
               </div>
               <div class="weekly-tracker-bar-track">
-                <div class="weekly-tracker-bar-fill steps" id="weekly-tracker-steps-fill" style="width:0%"></div>
+                <div class="weekly-tracker-bar-fill tracker-steps" id="weekly-tracker-steps-fill" style="width:0%"></div>
               </div>
               <div class="weekly-tracker-bar-sub">
                 <span class="consumed">Done: <strong id="weekly-tracker-steps-consumed">0</strong></span>
@@ -2166,6 +2594,350 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyDeleteCancelBtn = document.getElementById('weekly-delete-cancel');
     const weeklyHasRecord = document.body.getAttribute('data-weekly-has-record') === '1';
     const weeklyRecordId = document.body.getAttribute('data-weekly-id') || '';
+    const hasLongTermGoal = document.body.getAttribute('data-has-long-term-goal') === '1';
+    const weeklyGoalRequiredMsg = document.getElementById('weekly-goal-required-msg');
+    const longTermSportSlider = document.getElementById('consistancy_sport_obj');
+    const longTermDietSlider = document.getElementById('consistency_alim_obj');
+    const longTermSportValue = document.getElementById('lt-sport-val');
+    const longTermDietValue = document.getElementById('lt-diet-val');
+    const longTermTypeSelect = document.getElementById('lt-goal-type');
+    const longTermStatusBadge = document.querySelector('.lt-status-badge');
+    const hasLongTermGoalFlag = document.body.getAttribute('data-has-long-term-goal') === '1';
+    const longTermInitialEditMode = document.body.getAttribute('data-long-term-edit-mode') === '1';
+    const longTermEditStartButton = document.getElementById('lt-edit-start-btn');
+    const longTermSaveChangesButton = document.getElementById('lt-save-changes-btn');
+    const longTermDeleteButton = document.querySelector('.lt-actions .ltg-delete-trigger');
+    const longTermDeletePanel = document.getElementById('ltg-delete-panel');
+    const longTermEditableFields = Array.from(document.querySelectorAll('[data-lt-editable="1"]'));
+    const longTermStartDateInput = document.getElementById('date_deb_obj');
+    const longTermEndDateInput = document.getElementById('date_fin_obj');
+    const longTermPeriodWarning = document.getElementById('lt-goal-period-warning');
+    const longTermInitialWeightInput = document.getElementById('val_init_obj');
+    const longTermTargetWeightInput = document.getElementById('val_cible_obj');
+    const longTermTargetPositiveWarning = document.getElementById('val-cible-warning');
+    const longTermTargetGoalWarning = document.getElementById('val-cible-goal-warning');
+    const positiveLongTermFields = [
+      { inputId: 'val_init_obj', warningId: 'val-init-warning', message: 'Initial weight must be a positive value.' },
+      { inputId: 'lt-reminder', warningId: 'lt-reminder-warning', message: 'Reminder frequency must be a positive value.' },
+      { inputId: 'obj_cal_obj', warningId: 'obj-cal-warning', message: 'Calories must be a positive value.' },
+      { inputId: 'obj_prot_obj', warningId: 'obj-prot-warning', message: 'Protein must be a positive value.' },
+      { inputId: 'obj_fat_obj', warningId: 'obj-fat-warning', message: 'Fat must be a positive value.' },
+      { inputId: 'obj_carb_obj', warningId: 'obj-carb-warning', message: 'Carbs must be a positive value.' }
+    ];
+
+    const syncLongTermSlider = (slider, valueNode) => {
+      if (!slider || !valueNode) {
+        return;
+      }
+      const value = parseInt(slider.value || '0', 10) || 0;
+      valueNode.textContent = String(value) + '%';
+      slider.style.setProperty('--val', String(value) + '%');
+    };
+
+    const updateLongTermGoalBadgeTone = () => {
+      if (!longTermTypeSelect || !longTermStatusBadge) {
+        return;
+      }
+
+      const type = longTermTypeSelect.value;
+      const tones = {
+        perte_de_poids: {
+          bg: 'rgba(217,79,0,.15)',
+          color: '#D94F00',
+          border: 'rgba(217,79,0,.25)'
+        },
+        prise_de_poids: {
+          bg: 'rgba(75,174,82,.13)',
+          color: '#4BAE52',
+          border: 'rgba(75,174,82,.25)'
+        },
+        maintien_de_poids: {
+          bg: 'rgba(245,200,66,.13)',
+          color: '#F5C842',
+          border: 'rgba(245,200,66,.25)'
+        }
+      };
+
+      const tone = tones[type];
+      if (!tone) {
+        longTermStatusBadge.style.removeProperty('background');
+        longTermStatusBadge.style.removeProperty('color');
+        longTermStatusBadge.style.removeProperty('border-color');
+        return;
+      }
+
+      longTermStatusBadge.style.background = tone.bg;
+      longTermStatusBadge.style.color = tone.color;
+      longTermStatusBadge.style.borderColor = tone.border;
+    };
+
+    const parseIsoDate = (isoDate) => {
+      if (!isoDate) {
+        return null;
+      }
+      const parsed = new Date(isoDate + 'T00:00:00');
+      if (Number.isNaN(parsed.getTime())) {
+        return null;
+      }
+      return parsed;
+    };
+
+    const validateLongTermPeriod = () => {
+      if (!longTermStartDateInput || !longTermEndDateInput || !longTermPeriodWarning) {
+        return;
+      }
+
+      const startDate = parseIsoDate(longTermStartDateInput.value);
+      const endDate = parseIsoDate(longTermEndDateInput.value);
+      if (!startDate || !endDate) {
+        longTermPeriodWarning.classList.remove('is-visible');
+        longTermStartDateInput.classList.remove('is-valid');
+        longTermStartDateInput.classList.remove('is-invalid');
+        longTermEndDateInput.classList.remove('is-valid');
+        longTermEndDateInput.classList.remove('is-invalid');
+        longTermEndDateInput.setCustomValidity('');
+        return;
+      }
+
+      const minStartDate = parseIsoDate(longTermStartDateInput.getAttribute('min') || '');
+      const diffInMs = endDate.getTime() - startDate.getTime();
+      const minDurationMs = 30 * 24 * 60 * 60 * 1000;
+      const isUnderMonth = diffInMs < minDurationMs;
+      const isBeforeMinDate = !!(minStartDate && startDate < minStartDate);
+      const isPeriodInvalid = isUnderMonth || isBeforeMinDate;
+
+      if (isPeriodInvalid) {
+        longTermPeriodWarning.classList.add('is-visible');
+        longTermEndDateInput.setCustomValidity('The goal period must be at least 30 days.');
+        longTermStartDateInput.classList.remove('is-valid');
+        longTermEndDateInput.classList.remove('is-valid');
+        longTermStartDateInput.classList.add('is-invalid');
+        longTermEndDateInput.classList.add('is-invalid');
+      } else {
+        longTermPeriodWarning.classList.remove('is-visible');
+        longTermEndDateInput.setCustomValidity('');
+        longTermStartDateInput.classList.remove('is-invalid');
+        longTermEndDateInput.classList.remove('is-invalid');
+        longTermStartDateInput.classList.add('is-valid');
+        longTermEndDateInput.classList.add('is-valid');
+      }
+    };
+
+    const validatePositiveLongTermField = (input, warning, message) => {
+      if (!input || !warning) {
+        return;
+      }
+
+      const rawValue = (input.value || '').trim();
+      if (rawValue === '') {
+        warning.classList.remove('is-visible');
+        input.setCustomValidity('');
+        input.classList.remove('is-valid');
+        input.classList.remove('is-invalid');
+        return;
+      }
+
+      const numericValue = Number(rawValue);
+      const isInvalid = Number.isNaN(numericValue) || numericValue <= 0;
+      if (isInvalid) {
+        warning.classList.add('is-visible');
+        input.setCustomValidity(message);
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+      } else {
+        warning.classList.remove('is-visible');
+        input.setCustomValidity('');
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+      }
+    };
+
+    const validateTargetWeightAgainstGoalType = () => {
+      if (!longTermTargetWeightInput || !longTermTargetPositiveWarning || !longTermTargetGoalWarning) {
+        return;
+      }
+
+      const targetRaw = (longTermTargetWeightInput.value || '').trim();
+      if (targetRaw === '') {
+        longTermTargetPositiveWarning.classList.remove('is-visible');
+        longTermTargetGoalWarning.classList.remove('is-visible');
+        longTermTargetWeightInput.setCustomValidity('');
+        longTermTargetWeightInput.classList.remove('is-valid');
+        longTermTargetWeightInput.classList.remove('is-invalid');
+        return;
+      }
+
+      const target = Number(targetRaw);
+      if (Number.isNaN(target) || target <= 0) {
+        longTermTargetPositiveWarning.classList.add('is-visible');
+        longTermTargetGoalWarning.classList.remove('is-visible');
+        longTermTargetWeightInput.setCustomValidity('Target weight must be a positive value.');
+        longTermTargetWeightInput.classList.remove('is-valid');
+        longTermTargetWeightInput.classList.add('is-invalid');
+        return;
+      }
+
+      longTermTargetPositiveWarning.classList.remove('is-visible');
+
+      if (!longTermTypeSelect || !longTermInitialWeightInput) {
+        longTermTargetGoalWarning.classList.remove('is-visible');
+        longTermTargetWeightInput.setCustomValidity('');
+        longTermTargetWeightInput.classList.remove('is-invalid');
+        longTermTargetWeightInput.classList.add('is-valid');
+        return;
+      }
+
+      const initialRaw = (longTermInitialWeightInput.value || '').trim();
+      const initial = Number(initialRaw);
+      const type = longTermTypeSelect.value;
+      if (initialRaw === '' || Number.isNaN(initial) || initial <= 0 || !type) {
+        longTermTargetGoalWarning.textContent = 'Select a goal type and enter a positive initial weight first.';
+        longTermTargetGoalWarning.classList.add('is-visible');
+        longTermTargetWeightInput.setCustomValidity('Select a goal type and enter a positive initial weight first.');
+        longTermTargetWeightInput.classList.remove('is-valid');
+        longTermTargetWeightInput.classList.add('is-invalid');
+        if (longTermTypeSelect) {
+          if (type) {
+            longTermTypeSelect.classList.remove('is-invalid');
+            longTermTypeSelect.classList.add('is-valid');
+          } else {
+            longTermTypeSelect.classList.remove('is-valid');
+            longTermTypeSelect.classList.add('is-invalid');
+          }
+        }
+        return;
+      }
+
+      if (longTermTypeSelect) {
+        longTermTypeSelect.classList.remove('is-invalid');
+        longTermTypeSelect.classList.add('is-valid');
+      }
+
+      let goalRuleMessage = '';
+      if (type === 'perte_de_poids' && !(target < initial)) {
+        goalRuleMessage = 'For weight loss, target value must be lower than initial value.';
+      } else if (type === 'prise_de_poids' && !(target > initial)) {
+        goalRuleMessage = 'For weight gain, target value must be greater than initial value.';
+      } else if (type === 'maintien_de_poids' && Math.abs(target - initial) > 0.000001) {
+        goalRuleMessage = 'For weight maintenance, target value must be equal to initial value.';
+      }
+
+      if (goalRuleMessage) {
+        longTermTargetGoalWarning.textContent = goalRuleMessage;
+        longTermTargetGoalWarning.classList.add('is-visible');
+        longTermTargetWeightInput.setCustomValidity(goalRuleMessage);
+        longTermTargetWeightInput.classList.remove('is-valid');
+        longTermTargetWeightInput.classList.add('is-invalid');
+      } else {
+        longTermTargetGoalWarning.classList.remove('is-visible');
+        longTermTargetWeightInput.setCustomValidity('');
+        longTermTargetWeightInput.classList.remove('is-invalid');
+        longTermTargetWeightInput.classList.add('is-valid');
+      }
+    };
+
+    const bindPositiveLongTermFieldValidation = () => {
+      positiveLongTermFields.forEach((fieldConfig) => {
+        const input = document.getElementById(fieldConfig.inputId);
+        const warning = document.getElementById(fieldConfig.warningId);
+        if (!input || !warning) {
+          return;
+        }
+
+        const runValidation = () => {
+          validatePositiveLongTermField(input, warning, fieldConfig.message);
+        };
+
+        runValidation();
+        input.addEventListener('input', runValidation);
+        input.addEventListener('change', runValidation);
+        input.addEventListener('blur', runValidation);
+      });
+    };
+
+    const setLongTermEditMode = (enabled) => {
+      if (!hasLongTermGoalFlag) {
+        return;
+      }
+
+      longTermEditableFields.forEach((field) => {
+        if (enabled) {
+          field.removeAttribute('disabled');
+        } else {
+          field.setAttribute('disabled', 'disabled');
+          field.classList.remove('is-valid');
+          field.classList.remove('is-invalid');
+        }
+      });
+
+      if (longTermEditStartButton) {
+        longTermEditStartButton.hidden = enabled;
+      }
+
+      if (longTermSaveChangesButton) {
+        longTermSaveChangesButton.hidden = !enabled;
+      }
+
+      if (longTermDeleteButton) {
+        longTermDeleteButton.hidden = enabled;
+      }
+
+      if (longTermDeletePanel) {
+        longTermDeletePanel.hidden = true;
+        longTermDeletePanel.classList.remove('is-visible');
+      }
+    };
+
+    if (longTermSportSlider) {
+      syncLongTermSlider(longTermSportSlider, longTermSportValue);
+      longTermSportSlider.addEventListener('input', () => {
+        syncLongTermSlider(longTermSportSlider, longTermSportValue);
+      });
+    }
+
+    if (longTermDietSlider) {
+      syncLongTermSlider(longTermDietSlider, longTermDietValue);
+      longTermDietSlider.addEventListener('input', () => {
+        syncLongTermSlider(longTermDietSlider, longTermDietValue);
+      });
+    }
+
+    if (longTermTypeSelect) {
+      updateLongTermGoalBadgeTone();
+      longTermTypeSelect.addEventListener('change', updateLongTermGoalBadgeTone);
+      longTermTypeSelect.addEventListener('change', validateTargetWeightAgainstGoalType);
+    }
+
+    if (longTermStartDateInput && longTermEndDateInput) {
+      validateLongTermPeriod();
+      longTermStartDateInput.addEventListener('input', validateLongTermPeriod);
+      longTermEndDateInput.addEventListener('input', validateLongTermPeriod);
+      longTermStartDateInput.addEventListener('change', validateLongTermPeriod);
+      longTermEndDateInput.addEventListener('change', validateLongTermPeriod);
+    }
+
+    bindPositiveLongTermFieldValidation();
+
+    if (longTermInitialWeightInput) {
+      longTermInitialWeightInput.addEventListener('input', validateTargetWeightAgainstGoalType);
+      longTermInitialWeightInput.addEventListener('change', validateTargetWeightAgainstGoalType);
+    }
+
+    if (longTermTargetWeightInput) {
+      validateTargetWeightAgainstGoalType();
+      longTermTargetWeightInput.addEventListener('input', validateTargetWeightAgainstGoalType);
+      longTermTargetWeightInput.addEventListener('change', validateTargetWeightAgainstGoalType);
+      longTermTargetWeightInput.addEventListener('blur', validateTargetWeightAgainstGoalType);
+    }
+
+    if (hasLongTermGoalFlag) {
+      setLongTermEditMode(longTermInitialEditMode);
+      if (longTermEditStartButton) {
+        longTermEditStartButton.addEventListener('click', () => {
+          setLongTermEditMode(true);
+        });
+      }
+    }
 
     if (calTitle && calGrid && calPrev && calNext) {
       const monthLabels = [
@@ -2242,6 +3014,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
               if (weeklyDeletePanel) {
                 weeklyDeletePanel.hidden = true;
                 weeklyDeletePanel.classList.remove('is-visible');
+              }
+              if (weeklyGoalRequiredMsg) {
+                weeklyGoalRequiredMsg.classList.remove('is-visible');
               }
 
               if (weeklyCalendarAddBtn && weeklyCalendarEditBtn && weeklyCalendarDeleteBtn) {
@@ -2547,6 +3322,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklyCalendarAddBtn && weeklySurveyPanel) {
       weeklyCalendarAddBtn.addEventListener('click', () => {
+        if (!hasLongTermGoal) {
+          if (weeklyGoalRequiredMsg) {
+            weeklyGoalRequiredMsg.classList.add('is-visible');
+            weeklyGoalRequiredMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          return;
+        }
+
+        if (weeklyGoalRequiredMsg) {
+          weeklyGoalRequiredMsg.classList.remove('is-visible');
+        }
+
         const surveyDateInput = document.getElementById('survey-date');
         const surveyDateTitle = document.getElementById('weekly-survey-date');
         const dateValue = weeklyCalendarAddBtn.dataset.date || '';
