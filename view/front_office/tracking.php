@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_update_goal
   $long_term_form = array_merge($long_term_form, [
     'val_init_obj' => (string) ($_POST['val_init_obj'] ?? $long_term_form['val_init_obj']),
     'val_cible_obj' => (string) ($_POST['val_cible_obj'] ?? $long_term_form['val_cible_obj']),
-    'date_deb_obj' => (string) ($_POST['date_deb_obj'] ?? $long_term_form['date_deb_obj']),
+    'date_deb_obj' => (string) ($current_user_goal['date_deb_obj'] ?? $long_term_form['date_deb_obj']),
     'date_fin_obj' => (string) ($_POST['date_fin_obj'] ?? $long_term_form['date_fin_obj']),
     'obj_cal_obj' => (string) ($_POST['obj_cal_obj'] ?? $long_term_form['obj_cal_obj']),
     'obj_fat_obj' => (string) ($_POST['obj_fat_obj'] ?? $long_term_form['obj_fat_obj']),
@@ -2865,7 +2865,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     <li><a href="#history">History</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="backoffice.html" class="nav-btn nav-backoffice">Backoffice</a> 
+    <a href="../back_office/index.html" class="nav-btn nav-backoffice">Backoffice</a> 
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -2953,7 +2953,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       <div class="lt-grid">
         <div class="lt-field">
           <label for="date_deb_obj">Start date</label>
-          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" min="<?php echo htmlspecialchars($system_date); ?>" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
+          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" min="<?php echo htmlspecialchars($system_date); ?>" required <?php echo $user_has_goal ? 'readonly' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
         </div>
         <div class="lt-field">
           <label for="date_fin_obj">End date</label>
