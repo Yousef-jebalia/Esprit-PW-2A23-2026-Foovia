@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once(__DIR__ . '/../../model/config.php');
+include_once(__DIR__ . '/../../controller/Controller_user.php');
 require_once __DIR__ . '/google-config.php';
 
 $googleLoginUrl = $client->createAuthUrl();
@@ -14,6 +15,7 @@ if (isset($_SESSION['error_message'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
+  $controller = new Controller_user();
     $email = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? '';
 
@@ -23,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
         try {
             $db = config::getConnexion();
             
-            $sql = "SELECT id_user, name_user, email_user, password_user FROM user WHERE LOWER(email_user) = :email";
+            $sql = "SELECT id_user, name_user, email_user, password_user, account_state_user, duration_user, ban_until_user FROM user WHERE LOWER(email_user) = :email";
             $query = $db->prepare($sql);
             $query->execute(['email' => $email]);
             $user = $query->fetch();
@@ -31,17 +33,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
             if (!$user) {
                 $error_message = 'Username or password is false';
             } else {
+              $banState = $controller->process_ban_countdown((int) $user['id_user']);
+
+              if ($banState['is_banned']) {
+                $error_message = 'Your account is banned. Try again in ' . $banState['remaining'] . '.';
+              } else {
                 
                 if ($password === $user['password_user']) {
-                    // Password is correct
-                    $_SESSION['user_id'] = $user['id_user'];
-                    $_SESSION['user_name'] = $user['name_user'];
-                    $_SESSION['user_email'] = $user['email_user'];
-                    $success_message = 'Connected successfully! Redirecting...';
-                    header('refresh:2;url=foovia.php');
-                    exit;
+                  $controller->reset_failed_login_attempts((int) $user['id_user']);
+
+                  // Password is correct
+                  $_SESSION['user_id'] = $user['id_user'];
+                  $_SESSION['user_name'] = $user['name_user'];
+                  $_SESSION['user_email'] = $user['email_user'];
+                  $success_message = 'Connected successfully! Redirecting...';
+                  header('refresh:2;url=foovia.php');
+                  exit;
                 } else {
-                    $error_message = 'Username or password is false';
+                  $attemptState = $controller->register_failed_login_attempt((int) $user['id_user']);
+
+                  if ($attemptState['is_banned']) {
+                    $error_message = 'Your account is now banned for 1 hour. Try again in ' . $attemptState['remaining'] . '.';
+                  } else {
+                    $error_message = 'Username or password is false. Remaining attempts: ' . $attemptState['remaining_attempts'];
+                  }
+                }
                 }
             }
         } catch (Exception $e) {

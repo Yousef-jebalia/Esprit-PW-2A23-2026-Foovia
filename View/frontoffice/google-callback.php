@@ -34,12 +34,13 @@ if (isset($_GET['code'])) {
         if (!$user) {
             // Create user if they don't exist
             $random_password = bin2hex(random_bytes(8));
-            $insert = "INSERT INTO user (name_user, email_user, password_user, subscription_user, account_state_user, duration_user) VALUES (:name, :email, :password, :subscription, :account_state, :duration)";
+            $insert = "INSERT INTO user (name_user, email_user, password_user, role_user, subscription_user, account_state_user, duration_user) VALUES (:name, :email, :password, :role, :subscription, :account_state, :duration)";
             $stmt = $db->prepare($insert);
             $stmt->execute([
                 'name' => $name,
                 'email' => strtolower($email),
                 'password' => $random_password,
+                'role' => 'user',
                 'subscription' => 'normal',
                 'account_state' => 'active',
                 'duration' => '00:00:00'

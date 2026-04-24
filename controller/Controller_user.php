@@ -174,6 +174,149 @@ class Controller_user {
         }
     }
 
+    public function process_ban_countdown(int $userId): array {
+
+        $sql = "SELECT id_user, account_state_user, duration_user, ban_until_user
+                FROM user
+                WHERE id_user = :id";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['id' => $userId]);
+            $user = $query->fetch();
+
+            if (!$user || ($user['account_state_user'] ?? 'active') !== 'banned') {
+                return [
+                    'is_banned' => false,
+                    'remaining' => '00:00:00'
+                ];
+            }
+
+            $banUntil = $user['ban_until_user'] ?? null;
+            if (!$banUntil) {
+                return [
+                    'is_banned' => true,
+                    'remaining' => (string) ($user['duration_user'] ?? '01:00:00')
+                ];
+            }
+
+            $remainingSeconds = strtotime($banUntil) - time();
+
+            if ($remainingSeconds <= 0) {
+                $releaseSql = "UPDATE user
+                               SET account_state_user = 'active',
+                                   duration_user = '00:00:00',
+                                   ban_until_user = NULL,
+                                   failed_attempts_user = 0
+                               WHERE id_user = :id";
+                $releaseQuery = $db->prepare($releaseSql);
+                $releaseQuery->execute(['id' => $userId]);
+
+                return [
+                    'is_banned' => false,
+                    'remaining' => '00:00:00'
+                ];
+            }
+
+            $hours = floor($remainingSeconds / 3600);
+            $minutes = floor(($remainingSeconds % 3600) / 60);
+            $seconds = $remainingSeconds % 60;
+            $remaining = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+
+            $updateSql = "UPDATE user SET duration_user = :duration WHERE id_user = :id";
+            $updateQuery = $db->prepare($updateSql);
+            $updateQuery->execute([
+                'duration' => $remaining,
+                'id' => $userId
+            ]);
+
+            return [
+                'is_banned' => true,
+                'remaining' => $remaining
+            ];
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return [
+                'is_banned' => false,
+                'remaining' => '00:00:00'
+            ];
+        }
+    }
+
+    public function register_failed_login_attempt(int $userId): array {
+
+        $db = config::getConnexion();
+
+        try {
+            $selectSql = "SELECT failed_attempts_user FROM user WHERE id_user = :id";
+            $selectQuery = $db->prepare($selectSql);
+            $selectQuery->execute(['id' => $userId]);
+            $current = $selectQuery->fetch();
+
+            $attempts = (int) ($current['failed_attempts_user'] ?? 0) + 1;
+
+            if ($attempts >= 3) {
+                $banUntil = date('Y-m-d H:i:s', strtotime('+1 hour'));
+                $banSql = "UPDATE user
+                           SET failed_attempts_user = 0,
+                               account_state_user = 'banned',
+                               duration_user = '01:00:00',
+                               ban_until_user = :ban_until
+                           WHERE id_user = :id";
+                $banQuery = $db->prepare($banSql);
+                $banQuery->execute([
+                    'ban_until' => $banUntil,
+                    'id' => $userId
+                ]);
+
+                return [
+                    'is_banned' => true,
+                    'remaining_attempts' => 0,
+                    'remaining' => '01:00:00'
+                ];
+            }
+
+            $updateSql = "UPDATE user SET failed_attempts_user = :attempts WHERE id_user = :id";
+            $updateQuery = $db->prepare($updateSql);
+            $updateQuery->execute([
+                'attempts' => $attempts,
+                'id' => $userId
+            ]);
+
+            return [
+                'is_banned' => false,
+                'remaining_attempts' => 3 - $attempts,
+                'remaining' => '00:00:00'
+            ];
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return [
+                'is_banned' => false,
+                'remaining_attempts' => 0,
+                'remaining' => '00:00:00'
+            ];
+        }
+    }
+
+    public function reset_failed_login_attempts(int $userId): void {
+
+        $sql = "UPDATE user
+                SET failed_attempts_user = 0,
+                    account_state_user = 'active',
+                    ban_until_user = NULL,
+                    duration_user = '00:00:00'
+                WHERE id_user = :id";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['id' => $userId]);
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+        }
+    }
+
 
     public function delete_user($id) {
 

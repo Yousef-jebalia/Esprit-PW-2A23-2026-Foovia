@@ -61,7 +61,7 @@ if (!isset($_SESSION['user_id']) || strtolower($_SESSION['user_role'] ?? '') !==
     <p>Welcome, <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin'); ?>.</p>
     <p>This is your admin workspace page.</p>
     <div class="actions">
-      <a class="primary" href="accordion.html">Open dashboard</a>
+      <a class="primary" href="tabs.php">Open dashboard</a>
       <a href="../frontoffice/foovia.php">Go to frontoffice</a>
     </div>
   </div>

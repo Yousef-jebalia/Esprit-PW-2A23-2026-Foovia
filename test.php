@@ -18,7 +18,9 @@ $columnsToAdd = [
 	'reset_token_expires_at' => "ALTER TABLE user ADD COLUMN reset_token_expires_at DATETIME NULL",
 	'subscription_user' => "ALTER TABLE user ADD COLUMN subscription_user VARCHAR(50) NOT NULL DEFAULT 'normal'",
 	'account_state_user' => "ALTER TABLE user ADD COLUMN account_state_user VARCHAR(50) NOT NULL DEFAULT 'active'",
-	'duration_user' => "ALTER TABLE user ADD COLUMN duration_user TIME NOT NULL DEFAULT '00:00:00'"
+	'duration_user' => "ALTER TABLE user ADD COLUMN duration_user TIME NOT NULL DEFAULT '00:00:00'",
+	'failed_attempts_user' => "ALTER TABLE user ADD COLUMN failed_attempts_user INT NOT NULL DEFAULT 0",
+	'ban_until_user' => "ALTER TABLE user ADD COLUMN ban_until_user DATETIME NULL"
 ];
 
 $added = [];

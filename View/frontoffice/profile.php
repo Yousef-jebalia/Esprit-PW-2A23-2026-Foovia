@@ -338,7 +338,7 @@ $user_name = $_SESSION['user_name'] ?? '';
                 </div>
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Role:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['role_user'] ?? 'User'); ?></span>
+                    <span class="field-value"><?php echo htmlspecialchars((string) ($user_data['role_user'] ?? 'N/A')); ?></span>
                 </div>
             </div>
 
