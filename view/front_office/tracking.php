@@ -266,6 +266,7 @@ $weekly_form_objectif = $weekly_today_objectif ?: [
   'id_suiv' => '',
   'id_obj' => !empty($current_user_goal['id_obj']) ? (int) $current_user_goal['id_obj'] : 0,
   'date_suiv' => $today_date,
+  'poids_suiv' => '',
   'val_cal_suiv' => '',
   'val_fat_suiv' => '',
   'val_prot_suiv' => '',
@@ -278,6 +279,61 @@ $weekly_form_objectif = $weekly_today_objectif ?: [
   'id_user' => $current_user_id,
 ];
 $weekly_has_record = !empty($weekly_today_objectif);
+
+$weekly_chart_rows = $hebdo_controller->get_recent_objectifs_by_user($current_user_id, 21);
+$weekly_chart_by_date = [];
+foreach ($weekly_chart_rows as $weekly_chart_row) {
+  $row_date = (string) ($weekly_chart_row['date_suiv'] ?? '');
+  if ($row_date !== '') {
+    $weekly_chart_by_date[$row_date] = $weekly_chart_row;
+  }
+}
+
+$weekly_macro_breakdown = [];
+$chart_base_date = new DateTimeImmutable($today_date);
+for ($offset = 6; $offset >= 0; $offset -= 1) {
+  $day_date = $chart_base_date->modify('-' . $offset . ' days');
+  $day_key = $day_date->format('Y-m-d');
+  $day_row = $weekly_chart_by_date[$day_key] ?? [];
+
+  $weekly_macro_breakdown[] = [
+    'day' => $day_date->format('D'),
+    'date' => $day_key,
+    'fats' => (float) ($day_row['val_fat_suiv'] ?? 0),
+    'proteins' => (float) ($day_row['val_prot_suiv'] ?? 0),
+    'carbs' => (float) ($day_row['val_carb_suiv'] ?? 0),
+  ];
+}
+
+$weekly_macro_breakdown_json = json_encode($weekly_macro_breakdown, JSON_UNESCAPED_SLASHES);
+if ($weekly_macro_breakdown_json === false) {
+  $weekly_macro_breakdown_json = '[]';
+}
+
+$weight_chart_today = new DateTimeImmutable($today_date);
+$weight_chart_end = $weight_chart_today;
+$weight_chart_start = $weight_chart_end->modify('-6 days');
+$weekly_weight_evolution = [];
+
+for ($offset = 0; $offset < 7; $offset += 1) {
+  $day_date = $weight_chart_start->modify('+' . $offset . ' days');
+  $day_key = $day_date->format('Y-m-d');
+  $day_row = $weekly_chart_by_date[$day_key] ?? [];
+  $day_weight = (float) ($day_row['poids_suiv'] ?? 0);
+
+  $weekly_weight_evolution[] = [
+    'day' => $day_date->format('D'),
+    'date' => $day_key,
+    'weight' => $day_weight > 0 ? $day_weight : 0,
+  ];
+}
+
+$weekly_weight_evolution_json = json_encode($weekly_weight_evolution, JSON_UNESCAPED_SLASHES);
+if ($weekly_weight_evolution_json === false) {
+  $weekly_weight_evolution_json = '[]';
+}
+
+$weekly_history_rows = $hebdo_controller->list_objectifs_by_user($current_user_id);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_save_objective'])) {
   if (empty($current_user_goal)) {
@@ -292,6 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_save_objective
         'id_suiv' => $postedId,
         'id_obj' => (int) $current_user_goal['id_obj'],
         'date_suiv' => $today_date,
+        'poids_suiv' => (float) ($_POST['poids_suiv'] ?? 0),
         'val_cal_suiv' => (float) ($_POST['val_cal_suiv'] ?? 0),
         'val_fat_suiv' => (float) ($_POST['val_fat_suiv'] ?? 0),
         'val_prot_suiv' => (float) ($_POST['val_prot_suiv'] ?? 0),
@@ -341,6 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link id="foovia-style" rel="stylesheet" href="./style.css?v=20260419">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
   (function () {
     const styleLink = document.getElementById('foovia-style');
@@ -684,8 +742,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   .weekly-swipe-layout {
     display: flex;
     align-items: flex-start;
-    justify-content: center;
-    gap: 1.1rem;
+    justify-content: space-between;
+    gap: 1.4rem;
     margin-top: 0.65rem;
   }
 
@@ -698,12 +756,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   }
 
   .weekly-calendar-shell {
-    margin: 1rem auto 0;
+    margin: 0;
     background: #fff;
     border-radius: 22px;
     border: 1.5px solid rgba(0, 0, 0, .07);
     padding: 0.9rem;
-    max-width: 560px;
+    width: min(560px, 100%);
+    flex: 0 0 min(560px, 46%);
     position: sticky;
     top: 88px;
   }
@@ -1062,10 +1121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       radial-gradient(120% 120% at 0% 0%, rgba(75, 174, 82, .12) 0%, rgba(75, 174, 82, 0) 58%),
       linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
     padding: 1.25rem;
-    width: min(620px, calc(100vw - 3rem));
-    transform: translateX(24px);
-    opacity: 0;
-    transition: transform .35s ease, opacity .35s ease;
+    width: min(760px, 100%);
+    flex: 1 1 620px;
+    transform: none;
+    opacity: 1;
   }
 
   .weekly-survey-shell.is-visible {
@@ -1085,6 +1144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     .weekly-survey-shell {
       width: min(760px, 100%);
+      flex: 1 1 auto;
     }
   }
 
@@ -1282,6 +1342,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   .weekly-survey-field.weekly-macro-field.carb label { color: var(--yellow-mid); }
   .weekly-survey-field.weekly-macro-field.fat label { color: #c08060; }
 
+  .weekly-survey-field.weekly-weight-field label {
+    display: block;
+    font-family: 'Boldonse', system-ui;
+    font-size: 0.72rem;
+    margin-bottom: 6px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #555;
+  }
+
   .weekly-survey-field input,
   .weekly-survey-field textarea {
     width: 100%;
@@ -1304,6 +1374,196 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     font-size: 0.95rem;
     background: #fdf8ee;
     color: var(--dark);
+  }
+
+  .weekly-survey-field.weekly-weight-field input {
+    border: 1.5px solid rgba(0, 0, 0, .1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: var(--off-white);
+    color: var(--dark);
+  }
+
+  .weekly-survey-field.weekly-weight-field input:focus {
+    border-color: var(--green);
+    box-shadow: none;
+  }
+
+  .weekly-weight-card {
+    grid-column: 1 / -1;
+    border-radius: 22px;
+    border: 1.5px solid rgba(0, 0, 0, 0.07);
+    background: #fff;
+    padding: 1.15rem 1.15rem 1.25rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .weekly-weight-card .card-title {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .weekly-weight-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  .weekly-weight-input-wrap {
+    flex: 1;
+  }
+
+  .weekly-weight-input-wrap label {
+    display: block;
+    font-family: 'Boldonse', system-ui;
+    font-size: .72rem;
+    color: #7C6FCD;
+    margin-bottom: 6px;
+  }
+
+  .weekly-weight-input-wrap input {
+    width: 100%;
+    border: 1.5px solid rgba(0,0,0,.1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    background: var(--off-white);
+    color: var(--dark);
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .weekly-weight-input-wrap input:focus {
+    border-color: #7C6FCD;
+  }
+
+  .weekly-weight-button {
+    background: #7C6FCD;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 20px;
+    font-family: 'Boldonse', system-ui;
+    font-size: .85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s;
+  }
+
+  .weekly-weight-button:hover {
+    background: #5a4fa8;
+  }
+
+  .weekly-weight-summary {
+    display: none;
+    background: var(--dark);
+    border-radius: 14px;
+    padding: 14px 20px;
+    margin-bottom: 1rem;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .weekly-weight-summary.is-visible {
+    display: flex;
+  }
+
+  .weekly-weight-current {
+    font-family: 'Boldonse', system-ui;
+    font-size: 1.8rem;
+    color: #a78bfa;
+    line-height: 1;
+  }
+
+  .weekly-weight-caption {
+    font-size: .72rem;
+    color: rgba(255,255,255,.45);
+    margin-top: 2px;
+  }
+
+  .weekly-weight-change {
+    font-family: 'Boldonse', system-ui;
+    font-size: 1rem;
+  }
+
+  .weekly-weight-change-label {
+    font-size: .68rem;
+    color: rgba(255,255,255,.35);
+  }
+
+  .weekly-weight-count {
+    font-family: 'Boldonse', system-ui;
+    font-size: 1rem;
+    color: rgba(255,255,255,.5);
+    text-align: right;
+  }
+
+  .weekly-weight-count-label {
+    font-size: .68rem;
+    color: rgba(255,255,255,.35);
+  }
+
+  .weekly-weight-log {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .weekly-weight-log-empty {
+    font-size: .82rem;
+    color: #bbb;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .weekly-weight-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+
+  .weekly-weight-entry:last-child {
+    border-bottom: none;
+  }
+
+  .weekly-weight-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #7C6FCD;
+    flex-shrink: 0;
+  }
+
+  .weekly-weight-entry-value {
+    flex: 1;
+    font-weight: 600;
+    font-size: .92rem;
+  }
+
+  .weekly-weight-entry-label {
+    font-size: .75rem;
+    color: #999;
+    margin-left: 8px;
+  }
+
+  .weekly-weight-entry-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    font-size: .9rem;
+    padding: 2px 6px;
+    transition: color .2s;
+  }
+
+  .weekly-weight-entry-del:hover {
+    color: var(--red);
   }
 
   .weekly-survey-field input:focus,
@@ -1530,6 +1790,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   [data-theme='dark'] .weekly-tracker-bar-row .weekly-tracker-bar-nums,
   [data-theme='dark'] .weekly-tracker-bar-sub .consumed {
     color: rgba(243, 241, 232, 0.78);
+  }
+
+  [data-theme='dark'] .weekly-survey-field.weekly-weight-field input {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #f3f1e8;
   }
 
   .weekly-daily-log {
@@ -2030,6 +2296,553 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     }
   }
 
+  /* ═══════════════════════════════════════════════
+     PROGRESS SECTION — Elevated redesign
+  ═══════════════════════════════════════════════ */
+  #progress .section-label {
+    letter-spacing: 0.18em;
+  }
+
+  .progress-charts-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+    margin-top: 0.75rem;
+  }
+
+  .progress-chart-card {
+    border: 1.5px solid var(--surface-border);
+    border-radius: 28px;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(90, 181, 245, 0.13) 0%, transparent 60%),
+      linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.7) inset,
+      0 24px 48px rgba(17, 16, 8, 0.09);
+    padding: 1.4rem;
+    margin-bottom: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-chart-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #5ab5f5 0%, #4bae52 50%, #f5c842 100%);
+    border-radius: 28px 28px 0 0;
+    opacity: 0.7;
+  }
+
+  .progress-chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .progress-chart-head h3 {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--panel-text);
+    letter-spacing: -0.01em;
+  }
+
+  .progress-chart-sub {
+    margin: 0.3rem 0 0;
+    font-size: 0.76rem;
+    color: var(--panel-muted);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .progress-chart-legend {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .progress-chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.32rem 0.7rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: rgba(17, 16, 8, 0.055);
+    color: var(--panel-text);
+    border: 1px solid rgba(17, 16, 8, 0.08);
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+
+  .progress-chart-legend-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .progress-chart-legend-swatch.fat { background: #d56f49; }
+  .progress-chart-legend-swatch.protein { background: #4bae52; }
+  .progress-chart-legend-swatch.carb { background: #f5c842; }
+
+  .progress-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.7rem;
+    align-items: end;
+  }
+
+  .progress-chart-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .progress-chart-bar-wrap {
+    width: 100%;
+    max-width: 90px;
+    height: 200px;
+    border: 1px solid rgba(17, 16, 8, 0.09);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.65);
+    padding: 6px;
+    display: flex;
+    align-items: flex-end;
+    box-shadow: 0 2px 8px rgba(17, 16, 8, 0.05) inset;
+  }
+
+  .progress-chart-bar {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column-reverse;
+    background: rgba(17, 16, 8, 0.04);
+  }
+
+  .progress-chart-seg {
+    width: 100%;
+    min-height: 2px;
+    position: relative;
+    transition: height 0.4s ease;
+  }
+
+  .progress-chart-seg.fat {
+    background: linear-gradient(180deg, #f0a882 0%, #d56f49 100%);
+  }
+  .progress-chart-seg.protein {
+    background: linear-gradient(180deg, #7dd683 0%, #4bae52 100%);
+  }
+  .progress-chart-seg.carb {
+    background: linear-gradient(180deg, #fae48a 0%, #f5c842 100%);
+  }
+
+  .progress-chart-day-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--panel-text);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .progress-chart-day-total {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--panel-muted);
+    background: rgba(17,16,8,0.05);
+    border-radius: 6px;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .progress-chart-labels {
+    width: 100%;
+    max-width: 90px;
+    display: grid;
+    gap: 0.2rem;
+    margin-top: 0.1rem;
+  }
+
+  .progress-chart-label {
+    border-radius: 7px;
+    padding: 0.2rem 0.32rem;
+    background: rgba(17, 16, 8, 0.045);
+    font-size: 0.59rem;
+    line-height: 1.3;
+    color: var(--panel-text);
+    font-weight: 600;
+    text-align: left;
+    border-left: 2.5px solid transparent;
+  }
+
+  .progress-chart-label.fat { border-left-color: #d56f49; }
+  .progress-chart-label.protein { border-left-color: #4bae52; }
+  .progress-chart-label.carb { border-left-color: #f5c842; }
+
+  /* Weight chart improvements */
+  .weight-chart-shell {
+    border: 1px solid rgba(17, 16, 8, 0.09);
+    border-radius: 18px;
+    background: linear-gradient(170deg, rgba(90,181,245,0.07) 0%, rgba(255,255,255,0.7) 100%);
+    padding: 1rem;
+    overflow: hidden;
+  }
+
+  .weight-chart-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .weight-chart-axis-note {
+    font-size: 0.65rem;
+    color: var(--panel-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    background: rgba(17,16,8,0.05);
+    padding: 0.22rem 0.55rem;
+    border-radius: 6px;
+  }
+
+  .weight-chart-trend {
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.02em;
+    background: rgba(75, 174, 82, 0.13);
+    color: var(--forest);
+    border: 1px solid rgba(75, 174, 82, 0.2);
+    flex-shrink: 0;
+  }
+
+  .weight-chart-trend.down {
+    background: rgba(90, 181, 245, 0.15);
+    color: #1a80c4;
+    border-color: rgba(90, 181, 245, 0.22);
+  }
+
+  .weight-chart-trend.flat {
+    background: rgba(17, 16, 8, 0.07);
+    color: var(--panel-muted);
+    border-color: rgba(17, 16, 8, 0.1);
+  }
+
+  .weight-chart-svg-wrap {
+    border: 1px solid rgba(17, 16, 8, 0.08);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(90, 181, 245, 0.06) 0%, rgba(255, 255, 255, 0.7) 100%);
+    overflow: hidden;
+  }
+
+  .weight-chart-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .weight-chart-grid-line {
+    stroke: rgba(17, 16, 8, 0.1);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  .weight-chart-axis-label {
+    fill: var(--panel-muted);
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .weight-chart-line {
+    fill: none;
+    stroke: #2d9fbc;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .weight-chart-point {
+    fill: #2d9fbc;
+    stroke: #ffffff;
+    stroke-width: 2.5;
+  }
+
+  .weight-chart-point.empty {
+    fill: rgba(17, 16, 8, 0.1);
+    stroke: rgba(255, 255, 255, 0.9);
+  }
+
+  .weight-chart-xlabels {
+    margin-top: 0.7rem;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.3rem;
+  }
+
+  .weight-chart-day {
+    border-radius: 10px;
+    padding: 0.32rem 0.28rem;
+    background: rgba(17, 16, 8, 0.04);
+    text-align: center;
+    border: 1px solid rgba(17,16,8,0.05);
+  }
+
+  .weight-chart-day strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--panel-text);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .weight-chart-day small {
+    display: block;
+    font-size: 0.6rem;
+    color: var(--panel-muted);
+    margin-top: 0.12rem;
+  }
+
+  .weight-chart-day span {
+    display: block;
+    margin-top: 0.12rem;
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: #2d9fbc;
+  }
+
+  @media (max-width: 980px) {
+    .progress-charts-row {
+      grid-template-columns: 1fr;
+    }
+
+    .progress-chart-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 700px) {
+    .progress-chart-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .progress-chart-legend {
+      justify-content: flex-start;
+    }
+
+    .progress-chart-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     HISTORY SECTION — Elevated redesign
+  ═══════════════════════════════════════════════ */
+
+  #history .cta-title {
+    margin-bottom: 0.25rem;
+  }
+
+  .history-shell {
+    margin-top: 1rem;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 28px;
+    background:
+      radial-gradient(ellipse 70% 50% at 5% 0%, rgba(245, 200, 66, 0.11) 0%, transparent 55%),
+      linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.7) inset,
+      0 24px 56px rgba(17, 16, 8, 0.09);
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .history-shell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f5c842 0%, #f5a623 50%, #e8602a 100%);
+    border-radius: 28px 28px 0 0;
+    opacity: 0.65;
+  }
+
+  .history-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .history-empty {
+    font-size: 0.9rem;
+    color: var(--panel-muted);
+    margin: 0;
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+    background: rgba(17, 16, 8, 0.04);
+    border: 1px dashed rgba(17,16,8,0.1);
+    text-align: center;
+    font-style: italic;
+  }
+
+  .history-card {
+    border: 1px solid rgba(17, 16, 8, 0.09);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .history-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #f5c842 0%, #f5a623 100%);
+    border-radius: 18px 0 0 18px;
+    opacity: 0.8;
+  }
+
+  .history-card:hover {
+    box-shadow: 0 8px 28px rgba(17, 16, 8, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .history-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+    padding-left: 0.4rem;
+  }
+
+  .history-date {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--panel-text);
+    letter-spacing: -0.01em;
+  }
+
+  .history-status {
+    margin: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--panel-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: rgba(17,16,8,0.06);
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid rgba(17,16,8,0.07);
+    align-self: flex-start;
+  }
+
+  /* Status color tinting */
+  .history-status[data-status="On track"] { background: rgba(75,174,82,0.1); color: var(--forest); border-color: rgba(75,174,82,0.18); }
+  .history-status[data-status="Great day"] { background: rgba(245,200,66,0.18); color: #7a5c00; border-color: rgba(245,200,66,0.28); }
+  .history-status[data-status="Needs work"] { background: rgba(217,79,0,0.1); color: var(--orange); border-color: rgba(217,79,0,0.18); }
+  .history-status[data-status="Off track"] { background: rgba(192,56,26,0.1); color: var(--red); border-color: rgba(192,56,26,0.18); }
+  .history-status[data-status="Rest day"] { background: rgba(90,181,245,0.12); color: #1a80c4; border-color: rgba(90,181,245,0.2); }
+
+  .history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.32rem 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-left: 0.4rem;
+  }
+
+  .history-item {
+    font-size: 0.75rem;
+    color: var(--panel-text);
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+  }
+
+  .history-item strong {
+    font-weight: 700;
+    color: var(--panel-muted);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .history-notes {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--panel-muted);
+    line-height: 1.5;
+    border-top: 1px solid rgba(17, 16, 8, 0.08);
+    padding-top: 0.6rem;
+    padding-left: 0.4rem;
+    font-style: italic;
+  }
+
+  .history-notes strong {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--panel-text);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  [data-theme='dark'] .history-card {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  [data-theme='dark'] .history-card:hover {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+  }
+
+  @media (max-width: 1100px) {
+    .history-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 620px) {
+    .history-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
 </style>
 
 <!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
@@ -2041,18 +2854,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?><?php echo $weekly_has_record ? ' data-weekly-has-record="1" data-weekly-id="' . htmlspecialchars((string) $weekly_today_objectif['id_suiv']) . '"' : ' data-weekly-has-record="0"'; ?> data-has-long-term-goal="<?php echo !empty($current_user_goal) ? '1' : '0'; ?>" data-long-term-edit-mode="<?php echo $long_term_edit_mode ? '1' : '0'; ?>">
 
 <nav>
-  <a href="index.html" class="nav-logo">
+  <a href="foovia.html" class="nav-logo">
     <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
     FOOVIA
   </a>
   <ul class="nav-links">
-    <li><a href="#long-term-goals">Long Term Goals</a></li>
+    <li><a href="#long-term-goals">Long Term Goal</a></li>
     <li><a href="#weekly-tracking">Weekly Tracking</a></li>
     <li><a href="#progress">Progress</a></li>
     <li><a href="#history">History</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="backoffice.html" class="nav-btn nav-backoffice">Backoffice</a>
+    <a href="backoffice.html" class="nav-btn nav-backoffice">Backoffice</a> 
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -2257,10 +3070,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     </div>
   </div>
 
-  <div class="weekly-survey-shell" id="weekly-survey-panel" hidden>
+  <div class="weekly-survey-shell is-visible" id="weekly-survey-panel">
     <div class="weekly-survey-head">
       <h3 id="weekly-survey-date">Track for</h3>
-      <button type="button" class="weekly-survey-close" id="weekly-survey-close" aria-label="Close survey">Close</button>
     </div>
 
     <?php if (!empty($weekly_error_message)): ?>
@@ -2268,7 +3080,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     <?php endif; ?>
 
     <form method="post" action="" id="weekly-survey-form">
-      <input type="hidden" name="survey_date" id="survey-date" value="">
+      <input type="hidden" name="survey_date" id="survey-date" value="<?php echo htmlspecialchars($today_date); ?>">
       <input type="hidden" name="weekly_objectif_id" id="weekly-objectif-id" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['id_suiv'] ?? '')); ?>">
       <input type="hidden" name="weekly_save_objective" value="1">
 
@@ -2336,17 +3148,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       </div>
 
       <div class="weekly-survey-grid">
+        <div class="weekly-weight-card">
+          <p class="sec-label">Body metrics</p>
+          <h2 class="card-title"><span class="emoji">⚖️</span> Weight</h2>
+
+          <div class="weekly-weight-row">
+            <div class="weekly-weight-input-wrap">
+              <label for="survey-weight">Today's weight (kg)</label>
+              <input type="number" id="survey-weight" name="poids_suiv" placeholder="e.g. 75.5" min="0" step="0.1" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['poids_suiv'] ?? '')); ?>">
+            </div>
+            <button type="button" class="weekly-weight-button" id="weekly-weight-save-btn">+ Log weight</button>
+          </div>
+
+          <div class="weekly-weight-summary" id="weekly-weight-summary">
+            <div>
+              <div class="weekly-weight-current" id="weekly-weight-current">—</div>
+              <div class="weekly-weight-caption">Current (kg)</div>
+            </div>
+            <div style="flex:1;text-align:center;">
+              <div class="weekly-weight-change" id="weekly-weight-change">—</div>
+              <div class="weekly-weight-change-label">vs. first entry</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="weekly-weight-count" id="weekly-weight-count">0</div>
+              <div class="weekly-weight-count-label">entries</div>
+            </div>
+          </div>
+
+          <div class="weekly-weight-log" id="weekly-weight-log">
+            <div class="weekly-weight-log-empty" id="weekly-weight-log-empty">No weight entries yet</div>
+          </div>
+        </div>
         <div class="weekly-survey-field weekly-macro-field kcal">
           <label for="survey-cal">Calories (kcal)</label>
           <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
         </div>
-        <div class="weekly-survey-field weekly-macro-field fat">
-          <label for="survey-fat">Fat (g)</label>
-          <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
-        </div>
         <div class="weekly-survey-field weekly-macro-field prot">
           <label for="survey-prot">Protein (g)</label>
           <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_prot_suiv'] ?? '')); ?>">
+        </div>
+        <div class="weekly-survey-field weekly-macro-field fat">
+          <label for="survey-fat">Fat (g)</label>
+          <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
         </div>
         <div class="weekly-survey-field weekly-macro-field carb">
           <label for="survey-carb">Carbs (g)</label>
@@ -2451,58 +3294,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <section class="how" id="progress">
   <p class="section-label">Progress</p>
   <h2 class="section-title how-title">A simple flow to measure and improve your progress.</h2>
-  <div class="steps">
-    <div class="step">
-      <div class="step-dot"></div>
-      <div class="step-num">01</div>
-      <h3>Log your meals</h3>
-      <p>Capture breakfast, lunch, dinner, and snacks in seconds from text or photo.</p>
-    </div>
-    <div class="step">
-      <div class="step-dot" style="background:var(--yellow)"></div>
-      <div class="step-num">02</div>
-      <h3>Track habits</h3>
-      <p>Mark workouts, hydration, and supplements to keep your habit chain complete.</p>
-    </div>
-    <div class="step">
-      <div class="step-dot" style="background:var(--orange)"></div>
-      <div class="step-num">03</div>
-      <h3>Review trends</h3>
-      <p>See daily and weekly trend cards that highlight wins and missed targets.</p>
-    </div>
-    <div class="step">
-      <div class="step-dot" style="background:var(--peach)"></div>
-      <div class="step-num">04</div>
-      <h3>Adapt your plan</h3>
-      <p>Use the recommended adjustments to keep progress steady and sustainable.</p>
-    </div>
-  </div>
-</section>
 
-<div class="stats">
-  <div class="stat">
-    <div class="stat-num">24h</div>
-    <div class="stat-label">Daily tracking cycle</div>
+  <div class="progress-charts-row">
+    <article class="progress-chart-card" aria-label="Macronutrient Breakdown chart widget">
+      <div class="progress-chart-head">
+        <div>
+          <h3>Macronutrient Breakdown</h3>
+        </div>
+        <div class="progress-chart-legend" aria-hidden="true">
+          <span class="progress-chart-legend-item"><span class="progress-chart-legend-swatch fat"></span>Fats (Lipids)</span>
+          <span class="progress-chart-legend-item"><span class="progress-chart-legend-swatch protein"></span>Proteins</span>
+          <span class="progress-chart-legend-item"><span class="progress-chart-legend-swatch carb"></span>Carbohydrates (Carbs)</span>
+        </div>
+      </div>
+      <div class="progress-chart-grid" id="macro-breakdown-chart"></div>
+    </article>
+
+    <article class="progress-chart-card" aria-label="Body Weight Evolution chart widget">
+      <div class="progress-chart-head">
+        <div>
+          <h3>Body Weight Evolution</h3>
+        </div>
+        <div class="weight-chart-trend" id="weight-evolution-trend">Trend pending</div>
+      </div>
+      <div class="weight-chart-shell">
+        <div class="weight-chart-top">
+          <span class="weight-chart-axis-note">Y-axis: kilograms (kg)</span>
+          <span class="weight-chart-axis-note">X-axis: Last 7 Days</span>
+        </div>
+        <div class="weight-chart-svg-wrap" id="body-weight-evolution-chart"></div>
+        <div class="weight-chart-xlabels" id="body-weight-evolution-labels"></div>
+      </div>
+    </article>
   </div>
-  <div class="stat">
-    <div class="stat-num">3x</div>
-    <div class="stat-label">Faster meal logging</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">7d</div>
-    <div class="stat-label">Weekly progress reports</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">1</div>
-    <div class="stat-label">Single health dashboard</div>
-  </div>
-</div>
+
+</section>
 
 <section class="cta-section" id="history">
   <p class="section-label">History</p>
-  <h2 class="cta-title">Your previous weeks,<br><em>clearly organized.</em></h2>
-  <p>Review your completed logs, compare weekly snapshots, and learn from your history.</p>
-  <a href="#weekly-tracking" class="btn-primary">Review Weekly Tracking</a>
+  <h2 class="cta-title">Each Weekly Objective,<br><em>with full details.</em></h2>
+
+  <div class="history-shell" id="history-export-content">
+    <?php if (empty($weekly_history_rows)): ?>
+      <p class="history-empty">No weekly tracking history yet. Save your first daily entry from Weekly Tracking.</p>
+    <?php else: ?>
+      <div class="history-list">
+        <?php foreach ($weekly_history_rows as $history_row): ?>
+          <article class="history-card">
+            <div class="history-head">
+              <h3 class="history-date"><?php echo htmlspecialchars((string) ($history_row['date_suiv'] ?? '')); ?></h3>
+              <p class="history-status"><?php echo htmlspecialchars((string) ($history_row['status_obj_quot_suiv'] ?? 'No status')); ?></p>
+            </div>
+
+            <div class="history-grid">
+              <div class="history-item"><strong>Weight:</strong> <?php echo htmlspecialchars((string) ($history_row['poids_suiv'] ?? 0)); ?> kg</div>
+              <div class="history-item"><strong>Calories:</strong> <?php echo htmlspecialchars((string) ($history_row['val_cal_suiv'] ?? 0)); ?> kcal</div>
+              <div class="history-item"><strong>Protein:</strong> <?php echo htmlspecialchars((string) ($history_row['val_prot_suiv'] ?? 0)); ?> g</div>
+              <div class="history-item"><strong>Carbs:</strong> <?php echo htmlspecialchars((string) ($history_row['val_carb_suiv'] ?? 0)); ?> g</div>
+              <div class="history-item"><strong>Fat:</strong> <?php echo htmlspecialchars((string) ($history_row['val_fat_suiv'] ?? 0)); ?> g</div>
+              <div class="history-item"><strong>Water:</strong> <?php echo htmlspecialchars((string) ($history_row['nb_verre_eau_suiv'] ?? 0)); ?> glasses</div>
+              <div class="history-item"><strong>Sleep:</strong> <?php echo htmlspecialchars((string) ($history_row['nb_h_sommeil_suiv'] ?? 0)); ?> h</div>
+              <div class="history-item"><strong>Steps:</strong> <?php echo htmlspecialchars((string) ($history_row['nb_pas_suiv'] ?? 0)); ?></div>
+            </div>
+
+            <p class="history-notes"><strong>Notes:</strong> <?php echo htmlspecialchars((string) ($history_row['note_suiv'] ?? 'No notes.')); ?></p>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
+  
+  <div style="text-align: center; margin-top: 2.5rem;">
+    <button class="export-pdf-btn" onclick="exportHistoryPDF()">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" style="vertical-align: -3px; margin-right: 6px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Export to PDF
+    </button>
+  </div>
 </section>
 
 <footer>
@@ -3064,13 +3931,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     }
 
     const weeklySurveyPanel = document.getElementById('weekly-survey-panel');
-    const weeklySurveyClose = document.getElementById('weekly-survey-close');
     const weeklySurveyCancel = document.getElementById('weekly-survey-cancel');
     const weeklySurveyForm = document.getElementById('weekly-survey-form');
     const weeklySurveyObjectifId = document.getElementById('weekly-objectif-id');
     const weeklySurveyDeleteForm = document.getElementById('weekly-delete-form');
     const weeklySurveyDeleteId = document.getElementById('weekly-delete-id');
     const weeklySwipeLayout = document.getElementById('weekly-swipe-layout');
+    const weeklySurveyDateInput = document.getElementById('survey-date');
+    const weeklySurveyDateTitle = document.getElementById('weekly-survey-date');
     const weeklyWaterInput = document.getElementById('survey-water');
     const weeklyWaterGlasses = document.getElementById('weekly-water-glasses');
     const weeklyWaterCount = document.getElementById('weekly-water-count');
@@ -3085,6 +3953,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyStatusBadge = document.getElementById('weekly-status-badge');
     const weeklyNotesInput = document.getElementById('survey-notes');
     const weeklyNotesCharCount = document.getElementById('weekly-notes-char-count');
+    const weeklyWeightInput = document.getElementById('survey-weight');
+    const weeklyWeightSaveBtn = document.getElementById('weekly-weight-save-btn');
+    const weeklyWeightSummary = document.getElementById('weekly-weight-summary');
+    const weeklyWeightCurrent = document.getElementById('weekly-weight-current');
+    const weeklyWeightChange = document.getElementById('weekly-weight-change');
+    const weeklyWeightCount = document.getElementById('weekly-weight-count');
+    const weeklyWeightLog = document.getElementById('weekly-weight-log');
+    const weeklyWeightLogEmpty = document.getElementById('weekly-weight-log-empty');
+    let weeklyWeightEntries = [];
 
     const updateWeeklyStatusBadge = () => {
       if (!weeklyStatusInput || !weeklyStatusBadge) {
@@ -3113,6 +3990,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       const length = weeklyNotesInput.value.length;
       weeklyNotesCharCount.textContent = String(length) + ' / 500';
       weeklyNotesCharCount.className = 'weekly-daily-log-char-count' + (length > 400 ? ' warn' : '');
+    };
+
+    const renderWeeklyWeightLog = () => {
+      if (!weeklyWeightSummary || !weeklyWeightCurrent || !weeklyWeightChange || !weeklyWeightCount || !weeklyWeightLog || !weeklyWeightLogEmpty) {
+        return;
+      }
+
+      if (!weeklyWeightEntries.length) {
+        weeklyWeightSummary.classList.remove('is-visible');
+        weeklyWeightLog.innerHTML = '<div class="weekly-weight-log-empty" id="weekly-weight-log-empty">No weight entries yet</div>';
+        return;
+      }
+
+      weeklyWeightSummary.classList.add('is-visible');
+      const currentEntry = weeklyWeightEntries[0];
+      const firstEntry = weeklyWeightEntries[weeklyWeightEntries.length - 1];
+      const diff = Math.round((currentEntry.value - firstEntry.value) * 10) / 10;
+
+      weeklyWeightCurrent.textContent = currentEntry.value + ' kg';
+      weeklyWeightCount.textContent = String(weeklyWeightEntries.length);
+      if (weeklyWeightEntries.length < 2) {
+        weeklyWeightChange.textContent = '—';
+        weeklyWeightChange.style.color = 'rgba(255,255,255,.4)';
+      } else {
+        const sign = diff > 0 ? '+' : '';
+        weeklyWeightChange.textContent = sign + diff + ' kg';
+        weeklyWeightChange.style.color = diff < 0 ? '#4BAE52' : diff > 0 ? '#D94F00' : 'rgba(255,255,255,.4)';
+      }
+
+      weeklyWeightLog.innerHTML = weeklyWeightEntries.map((entry, index) => {
+        return '<div class="weekly-weight-entry">' +
+          '<div class="weekly-weight-dot"></div>' +
+          '<div class="weekly-weight-entry-value">' + entry.value + ' kg <span class="weekly-weight-entry-label">' + entry.label + '</span></div>' +
+          '<button type="button" class="weekly-weight-entry-del" data-index="' + index + '">✕</button>' +
+          '</div>';
+      }).join('');
+
+      weeklyWeightLog.querySelectorAll('.weekly-weight-entry-del').forEach((button) => {
+        button.addEventListener('click', () => {
+          const index = parseInt(button.getAttribute('data-index') || '-1', 10);
+          if (index >= 0) {
+            weeklyWeightEntries.splice(index, 1);
+            renderWeeklyWeightLog();
+          }
+        });
+      });
+    };
+
+    const seedWeeklyWeightEntry = () => {
+      if (!weeklyWeightInput) {
+        return;
+      }
+
+      const value = parseFloat(weeklyWeightInput.value || '');
+      if (Number.isNaN(value) || value <= 0) {
+        weeklyWeightEntries = [];
+        renderWeeklyWeightLog();
+        return;
+      }
+
+      const now = new Date();
+      weeklyWeightEntries = [{
+        value: Math.round(value * 10) / 10,
+        label: now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      }];
+      renderWeeklyWeightLog();
+    };
+
+    const addWeeklyWeightEntry = () => {
+      if (!weeklyWeightInput) {
+        return;
+      }
+
+      const value = parseFloat(weeklyWeightInput.value || '');
+      if (Number.isNaN(value) || value <= 0) {
+        return;
+      }
+
+      const now = new Date();
+      weeklyWeightEntries.unshift({
+        value: Math.round(value * 10) / 10,
+        label: now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      });
+      renderWeeklyWeightLog();
     };
 
     const weeklyTrackerTargets = {
@@ -3319,6 +4280,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     renderWeeklyTrackerOverview();
     updateWeeklyStatusBadge();
     updateWeeklyNotesCharCount();
+    seedWeeklyWeightEntry();
+
+    if (weeklySurveyPanel) {
+      weeklySurveyPanel.hidden = false;
+      weeklySurveyPanel.classList.add('is-visible');
+    }
+    if (weeklySwipeLayout) {
+      weeklySwipeLayout.classList.add('is-survey-open');
+    }
+    const weeklyToday = new Date();
+    if (weeklySurveyDateInput && !weeklySurveyDateInput.value) {
+      const todayValue = String(weeklyToday.getFullYear()) + '-' + String(weeklyToday.getMonth() + 1).padStart(2, '0') + '-' + String(weeklyToday.getDate()).padStart(2, '0');
+      weeklySurveyDateInput.value = todayValue;
+    }
+    if (weeklySurveyDateTitle) {
+      const todayLabel = weeklyToday.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      weeklySurveyDateTitle.textContent = 'Track for ' + todayLabel;
+    }
 
     if (weeklyCalendarAddBtn && weeklySurveyPanel) {
       weeklyCalendarAddBtn.addEventListener('click', () => {
@@ -3334,14 +4313,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           weeklyGoalRequiredMsg.classList.remove('is-visible');
         }
 
-        const surveyDateInput = document.getElementById('survey-date');
-        const surveyDateTitle = document.getElementById('weekly-survey-date');
         const dateValue = weeklyCalendarAddBtn.dataset.date || '';
         const dateLabel = weeklyCalendarAddBtn.dataset.label || '';
 
         if (weeklySurveyForm) {
           weeklySurveyForm.reset();
         }
+        weeklyWeightEntries = [];
         if (weeklySurveyObjectifId) {
           weeklySurveyObjectifId.value = '';
         }
@@ -3350,11 +4328,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         renderWeeklyTrackerOverview();
         updateWeeklyStatusBadge();
         updateWeeklyNotesCharCount();
-        if (surveyDateInput) {
-          surveyDateInput.value = dateValue;
+        renderWeeklyWeightLog();
+        if (weeklySurveyDateInput) {
+          weeklySurveyDateInput.value = dateValue;
         }
-        if (surveyDateTitle) {
-          surveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
+        if (weeklySurveyDateTitle) {
+          weeklySurveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
         }
 
         weeklySurveyPanel.hidden = false;
@@ -3372,8 +4351,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklyCalendarEditBtn && weeklySurveyPanel) {
       weeklyCalendarEditBtn.addEventListener('click', () => {
-        const surveyDateInput = document.getElementById('survey-date');
-        const surveyDateTitle = document.getElementById('weekly-survey-date');
         const dateValue = weeklyCalendarEditBtn.dataset.date || '';
         const dateLabel = weeklyCalendarEditBtn.dataset.label || '';
 
@@ -3385,11 +4362,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         renderWeeklyTrackerOverview();
         updateWeeklyStatusBadge();
         updateWeeklyNotesCharCount();
-        if (surveyDateInput) {
-          surveyDateInput.value = dateValue;
+        seedWeeklyWeightEntry();
+        if (weeklySurveyDateInput) {
+          weeklySurveyDateInput.value = dateValue;
         }
-        if (surveyDateTitle) {
-          surveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
+        if (weeklySurveyDateTitle) {
+          weeklySurveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
         }
 
         weeklySurveyPanel.hidden = false;
@@ -3431,23 +4409,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       });
     }
 
-    if (weeklySurveyClose && weeklySurveyPanel) {
-      weeklySurveyClose.addEventListener('click', () => {
-        weeklySurveyPanel.hidden = true;
-        weeklySurveyPanel.classList.remove('is-visible');
-        if (weeklySwipeLayout) {
-          weeklySwipeLayout.classList.remove('is-survey-open');
-        }
-      });
-    }
-
     if (weeklySurveyCancel && weeklySurveyPanel) {
       weeklySurveyCancel.addEventListener('click', () => {
-        weeklySurveyPanel.hidden = true;
-        weeklySurveyPanel.classList.remove('is-visible');
-        if (weeklySwipeLayout) {
-          weeklySwipeLayout.classList.remove('is-survey-open');
-        }
+        weeklySurveyPanel.hidden = false;
+        weeklySurveyPanel.classList.add('is-visible');
       });
     }
 
@@ -3457,8 +4422,340 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         weeklySurveyForm.submit();
       });
     }
+
+    if (weeklyWeightSaveBtn) {
+      weeklyWeightSaveBtn.addEventListener('click', addWeeklyWeightEntry);
+    }
+
+    const macroBreakdownChart = document.getElementById('macro-breakdown-chart');
+    const weeklyMacroBreakdownData = <?php echo $weekly_macro_breakdown_json; ?>;
+    const bodyWeightEvolutionChart = document.getElementById('body-weight-evolution-chart');
+    const bodyWeightEvolutionLabels = document.getElementById('body-weight-evolution-labels');
+    const bodyWeightEvolutionTrend = document.getElementById('weight-evolution-trend');
+    const weeklyWeightEvolutionData = <?php echo $weekly_weight_evolution_json; ?>;
+    const goalInitWeight = <?php echo !empty($current_user_goal['val_init_obj']) ? (float)$current_user_goal['val_init_obj'] : 'null'; ?>;
+    const goalTargetWeight = <?php echo !empty($current_user_goal['val_cible_obj']) ? (float)$current_user_goal['val_cible_obj'] : 'null'; ?>;
+
+    const renderMacroBreakdownChart = () => {
+      if (!macroBreakdownChart) {
+        return;
+      }
+
+      macroBreakdownChart.innerHTML = '';
+
+      weeklyMacroBreakdownData.forEach((entry) => {
+        const fatKcal = entry.fats * 9;
+        const proteinKcal = entry.proteins * 4;
+        const carbKcal = entry.carbs * 4;
+        const totalKcal = fatKcal + proteinKcal + carbKcal;
+
+        const fatPct = totalKcal > 0 ? (fatKcal / totalKcal) * 100 : 0;
+        const proteinPct = totalKcal > 0 ? (proteinKcal / totalKcal) * 100 : 0;
+        const carbPct = totalKcal > 0 ? (carbKcal / totalKcal) * 100 : 0;
+
+        const dayNode = document.createElement('div');
+        dayNode.className = 'progress-chart-day';
+
+        dayNode.innerHTML =
+          '<div class="progress-chart-bar-wrap">' +
+            '<div class="progress-chart-bar" role="img" aria-label="' + entry.day + ': Fats ' + entry.fats + 'g (' + fatPct.toFixed(1) + ' percent), Proteins ' + entry.proteins + 'g (' + proteinPct.toFixed(1) + ' percent), Carbohydrates ' + entry.carbs + 'g (' + carbPct.toFixed(1) + ' percent)">' +
+              '<div class="progress-chart-seg fat" style="height:' + fatPct.toFixed(2) + '%"></div>' +
+              '<div class="progress-chart-seg protein" style="height:' + proteinPct.toFixed(2) + '%"></div>' +
+              '<div class="progress-chart-seg carb" style="height:' + carbPct.toFixed(2) + '%"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="progress-chart-day-name">' + entry.day + '</div>' +
+          '<div class="progress-chart-day-total">' + Math.round(totalKcal) + ' kcal</div>' +
+          '<div class="progress-chart-labels">' +
+            '<div class="progress-chart-label fat">Fats: ' + entry.fats + 'g | ' + fatPct.toFixed(1) + '%</div>' +
+            '<div class="progress-chart-label protein">Proteins: ' + entry.proteins + 'g | ' + proteinPct.toFixed(1) + '%</div>' +
+            '<div class="progress-chart-label carb">Carbs: ' + entry.carbs + 'g | ' + carbPct.toFixed(1) + '%</div>' +
+          '</div>';
+
+        macroBreakdownChart.appendChild(dayNode);
+      });
+    };
+
+    const renderBodyWeightEvolutionChart = () => {
+      if (!bodyWeightEvolutionChart || !bodyWeightEvolutionLabels || !Array.isArray(weeklyWeightEvolutionData)) {
+        return;
+      }
+
+      const chartWidth = 760;
+      const chartHeight = 300;
+      const leftPad = 58;
+      const rightPad = 20;
+      const topPad = 20;
+      const bottomPad = 46;
+      const usableWidth = chartWidth - leftPad - rightPad;
+      const usableHeight = chartHeight - topPad - bottomPad;
+      const xStep = weeklyWeightEvolutionData.length > 1 ? (usableWidth / (weeklyWeightEvolutionData.length - 1)) : 0;
+
+      const realWeights = weeklyWeightEvolutionData
+        .map((entry) => parseFloat(entry.weight || 0))
+        .filter((value) => Number.isFinite(value) && value > 0);
+
+      const allRelevantWeights = [...realWeights];
+      if (goalInitWeight !== null && goalInitWeight > 0) allRelevantWeights.push(goalInitWeight);
+      if (goalTargetWeight !== null && goalTargetWeight > 0) allRelevantWeights.push(goalTargetWeight);
+
+      const hasWeights = allRelevantWeights.length > 0;
+      const minWeight = hasWeights ? Math.min.apply(null, allRelevantWeights) : 50;
+      const maxWeight = hasWeights ? Math.max.apply(null, allRelevantWeights) : 90;
+      const paddedMin = hasWeights ? Math.floor((minWeight - 1) * 2) / 2 : 50;
+      const paddedMax = hasWeights ? Math.ceil((maxWeight + 1) * 2) / 2 : 90;
+      const yMin = paddedMin < paddedMax ? paddedMin : paddedMin - 1;
+      const yMax = paddedMax > paddedMin ? paddedMax : paddedMax + 1;
+      const yRange = yMax - yMin;
+
+      const toY = (weightValue) => {
+        if (!Number.isFinite(weightValue) || weightValue <= 0) {
+          return topPad + usableHeight;
+        }
+        return topPad + ((yMax - weightValue) / yRange) * usableHeight;
+      };
+
+      let pathData = '';
+      const pointCircles = [];
+
+      weeklyWeightEvolutionData.forEach((entry, index) => {
+        const x = leftPad + (xStep * index);
+        const weightValue = parseFloat(entry.weight || 0);
+        const isRealPoint = Number.isFinite(weightValue) && weightValue > 0;
+        const y = toY(weightValue);
+
+        if (isRealPoint) {
+          pathData += pathData ? ' L ' + x.toFixed(2) + ' ' + y.toFixed(2) : 'M ' + x.toFixed(2) + ' ' + y.toFixed(2);
+        }
+
+        pointCircles.push(
+          '<circle class="weight-chart-point' + (isRealPoint ? '' : ' empty') + '" cx="' + x.toFixed(2) + '" cy="' + y.toFixed(2) + '" r="5"></circle>'
+        );
+      });
+
+      const yTicks = 5;
+      const gridLines = [];
+      for (let tick = 0; tick < yTicks; tick += 1) {
+        const ratio = tick / (yTicks - 1);
+        const y = topPad + (usableHeight * ratio);
+        const tickValue = yMax - (yRange * ratio);
+        gridLines.push('<line class="weight-chart-grid-line" x1="' + leftPad + '" y1="' + y.toFixed(2) + '" x2="' + (chartWidth - rightPad) + '" y2="' + y.toFixed(2) + '"></line>');
+        gridLines.push('<text class="weight-chart-axis-label" x="' + (leftPad - 8) + '" y="' + (y + 4).toFixed(2) + '" text-anchor="end">' + tickValue.toFixed(1) + ' kg</text>');
+      }
+
+      const svgMarkup =
+        '<svg class="weight-chart-svg" viewBox="0 0 ' + chartWidth + ' ' + chartHeight + '" role="img" aria-label="Body Weight Evolution, Last 7 Days in kilograms">' +
+          gridLines.join('') +
+          (pathData ? '<path class="weight-chart-line" d="' + pathData + '"></path>' : '') +
+          pointCircles.join('') +
+        '</svg>';
+
+      bodyWeightEvolutionChart.innerHTML = svgMarkup;
+
+      bodyWeightEvolutionLabels.innerHTML = weeklyWeightEvolutionData.map((entry) => {
+        const value = parseFloat(entry.weight || 0);
+        const valueLabel = Number.isFinite(value) && value > 0 ? value.toFixed(1) + ' kg' : 'No entry';
+        return '<div class="weight-chart-day"><strong>' + entry.day + '</strong><small>' + entry.date + '</small><span>' + valueLabel + '</span></div>';
+      }).join('');
+
+      if (bodyWeightEvolutionTrend) {
+        const firstReal = weeklyWeightEvolutionData.find((entry) => parseFloat(entry.weight || 0) > 0);
+        const lastReal = [...weeklyWeightEvolutionData].reverse().find((entry) => parseFloat(entry.weight || 0) > 0);
+
+        if (!firstReal || !lastReal) {
+          bodyWeightEvolutionTrend.className = 'weight-chart-trend flat';
+          bodyWeightEvolutionTrend.textContent = 'Trend: not enough data';
+        } else {
+          const firstValue = parseFloat(firstReal.weight);
+          const lastValue = parseFloat(lastReal.weight);
+          const delta = Math.round((lastValue - firstValue) * 10) / 10;
+
+          if (delta > 0) {
+            bodyWeightEvolutionTrend.className = 'weight-chart-trend';
+            bodyWeightEvolutionTrend.textContent = 'Trend marker: up +' + delta.toFixed(1) + ' kg';
+          } else if (delta < 0) {
+            bodyWeightEvolutionTrend.className = 'weight-chart-trend down';
+            bodyWeightEvolutionTrend.textContent = 'Trend marker: down ' + delta.toFixed(1) + ' kg';
+          } else {
+            bodyWeightEvolutionTrend.className = 'weight-chart-trend flat';
+            bodyWeightEvolutionTrend.textContent = 'Trend marker: stable 0.0 kg';
+          }
+        }
+      }
+    };
+
+    renderMacroBreakdownChart();
+    renderBodyWeightEvolutionChart();
   })();
+  
+ /* function exportHistoryPDF() {
+  const sourceElement = document.getElementById('pdf-template');
+  if (!sourceElement) {
+    alert("PDF template not found.");
+    return;
+  }
+
+  // Temporarily move off-screen instead of staying display:none
+  sourceElement.style.display = 'block';
+  sourceElement.style.position = 'fixed';
+  sourceElement.style.top = '-9999px';
+  sourceElement.style.left = '0';
+  sourceElement.style.width = '800px';
+  sourceElement.style.zIndex = '-9999';
+
+  const opt = {
+    margin:      10,
+    filename:    'Weekly_Tracking_Report.pdf',
+    image:       { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 800 },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(sourceElement).save().then(() => {
+    // Restore hidden state after export
+    sourceElement.style.display = 'none';
+    sourceElement.style.position = '';
+    sourceElement.style.top = '';
+    sourceElement.style.left = '';
+    sourceElement.style.width = '';
+    sourceElement.style.zIndex = '';
+  }).catch(err => {
+    console.error("PDF Export Error:", err);
+    sourceElement.style.display = 'none';
+  });
+}*/
+function exportHistoryPDF() {
+  const sourceElement = document.getElementById('history-export-content');
+  if (!sourceElement) {
+    alert("History content not found.");
+    return;
+  }
+
+  const opt = {
+    margin:      10,
+    filename:    'Weekly_Tracking_Report.pdf',
+    image:       { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(sourceElement).save();
+}
 </script>
+
+<style>
+  .export-pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.65rem;
+    background: linear-gradient(135deg, var(--green, #4bae52) 0%, #3a8a3f 100%);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(75, 174, 82, 0.3);
+  }
+
+  .export-pdf-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(75, 174, 82, 0.4);
+  }
+</style>
+
+<!-- html2pdf for PDF export -->
+
+<div id="pdf-template" style="display: none;">
+  <div style="font-family: 'Syne', 'Inter', Arial, sans-serif; padding: 40px; color: #2a2c2e; background-color: #f4f7f6;">
+    
+    <!-- Header with Gradient -->
+    <div style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 40px; color: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; color: #4bae52;">FOOVIA</h1>
+      <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; font-weight: 300;">Premium Tracking Report</p>
+    </div>
+    
+    <!-- Long Term Goal -->
+    <h2 style="font-size: 20px; color: #111827; border-left: 4px solid #4bae52; padding-left: 12px; margin-bottom: 20px;">Long Term Goal Details</h2>
+    <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 40px; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 14px;">
+      <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; width: 35%; background: #fafafa; color: #4bae52;">Type</td>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151;"><?php echo !empty($current_user_goal) ? htmlspecialchars(ucfirst(goal_type_label((string)$current_user_goal['type_obj']))) : 'No active goal'; ?></td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Status</td>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151;"><span style="background: #e6f4ea; color: #1e7e34; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 12px;"><?php echo !empty($current_user_goal) ? htmlspecialchars(ucfirst(goal_status_label((string)$current_user_goal['status_obj']))) : '-'; ?></span></td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Initial Weight</td>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151; font-weight: 600;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['val_init_obj']) . ' kg' : '-'; ?></td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Target Weight</td>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151; font-weight: 600;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['val_cible_obj']) . ' kg' : '-'; ?></td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Timeline</td>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['date_deb_obj']) . ' to ' . htmlspecialchars((string)$current_user_goal['date_fin_obj']) : '-'; ?></td>
+      </tr>
+      <tr>
+        <td style="padding: 14px 20px; font-weight: 700; background: #fafafa; color: #4bae52;">Daily Targets</td>
+        <td style="padding: 14px 20px; color: #374151;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['obj_cal_obj']) . ' kcal | ' . htmlspecialchars((string)$current_user_goal['obj_fat_obj']) . 'g F | ' . htmlspecialchars((string)$current_user_goal['obj_prot_obj']) . 'g P | ' . htmlspecialchars((string)$current_user_goal['obj_carb_obj']) . 'g C' : '-'; ?></td>
+      </tr>
+    </table>
+
+    <!-- Weekly Tracking Logs -->
+    <h2 style="font-size: 20px; color: #111827; border-left: 4px solid #f5a623; padding-left: 12px; margin-bottom: 20px;">Weekly Tracking Logs</h2>
+    <?php if (empty($weekly_history_rows)): ?>
+      <div style="background: #fff; padding: 20px; border-radius: 12px; text-align: center; color: #6b7280; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">No tracking history available yet.</div>
+    <?php else: ?>
+      <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 13px; text-align: left;">
+        <thead>
+          <tr style="background: linear-gradient(90deg, #1f2937 0%, #374151 100%); color: #ffffff;">
+            <th style="padding: 14px 12px; font-weight: 600;">Date</th>
+            <th style="padding: 14px 12px; font-weight: 600;">Status</th>
+            <th style="padding: 14px 12px; font-weight: 600;">Weight</th>
+            <th style="padding: 14px 12px; font-weight: 600;">Calories</th>
+            <th style="padding: 14px 12px; font-weight: 600;">F / P / C (g)</th>
+            <th style="padding: 14px 12px; font-weight: 600;">Water</th>
+            <th style="padding: 14px 12px; font-weight: 600;">Sleep</th>
+            <th style="padding: 14px 12px; font-weight: 600;">Steps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($weekly_history_rows as $index => $row): ?>
+          <?php $bg = $index % 2 === 0 ? '#ffffff' : '#f9fafb'; ?>
+          <tr style="background: <?php echo $bg; ?>;">
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #111827;"><?php echo htmlspecialchars((string)($row['date_suiv'] ?? '')); ?></td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #4bae52; font-weight: 600;"><?php echo htmlspecialchars((string)($row['status_obj_quot_suiv'] ?? '')); ?></td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #f5a623;"><?php echo htmlspecialchars((string)($row['poids_suiv'] ?? 0)); ?> kg</td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #374151;"><?php echo htmlspecialchars((string)($row['val_cal_suiv'] ?? 0)); ?></td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #6b7280; font-size: 12px;"><?php echo htmlspecialchars((string)($row['val_fat_suiv'] ?? 0) . ' / ' . (string)($row['val_prot_suiv'] ?? 0) . ' / ' . (string)($row['val_carb_suiv'] ?? 0)); ?></td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #3b82f6;">💧 <?php echo htmlspecialchars((string)($row['nb_verre_eau_suiv'] ?? 0)); ?></td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #8b5cf6;">🌙 <?php echo htmlspecialchars((string)($row['nb_h_sommeil_suiv'] ?? 0)); ?>h</td>
+            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #10b981;">🏃 <?php echo htmlspecialchars((string)($row['nb_pas_suiv'] ?? 0)); ?></td>
+          </tr>
+          <?php if (!empty(trim((string)($row['note_suiv'] ?? '')))): ?>
+          <tr style="background: <?php echo $bg; ?>;">
+            <td colspan="8" style="padding: 10px 12px 14px; border-bottom: 1px solid #f0f0f0; color: #6b7280; font-size: 12px; font-style: italic;">
+              <strong style="color: #4bae52;">Note:</strong> <?php echo nl2br(htmlspecialchars(trim((string)$row['note_suiv']))); ?>
+            </td>
+          </tr>
+          <?php endif; ?>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    <?php endif; ?>
+    
+    <!-- Footer -->
+    <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+      Generated by FOOVIA on <?php echo date('Y-m-d H:i'); ?>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

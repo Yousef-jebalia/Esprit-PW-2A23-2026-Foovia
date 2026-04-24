@@ -5,6 +5,7 @@ class ObjectifHebdomadaire
     private int $id_obj;
     private string $date_suiv;
     private float $val_cal_suiv;
+    private float $poids_suiv;
     private float $val_fat_suiv;
     private float $val_prot_suiv;
     private float $val_carb_suiv;
@@ -18,12 +19,13 @@ class ObjectifHebdomadaire
 
 
     // Constructor
-    public function __construct(int $id_suiv, int $id_obj, string $date_suiv, float $val_cal_suiv, float $val_fat_suiv, float $val_prot_suiv, float $val_carb_suiv, string $note_suiv, string $status_obj_quot_suiv, int $nb_verre_eau_suiv, string $nb_h_sommeil_suiv, int $nb_pas_suiv, int $id_user)
+    public function __construct(int $id_suiv, int $id_obj, string $date_suiv, float $val_cal_suiv, float $poids_suiv, float $val_fat_suiv, float $val_prot_suiv, float $val_carb_suiv, string $note_suiv, string $status_obj_quot_suiv, int $nb_verre_eau_suiv, string $nb_h_sommeil_suiv, int $nb_pas_suiv, int $id_user)
     {
         $this->id_suiv = $id_suiv;
         $this->id_obj = $id_obj;
         $this->date_suiv = $date_suiv;
         $this->val_cal_suiv = $val_cal_suiv;
+        $this->poids_suiv = $poids_suiv;
         $this->val_fat_suiv = $val_fat_suiv;
         $this->val_prot_suiv = $val_prot_suiv;
         $this->val_carb_suiv = $val_carb_suiv;
@@ -62,6 +64,11 @@ class ObjectifHebdomadaire
     public function getValCalSuiv(): float
     {
         return $this->val_cal_suiv;
+    }
+
+    public function getPoidsSuiv(): float
+    {
+        return $this->poids_suiv;
     }
 
     public function getValFatSuiv(): float
@@ -130,6 +137,11 @@ class ObjectifHebdomadaire
     public function setValCalSuiv(float $val_cal_suiv): void
     {
         $this->val_cal_suiv = $val_cal_suiv;
+    }
+
+    public function setPoidsSuiv(float $poids_suiv): void
+    {
+        $this->poids_suiv = $poids_suiv;
     }
 
     public function setValFatSuiv(float $val_fat_suiv): void

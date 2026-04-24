@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="container-fluid">
             <div class="row py-3 border-bottom align-items-center">
                 <div class="col-12 col-md-3 text-center text-md-start mb-3 mb-md-0">
-                    <a href="../front_office/index.html" class="d-inline-block">
+                    <a href="../front_office/foovia.html" class="d-inline-block">
                         <img src="../front_office/images/logo.svg" alt="logo" class="img-fluid" style="max-height: 54px;">
                     </a>
                 </div>
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-12 col-md-5 mb-3 mb-md-0">
                     <div class="search-bar row bg-light p-2 rounded-4">
                         <div class="col-11">
-                            <form class="text-center" action="../front_office/index.html" method="post">
+                            <form class="text-center" action="../front_office/foovia.html" method="post">
                                 <input type="text" class="form-control border-0 bg-transparent" placeholder="Search in Foovia">
                             </form>
                         </div>
@@ -130,10 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-12 col-md-4">
                     <ul class="navbar-nav list-unstyled d-flex flex-row gap-4 justify-content-center justify-content-md-end align-items-center mb-0">
                         <li class="nav-item">
-                            <a href="../front_office/index.html" class="nav-link top-nav-link">Home</a>
+                            <a href="../front_office/foovia.html" class="nav-link top-nav-link">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a href="form-elements-component.php" class="nav-link top-nav-link">Add</a>
+                            <a href="add-objectif-long-terme.php" class="nav-link top-nav-link">Add</a>
                         </li>
                         <li class="nav-item active">
                             <a href="../front_office/objectif-long-terme.php" class="nav-link top-nav-link text-primary">View</a>
@@ -253,8 +253,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-lg-2 col-md-6">
                     <h5 class="widget-title">Navigation</h5>
                     <ul class="menu-list list-unstyled">
-                        <li class="menu-item"><a href="../front_office/index.html" class="nav-link">Home</a></li>
-                        <li class="menu-item"><a href="form-elements-component.php" class="nav-link">Add</a></li>
+                        <li class="menu-item"><a href="../front_office/foovia.html" class="nav-link">Home</a></li>
+                        <li class="menu-item"><a href="add-objectif-long-terme.php" class="nav-link">Add</a></li>
                         <li class="menu-item"><a href="../front_office/objectif-long-terme.php" class="nav-link">View</a></li>
                     </ul>
                 </div>
@@ -264,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <h5 class="widget-title">Newsletter</h5>
-                    <form class="d-flex mt-3 gap-0" action="../front_office/index.html">
+                    <form class="d-flex mt-3 gap-0" action="../front_office/foovia.html">
                         <input class="form-control rounded-start rounded-0 bg-light" type="email" placeholder="Email Address" aria-label="Email Address">
                         <button class="btn btn-dark rounded-end rounded-0" type="submit">Subscribe</button>
                     </form>

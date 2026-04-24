@@ -5,15 +5,17 @@ require_once(__DIR__ . '/../model/ObjectifHebdomadaire.php');
 class ObjectifHebdomadaire_Controller {
 
     public function add_objHebdo(ObjectifHebdomadaire $objHebdo) {
-        $sql = "INSERT INTO objectifhebdomadaire (id_obj, date_suiv, val_cal_suiv, val_fat_suiv, val_prot_suiv, val_carb_suiv, note_suiv, status_obj_quot_suiv, nb_verre_eau_suiv, nb_h_sommeil_suiv, nb_pas_suiv, id_user) 
-                VALUES (:id_obj, :date_suiv, :val_cal_suiv, :val_fat_suiv, :val_prot_suiv, :val_carb_suiv, :note_suiv, :status_obj_quot_suiv, :nb_verre_eau_suiv, :nb_h_sommeil_suiv, :nb_pas_suiv, :id_user)";
+        $sql = "INSERT INTO objectifhebdomadaire (id_suiv, id_obj, date_suiv, val_cal_suiv, poids_suiv, val_fat_suiv, val_prot_suiv, val_carb_suiv, note_suiv, status_obj_quot_suiv, nb_verre_eau_suiv, nb_h_sommeil_suiv, nb_pas_suiv, id_user) 
+            VALUES (:id_suiv, :id_obj, :date_suiv, :val_cal_suiv, :poids_suiv, :val_fat_suiv, :val_prot_suiv, :val_carb_suiv, :note_suiv, :status_obj_quot_suiv, :nb_verre_eau_suiv, :nb_h_sommeil_suiv, :nb_pas_suiv, :id_user)";
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
             $query->execute([
+                'id_suiv' => $objHebdo->getIdSuiv(),
                 'id_obj' => $objHebdo->getIdObj(),
                 'date_suiv' => $objHebdo->getDateSuiv(),
                 'val_cal_suiv' => $objHebdo->getValCalSuiv(),
+                'poids_suiv' => $objHebdo->getPoidsSuiv(),
                 'val_fat_suiv' => $objHebdo->getValFatSuiv(),
                 'val_prot_suiv' => $objHebdo->getValProtSuiv(),
                 'val_carb_suiv' => $objHebdo->getValCarbSuiv(),
@@ -28,6 +30,19 @@ class ObjectifHebdomadaire_Controller {
             ]);
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
+        }
+    }
+
+    public function get_next_suivi_id(): int {
+        $sql = "SELECT COALESCE(MAX(id_suiv), 0) + 1 AS next_id FROM objectifhebdomadaire";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->query($sql);
+            $result = $query->fetch();
+            return isset($result['next_id']) ? (int) $result['next_id'] : 1;
+        } catch (Exception $e) {
+            return 1;
         }
     }
 
@@ -50,6 +65,50 @@ class ObjectifHebdomadaire_Controller {
         }
     }
 
+    public function get_recent_objectifs_by_user(int $id_user, int $days = 7): array {
+        $safeDays = max(1, $days);
+        $sql = "SELECT *
+                FROM objectifhebdomadaire
+                WHERE id_user = :id_user
+                ORDER BY date_suiv DESC
+                LIMIT " . (int) $safeDays;
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute([
+                'id_user' => $id_user,
+            ]);
+
+            $rows = $query->fetchAll();
+            return is_array($rows) ? $rows : [];
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return [];
+        }
+    }
+
+    public function list_objectifs_by_user(int $id_user): array {
+        $sql = "SELECT *
+                FROM objectifhebdomadaire
+                WHERE id_user = :id_user
+                ORDER BY date_suiv DESC, id_suiv DESC";
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute([
+                'id_user' => $id_user,
+            ]);
+
+            $rows = $query->fetchAll();
+            return is_array($rows) ? $rows : [];
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return [];
+        }
+    }
+
     public function save_objectif_hebdo(array $data, ?int $id_suiv = null): bool {
         $db = config::getConnexion();
 
@@ -59,6 +118,7 @@ class ObjectifHebdomadaire_Controller {
                         SET id_obj = :id_obj,
                             date_suiv = :date_suiv,
                             val_cal_suiv = :val_cal_suiv,
+                            poids_suiv = :poids_suiv,
                             val_fat_suiv = :val_fat_suiv,
                             val_prot_suiv = :val_prot_suiv,
                             val_carb_suiv = :val_carb_suiv,
@@ -75,6 +135,7 @@ class ObjectifHebdomadaire_Controller {
                     'id_obj' => $data['id_obj'],
                     'date_suiv' => $data['date_suiv'],
                     'val_cal_suiv' => $data['val_cal_suiv'],
+                    'poids_suiv' => $data['poids_suiv'],
                     'val_fat_suiv' => $data['val_fat_suiv'],
                     'val_prot_suiv' => $data['val_prot_suiv'],
                     'val_carb_suiv' => $data['val_carb_suiv'],
@@ -87,10 +148,14 @@ class ObjectifHebdomadaire_Controller {
                 ]);
             }
 
+            $new_id_suiv = $this->get_next_suivi_id();
+            
             $sql = "INSERT INTO objectifhebdomadaire (
+                        id_suiv,
                         id_obj,
                         date_suiv,
                         val_cal_suiv,
+                        poids_suiv,
                         val_fat_suiv,
                         val_prot_suiv,
                         val_carb_suiv,
@@ -101,9 +166,11 @@ class ObjectifHebdomadaire_Controller {
                         nb_pas_suiv,
                         id_user
                     ) VALUES (
+                        :id_suiv,
                         :id_obj,
                         :date_suiv,
                         :val_cal_suiv,
+                        :poids_suiv,
                         :val_fat_suiv,
                         :val_prot_suiv,
                         :val_carb_suiv,
@@ -116,9 +183,11 @@ class ObjectifHebdomadaire_Controller {
                     )";
             $query = $db->prepare($sql);
             return $query->execute([
+                'id_suiv' => $new_id_suiv,
                 'id_obj' => $data['id_obj'],
                 'date_suiv' => $data['date_suiv'],
                 'val_cal_suiv' => $data['val_cal_suiv'],
+                'poids_suiv' => $data['poids_suiv'],
                 'val_fat_suiv' => $data['val_fat_suiv'],
                 'val_prot_suiv' => $data['val_prot_suiv'],
                 'val_carb_suiv' => $data['val_carb_suiv'],
