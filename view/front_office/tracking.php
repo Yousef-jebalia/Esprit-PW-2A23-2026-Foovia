@@ -1566,6 +1566,148 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     color: var(--red);
   }
 
+  .weekly-meal-card {
+    grid-column: 1 / -1;
+    border-radius: 22px;
+    border: 1.5px solid rgba(0, 0, 0, 0.07);
+    background: #fff;
+    padding: 1.15rem 1.15rem 1.25rem;
+  }
+
+  .weekly-meal-card .card-title {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .weekly-meal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .weekly-meal-field.wide {
+    grid-column: 1 / -1;
+  }
+
+  .weekly-meal-field label {
+    display: block;
+    font-family: 'Boldonse', system-ui;
+    font-size: .72rem;
+    margin-bottom: 6px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .weekly-meal-field.kcal label { color: var(--orange); }
+  .weekly-meal-field.prot label { color: var(--green); }
+  .weekly-meal-field.carb label { color: var(--yellow-mid); }
+  .weekly-meal-field.fat label { color: #c08060; }
+  .weekly-meal-field.wide label { color: #555; }
+
+  .weekly-meal-field input {
+    width: 100%;
+    border: 1.5px solid rgba(0,0,0,.1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    background: var(--off-white);
+    color: var(--dark);
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .weekly-meal-field input:focus {
+    border-color: var(--green);
+  }
+
+  .weekly-meal-add-btn {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-family: 'Boldonse', system-ui;
+    font-size: .95rem;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+  }
+
+  .weekly-meal-add-btn:hover {
+    background: var(--forest);
+    transform: scale(1.01);
+  }
+
+  .weekly-meal-log {
+    margin-top: 1rem;
+  }
+
+  .weekly-meal-log-title {
+    font-family: 'Boldonse', system-ui;
+    font-size: .85rem;
+    margin-bottom: 10px;
+    color: #666;
+  }
+
+  .weekly-meal-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+
+  .weekly-meal-entry:last-child {
+    border-bottom: none;
+  }
+
+  .weekly-meal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .weekly-meal-entry-name {
+    flex: 1;
+    font-size: .88rem;
+    font-weight: 500;
+  }
+
+  .weekly-meal-entry-macros {
+    font-size: .75rem;
+    color: #888;
+  }
+
+  .weekly-meal-entry-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 1rem;
+    transition: color .2s;
+    padding: 2px 6px;
+  }
+
+  .weekly-meal-entry-del:hover {
+    color: var(--red);
+  }
+
+  .weekly-meal-log-empty {
+    font-size: .82rem;
+    color: #bbb;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  @media (max-width: 640px) {
+    .weekly-meal-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .weekly-survey-field input:focus,
   .weekly-survey-field textarea:focus {
     outline: none;
@@ -3179,6 +3321,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
             <div class="weekly-weight-log-empty" id="weekly-weight-log-empty">No weight entries yet</div>
           </div>
         </div>
+        <div class="weekly-meal-card">
+          <p class="sec-label">Log food</p>
+          <h2 class="card-title"><span class="emoji">🍽️</span> Add Intake</h2>
+
+          <div class="weekly-meal-grid">
+            <div class="weekly-meal-field wide">
+              <label for="weekly-meal-name">Meal name</label>
+              <input type="text" id="weekly-meal-name" placeholder="e.g. Grilled Chicken Bowl">
+            </div>
+            <div class="weekly-meal-field kcal">
+              <label for="weekly-meal-cal">Calories (kcal)</label>
+              <input type="number" id="weekly-meal-cal" placeholder="0" min="0" step="0.01">
+            </div>
+            <div class="weekly-meal-field prot">
+              <label for="weekly-meal-prot">Protein (g)</label>
+              <input type="number" id="weekly-meal-prot" placeholder="0" min="0" step="0.01">
+            </div>
+            <div class="weekly-meal-field carb">
+              <label for="weekly-meal-carb">Carbs (g)</label>
+              <input type="number" id="weekly-meal-carb" placeholder="0" min="0" step="0.01">
+            </div>
+            <div class="weekly-meal-field fat">
+              <label for="weekly-meal-fat">Fat (g)</label>
+              <input type="number" id="weekly-meal-fat" placeholder="0" min="0" step="0.01">
+            </div>
+          </div>
+
+          <button type="button" class="weekly-meal-add-btn" id="weekly-meal-add-btn">+ Log this meal</button>
+
+          <div class="weekly-meal-log">
+            <div class="weekly-meal-log-title">Today's meals</div>
+            <div id="weekly-meal-log-entries">
+              <p class="weekly-meal-log-empty">No meals logged yet</p>
+            </div>
+          </div>
+        </div>
         <div class="weekly-survey-field weekly-macro-field kcal">
           <label for="survey-cal">Calories (kcal)</label>
           <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
@@ -3961,7 +4139,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyWeightCount = document.getElementById('weekly-weight-count');
     const weeklyWeightLog = document.getElementById('weekly-weight-log');
     const weeklyWeightLogEmpty = document.getElementById('weekly-weight-log-empty');
+    const weeklyMealNameInput = document.getElementById('weekly-meal-name');
+    const weeklyMealCalInput = document.getElementById('weekly-meal-cal');
+    const weeklyMealProtInput = document.getElementById('weekly-meal-prot');
+    const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
+    const weeklyMealFatInput = document.getElementById('weekly-meal-fat');
+    const weeklyMealAddBtn = document.getElementById('weekly-meal-add-btn');
+    const weeklyMealLogEntries = document.getElementById('weekly-meal-log-entries');
     let weeklyWeightEntries = [];
+    let weeklyMealEntries = [];
+    const weeklyMealDotColors = ['#D94F00', '#4BAE52', '#F5C842', '#F2A98A', '#2E4A28', '#C0381A'];
+    const weeklyMealStoragePrefix = 'foovia.weekly-meals';
+    const weeklyMealStorageUserId = <?php echo (int) $current_user_id; ?>;
+
+    const getWeeklyMealStorageKey = (dateValue) => {
+      const safeDate = String(dateValue || (weeklySurveyDateInput ? weeklySurveyDateInput.value : '') || 'today').trim() || 'today';
+      return weeklyMealStoragePrefix + '.' + String(weeklyMealStorageUserId) + '.' + safeDate;
+    };
+
+    const persistWeeklyMealEntries = () => {
+      if (!window.localStorage) {
+        return;
+      }
+
+      try {
+        localStorage.setItem(getWeeklyMealStorageKey(), JSON.stringify(weeklyMealEntries));
+      } catch (error) {
+        // Ignore storage failures and keep the UI responsive.
+      }
+    };
+
+    const syncWeeklyMacroInputsFromMealEntries = () => {
+      const totals = weeklyMealEntries.reduce((accumulator, entry) => {
+        accumulator.cal += entry.cal;
+        accumulator.prot += entry.prot;
+        accumulator.carb += entry.carb;
+        accumulator.fat += entry.fat;
+        return accumulator;
+      }, { cal: 0, prot: 0, carb: 0, fat: 0 });
+
+      if (weeklyMacroInputCal) {
+        weeklyMacroInputCal.value = String(Math.round(totals.cal * 100) / 100);
+      }
+      if (weeklyMacroInputProt) {
+        weeklyMacroInputProt.value = String(Math.round(totals.prot * 100) / 100);
+      }
+      if (weeklyMacroInputCarb) {
+        weeklyMacroInputCarb.value = String(Math.round(totals.carb * 100) / 100);
+      }
+      if (weeklyMacroInputFat) {
+        weeklyMacroInputFat.value = String(Math.round(totals.fat * 100) / 100);
+      }
+
+      renderWeeklyMacroOverview();
+    };
+
+    const restoreWeeklyMealEntries = (dateValue) => {
+      weeklyMealEntries = [];
+
+      if (window.localStorage) {
+        try {
+          const parsedValue = JSON.parse(localStorage.getItem(getWeeklyMealStorageKey(dateValue)) || '[]');
+          if (Array.isArray(parsedValue)) {
+            weeklyMealEntries = parsedValue.map((entry) => ({
+              name: String(entry && entry.name ? entry.name : 'Unnamed meal'),
+              cal: Math.max(0, parseFloat(entry && entry.cal ? entry.cal : 0) || 0),
+              prot: Math.max(0, parseFloat(entry && entry.prot ? entry.prot : 0) || 0),
+              carb: Math.max(0, parseFloat(entry && entry.carb ? entry.carb : 0) || 0),
+              fat: Math.max(0, parseFloat(entry && entry.fat ? entry.fat : 0) || 0)
+            })).filter((entry) => entry.cal > 0 || entry.prot > 0 || entry.carb > 0 || entry.fat > 0);
+          }
+        } catch (error) {
+          weeklyMealEntries = [];
+        }
+      }
+
+      syncWeeklyMacroInputsFromMealEntries();
+      renderWeeklyMealLog();
+    };
+
+    const loadWeeklyMealLogState = (dateValue) => {
+      if (weeklyMealNameInput) {
+        weeklyMealNameInput.value = '';
+      }
+      if (weeklyMealCalInput) {
+        weeklyMealCalInput.value = '';
+      }
+      if (weeklyMealProtInput) {
+        weeklyMealProtInput.value = '';
+      }
+      if (weeklyMealCarbInput) {
+        weeklyMealCarbInput.value = '';
+      }
+      if (weeklyMealFatInput) {
+        weeklyMealFatInput.value = '';
+      }
+
+      restoreWeeklyMealEntries(dateValue);
+    };
 
     const updateWeeklyStatusBadge = () => {
       if (!weeklyStatusInput || !weeklyStatusBadge) {
@@ -4056,6 +4331,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         label: now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
       }];
       renderWeeklyWeightLog();
+    };
+
+    const renderWeeklyMealLog = () => {
+      if (!weeklyMealLogEntries) {
+        return;
+      }
+
+      if (!weeklyMealEntries.length) {
+        weeklyMealLogEntries.innerHTML = '<p class="weekly-meal-log-empty">No meals logged yet</p>';
+        return;
+      }
+
+      weeklyMealLogEntries.innerHTML = weeklyMealEntries.map((entry, index) => {
+        const color = weeklyMealDotColors[index % weeklyMealDotColors.length];
+        return '<div class="weekly-meal-entry">' +
+          '<div class="weekly-meal-dot" style="background:' + color + '"></div>' +
+          '<div class="weekly-meal-entry-name">' + entry.name + '</div>' +
+          '<div class="weekly-meal-entry-macros">' + entry.cal + 'kcal · ' + entry.prot + 'g P · ' + entry.carb + 'g C · ' + entry.fat + 'g F</div>' +
+          '<button type="button" class="weekly-meal-entry-del" data-index="' + index + '">✕</button>' +
+        '</div>';
+      }).join('');
+
+      weeklyMealLogEntries.querySelectorAll('.weekly-meal-entry-del').forEach((button) => {
+        button.addEventListener('click', () => {
+          const index = parseInt(button.getAttribute('data-index') || '-1', 10);
+          if (index < 0 || index >= weeklyMealEntries.length) {
+            return;
+          }
+
+          weeklyMealEntries.splice(index, 1);
+          persistWeeklyMealEntries();
+          syncWeeklyMacroInputsFromMealEntries();
+          renderWeeklyMealLog();
+        });
+      });
+    };
+
+    const addWeeklyMealEntry = () => {
+      if (!weeklyMealCalInput || !weeklyMealProtInput || !weeklyMealCarbInput || !weeklyMealFatInput) {
+        return;
+      }
+
+      const entry = {
+        name: (weeklyMealNameInput && weeklyMealNameInput.value.trim()) ? weeklyMealNameInput.value.trim() : 'Unnamed meal',
+        cal: parseFloat(weeklyMealCalInput.value || '0') || 0,
+        prot: parseFloat(weeklyMealProtInput.value || '0') || 0,
+        carb: parseFloat(weeklyMealCarbInput.value || '0') || 0,
+        fat: parseFloat(weeklyMealFatInput.value || '0') || 0
+      };
+
+      if (entry.cal <= 0 && entry.prot <= 0 && entry.carb <= 0 && entry.fat <= 0) {
+        return;
+      }
+
+      weeklyMealEntries.push(entry);
+      persistWeeklyMealEntries();
+      syncWeeklyMacroInputsFromMealEntries();
+
+      if (weeklyMealNameInput) {
+        weeklyMealNameInput.value = '';
+      }
+      weeklyMealCalInput.value = '';
+      weeklyMealProtInput.value = '';
+      weeklyMealCarbInput.value = '';
+      weeklyMealFatInput.value = '';
+
+      renderWeeklyMealLog();
     };
 
     const addWeeklyWeightEntry = () => {
@@ -4294,6 +4636,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       const todayValue = String(weeklyToday.getFullYear()) + '-' + String(weeklyToday.getMonth() + 1).padStart(2, '0') + '-' + String(weeklyToday.getDate()).padStart(2, '0');
       weeklySurveyDateInput.value = todayValue;
     }
+    loadWeeklyMealLogState(weeklySurveyDateInput ? weeklySurveyDateInput.value : '');
     if (weeklySurveyDateTitle) {
       const todayLabel = weeklyToday.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       weeklySurveyDateTitle.textContent = 'Track for ' + todayLabel;
@@ -4324,7 +4667,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           weeklySurveyObjectifId.value = '';
         }
         renderWeeklyWaterSelector();
-        renderWeeklyMacroOverview();
         renderWeeklyTrackerOverview();
         updateWeeklyStatusBadge();
         updateWeeklyNotesCharCount();
@@ -4332,6 +4674,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         if (weeklySurveyDateInput) {
           weeklySurveyDateInput.value = dateValue;
         }
+        loadWeeklyMealLogState(dateValue);
         if (weeklySurveyDateTitle) {
           weeklySurveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
         }
@@ -4358,7 +4701,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           weeklySurveyObjectifId.value = weeklyRecordId;
         }
         renderWeeklyWaterSelector();
-        renderWeeklyMacroOverview();
         renderWeeklyTrackerOverview();
         updateWeeklyStatusBadge();
         updateWeeklyNotesCharCount();
@@ -4366,6 +4708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         if (weeklySurveyDateInput) {
           weeklySurveyDateInput.value = dateValue;
         }
+        loadWeeklyMealLogState(dateValue);
         if (weeklySurveyDateTitle) {
           weeklySurveyDateTitle.textContent = dateLabel ? 'Track for ' + dateLabel : 'Track for';
         }
@@ -4425,6 +4768,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklyWeightSaveBtn) {
       weeklyWeightSaveBtn.addEventListener('click', addWeeklyWeightEntry);
+    }
+
+    if (weeklyMealAddBtn) {
+      weeklyMealAddBtn.addEventListener('click', addWeeklyMealEntry);
     }
 
     const macroBreakdownChart = document.getElementById('macro-breakdown-chart');
