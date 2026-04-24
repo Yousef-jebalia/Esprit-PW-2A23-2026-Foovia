@@ -68,7 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
         $_POST['allergie_user']     ?? $current['allergie_user'],
         $_POST['medicament_user']   ?? $current['medicament_user'],
         $current['inscriptiondate_user'],
-        $current['role_user']
+        $current['role_user'],
+        $current['subscription_user'] ?? 'normal',
+        $current['account_state_user'] ?? 'active',
+        $current['duration_user'] ?? '00:00:00'
     );
 
     $controller->update_user($user, $_SESSION['user_id']);

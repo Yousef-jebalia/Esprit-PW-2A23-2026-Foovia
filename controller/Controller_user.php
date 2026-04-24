@@ -24,7 +24,10 @@ class Controller_user {
             allergie_user,
             medicament_user,
             inscriptiondate_user,
-            role_user
+            role_user,
+            subscription_user,
+            account_state_user,
+            duration_user
         ) VALUES (
             :name,
             :lastname,
@@ -41,7 +44,10 @@ class Controller_user {
             :allergie,
             :medicament,
             :date,
-            :role
+            :role,
+            :subscription,
+            :account_state,
+            :duration
         )";
 
         $db = config::getConnexion();
@@ -65,7 +71,10 @@ class Controller_user {
                 'allergie'  => $user->getAllergieUser(),
                 'medicament'=> $user->getMedicamentUser(),
                 'date'      => $user->getInscriptiondateUser(),
-                'role'      => $user->getRoleUser()
+                'role'      => $user->getRoleUser(),
+                'subscription' => $user->getSubscriptionUser(),
+                'account_state' => $user->getAccountStateUser(),
+                'duration' => $user->getDurationUser()
             ];
 
             error_log("======== INSERT PARAMS ========");
@@ -158,7 +167,10 @@ class Controller_user {
             allergie_user = :allergie,
             medicament_user = :medicament,
             inscriptiondate_user = :date,
-            role_user = :role
+            role_user = :role,
+            subscription_user = :subscription,
+            account_state_user = :account_state,
+            duration_user = :duration
             WHERE id_user = :id";
 
         $db = config::getConnexion();
@@ -183,6 +195,9 @@ class Controller_user {
                 'medicament' => $user->getMedicamentUser(),
                 'date'       => $user->getInscriptiondateUser(),
                 'role'       => $user->getRoleUser(),
+                'subscription' => $user->getSubscriptionUser(),
+                'account_state' => $user->getAccountStateUser(),
+                'duration' => $user->getDurationUser(),
                 'id'         => $id
             ]);
 

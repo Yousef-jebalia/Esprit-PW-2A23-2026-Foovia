@@ -45,7 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                 $_POST['allergie'] ?? '',
                 $_POST['medicament'] ?? '',
                 date('Y-m-d H:i:s'),
-                'user'
+                'user',
+                'normal',
+                'active',
+                '00:00:00'
             );
 
             $controller->update_user($user, $user_id);

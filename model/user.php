@@ -19,6 +19,9 @@ class User
     private string $medicament_user;
     private string $inscriptiondate_user;
     private string $role_user;
+    private string $subscription_user;
+    private string $account_state_user;
+    private string $duration_user;
 
     
     public function __construct(
@@ -38,7 +41,10 @@ class User
         string $allergie_user,
         string $medicament_user,
         string $inscriptiondate_user,
-        string $role_user
+        string $role_user,
+        string $subscription_user = 'normal',
+        string $account_state_user = 'active',
+        string $duration_user = '00:00:00'
     ) {
         $this->id_user = $id_user;
         $this->name_user = $name_user;
@@ -57,6 +63,9 @@ class User
         $this->medicament_user = $medicament_user;
         $this->inscriptiondate_user = $inscriptiondate_user;
         $this->role_user = $role_user;
+        $this->subscription_user = $subscription_user;
+        $this->account_state_user = $account_state_user;
+        $this->duration_user = $duration_user;
     }
 
    
@@ -83,6 +92,9 @@ class User
     public function getMedicamentUser(): string { return $this->medicament_user; }
     public function getInscriptiondateUser(): string { return $this->inscriptiondate_user; }
     public function getRoleUser(): string { return $this->role_user; }
+    public function getSubscriptionUser(): string { return $this->subscription_user; }
+    public function getAccountStateUser(): string { return $this->account_state_user; }
+    public function getDurationUser(): string { return $this->duration_user; }
 
     
     public function setIdUser(int $id_user): void { $this->id_user = $id_user; }
@@ -102,6 +114,9 @@ class User
     public function setMedicamentUser(string $medicament_user): void { $this->medicament_user = $medicament_user; }
     public function setInscriptiondateUser(string $inscriptiondate_user): void { $this->inscriptiondate_user = $inscriptiondate_user; }
     public function setRoleUser(string $role_user): void { $this->role_user = $role_user; }
+    public function setSubscriptionUser(string $subscription_user): void { $this->subscription_user = $subscription_user; }
+    public function setAccountStateUser(string $account_state_user): void { $this->account_state_user = $account_state_user; }
+    public function setDurationUser(string $duration_user): void { $this->duration_user = $duration_user; }
 }
 
 ?>

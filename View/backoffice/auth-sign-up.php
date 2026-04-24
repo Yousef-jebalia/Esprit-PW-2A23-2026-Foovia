@@ -47,7 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
                 $allergie,
                 $medicament,
                 date('Y-m-d H:i:s'),
-                'user'
+                'user',
+                'normal',
+                'active',
+                '00:00:00'
             );
 
             $controller = new Controller_user();

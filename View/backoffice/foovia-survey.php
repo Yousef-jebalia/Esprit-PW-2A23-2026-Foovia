@@ -66,7 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
                 $_POST['allergie'] ?? '',
                 $_POST['medicament'] ?? '',
                 date('Y-m-d H:i:s'),
-                'user'
+                'user',
+                'normal',
+                'active',
+                '00:00:00'
             );
 
             $controller->update_user($user, $user_id);
@@ -95,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
 
 <!-- TOP BAR -->
 <div class="topbar">
-  <a href="foovia.html" class="topbar-logo">🌿 FOOV<span>IA</span></a>
+  <a href="../frontoffice/foovia.php" class="topbar-logo">🌿 FOOV<span>IA</span></a>
   <div class="progress-wrap">
     <div class="progress-labels">
       <span id="pl-1" class="active">Profile</span>
@@ -200,8 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       <div class="card-label space-between">
         <span>📏 Height</span>
         <div class="unit-toggle">
-          <button class="unit-btn active" id="h-cm" onclick="setHeightUnit('cm')">cm</button>
-          <button class="unit-btn" id="h-ft" onclick="setHeightUnit('ft')">ft/in</button>
+          <button type="button" class="unit-btn active" id="h-cm" onclick="setHeightUnit('cm')">cm</button>
+          <button type="button" class="unit-btn" id="h-ft" onclick="setHeightUnit('ft')">ft/in</button>
         </div>
       </div>
       <div id="height-cm-wrap">
@@ -230,8 +233,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       <div class="card-label space-between">
         <span>⚖️ Weight</span>
         <div class="unit-toggle">
-          <button class="unit-btn active" id="w-kg" onclick="setWeightUnit('kg')">kg</button>
-          <button class="unit-btn" id="w-lb" onclick="setWeightUnit('lb')">lb</button>
+          <button type="button" class="unit-btn active" id="w-kg" onclick="setWeightUnit('kg')">kg</button>
+          <button type="button" class="unit-btn" id="w-lb" onclick="setWeightUnit('lb')">lb</button>
         </div>
       </div>
       <div class="field">
@@ -343,13 +346,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       </div>
       <div class="tag-hint">Press Enter or comma to add. <strong>Suggestions:</strong></div>
       <div class="tag-suggestions">
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','Diabetes')">Diabetes</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','Hypertension')">Hypertension</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','Asthma')">Asthma</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','Celiac')">Celiac</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','PCOS')">PCOS</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','Hypothyroidism')">Hypothyroidism</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('illness','IBS')">IBS</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','Diabetes')">Diabetes</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','Hypertension')">Hypertension</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','Asthma')">Asthma</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','Celiac')">Celiac</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','PCOS')">PCOS</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','Hypothyroidism')">Hypothyroidism</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('illness','IBS')">IBS</button>
       </div>
       <div class="none-toggle" id="none-illness" onclick="toggleNone('illness')">
         <div class="none-box" id="none-illness-box"></div>
@@ -366,13 +369,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       </div>
       <div class="tag-hint">Press Enter or comma to add. <strong>Suggestions:</strong></div>
       <div class="tag-suggestions">
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Gluten')">Gluten</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Dairy')">Dairy</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Nuts')">Nuts</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Eggs')">Eggs</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Shellfish')">Shellfish</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Soy')">Soy</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('allergy','Sesame')">Sesame</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Gluten')">Gluten</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Dairy')">Dairy</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Nuts')">Nuts</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Eggs')">Eggs</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Shellfish')">Shellfish</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Soy')">Soy</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('allergy','Sesame')">Sesame</button>
       </div>
       <div class="none-toggle" id="none-allergy" onclick="toggleNone('allergy')">
         <div class="none-box" id="none-allergy-box"></div>
@@ -389,12 +392,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       </div>
       <div class="tag-hint">Press Enter or comma to add. <strong>Suggestions:</strong></div>
       <div class="tag-suggestions">
-        <button class="tag-sug-btn" onclick="addTagDirect('medic','Metformin')">Metformin</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('medic','Levothyroxine')">Levothyroxine</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('medic','Ibuprofen')">Ibuprofen</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('medic','Omeprazole')">Omeprazole</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('medic','Vitamin D')">Vitamin D</button>
-        <button class="tag-sug-btn" onclick="addTagDirect('medic','Omega-3')">Omega-3</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('medic','Metformin')">Metformin</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('medic','Levothyroxine')">Levothyroxine</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('medic','Ibuprofen')">Ibuprofen</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('medic','Omeprazole')">Omeprazole</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('medic','Vitamin D')">Vitamin D</button>
+        <button type="button" class="tag-sug-btn" onclick="addTagDirect('medic','Omega-3')">Omega-3</button>
       </div>
       <div class="none-toggle" id="none-medic" onclick="toggleNone('medic')">
         <div class="none-box" id="none-medic-box"></div>
@@ -551,7 +554,7 @@ function renderTags(type) {
   wrap.innerHTML = state.tags[type].map(t => `
     <span class="tag-chip ${type}">
       ${t}
-      <button class="tag-chip-del" onclick="removeTag('${type}','${t}')">×</button>
+      <button type="button" class="tag-chip-del" onclick="removeTag('${type}','${t}')">×</button>
     </span>
   `).join('');
 }

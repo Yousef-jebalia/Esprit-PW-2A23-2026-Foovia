@@ -34,9 +34,16 @@ if (isset($_GET['code'])) {
         if (!$user) {
             // Create user if they don't exist
             $random_password = bin2hex(random_bytes(8));
-            $insert = "INSERT INTO user (name_user, email_user, password_user) VALUES (:name, :email, :password)";
+            $insert = "INSERT INTO user (name_user, email_user, password_user, subscription_user, account_state_user, duration_user) VALUES (:name, :email, :password, :subscription, :account_state, :duration)";
             $stmt = $db->prepare($insert);
-            $stmt->execute(['name' => $name, 'email' => strtolower($email), 'password' => $random_password]);
+            $stmt->execute([
+                'name' => $name,
+                'email' => strtolower($email),
+                'password' => $random_password,
+                'subscription' => 'normal',
+                'account_state' => 'active',
+                'duration' => '00:00:00'
+            ]);
             $user_id = $db->lastInsertId();
             
             // Generate a reset token to force them to set a password

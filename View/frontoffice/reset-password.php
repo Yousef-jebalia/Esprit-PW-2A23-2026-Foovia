@@ -86,7 +86,7 @@ try {
 <body>
 
 <div class="right-panel" style="width: 100%;">
-  <a href="foovia.html" class="left-logo" style="position: absolute; top: 40px; left: 40px; color: var(--green); text-decoration: none; font-family: 'Boldonse', sans-serif; font-size: 1.5rem;">🌿 FOOVIA</a>
+  <a href="foovia.php" class="left-logo" style="position: absolute; top: 40px; left: 40px; color: var(--green); text-decoration: none; font-family: 'Boldonse', sans-serif; font-size: 1.5rem;">🌿 FOOVIA</a>
   
   <h1 class="form-title"><?php echo $first_login ? 'Welcome!' : 'Reset Password'; ?></h1>
   <p class="form-sub"><?php echo $first_login ? 'Please set a password for your new account.' : 'Enter your new password below.'; ?></p>
