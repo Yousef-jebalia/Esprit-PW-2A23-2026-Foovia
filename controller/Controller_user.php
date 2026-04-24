@@ -117,6 +117,28 @@ class Controller_user {
         return $this->list_users();
     }
 
+    public function search_users(string $term) {
+
+        $sql = "SELECT * FROM user
+                WHERE CAST(id_user AS CHAR) LIKE :term
+                   OR name_user LIKE :term
+                   OR lastname_user LIKE :term
+                   OR email_user LIKE :term
+                   OR phone_user LIKE :term
+                   OR role_user LIKE :term
+                ORDER BY id_user DESC";
+
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+            $query->execute(['term' => '%' . $term . '%']);
+            return $query;
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+        }
+    }
+
 
     public function delete_user($id) {
 

@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
 
-  <a href="foovia.html" class="left-logo">🌿 FOOVIA</a>
+  <a href="foovia.php" class="left-logo">🌿 FOOVIA</a>
 
   <div class="left-body">
     <h1>Good to have<br>you <span>back.</span></h1>
