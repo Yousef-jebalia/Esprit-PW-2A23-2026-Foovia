@@ -111,7 +111,279 @@ ksort($categories);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
-    <link rel="stylesheet" type="text/css" href="style.css?v=20260417">
+    <link rel="stylesheet" type="text/css" href="style.css?v=20260424">
+
+    <style>
+      .ingredient-picture-btn {
+        border: 1.5px solid rgba(0, 0, 0, 0.1);
+        background: #fff;
+        border-radius: 12px;
+        padding: 13px 18px;
+        font-family: 'Syne', 'Nunito', sans-serif;
+        font-size: 0.8rem;
+        color: #111008;
+        flex: 1;
+      }
+
+      .ingredient-picture-modal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 1310 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(17, 16, 8, 0.72);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+      }
+
+      .ingredient-picture-modal.is-open {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto;
+      }
+
+      .ingredient-picture-modal-inner {
+        width: min(920px, 100%);
+        max-height: 90vh;
+        overflow: auto;
+        border-radius: 26px;
+        background: #fdf8ee;
+        box-shadow: 0 34px 72px rgba(0, 0, 0, 0.3);
+        padding: 32px;
+        transform: scale(0.92) translateY(20px);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .ingredient-picture-modal.is-open .ingredient-picture-modal-inner {
+        transform: scale(1) translateY(0);
+      }
+
+      body.ingredient-picture-modal-open {
+        overflow: hidden;
+      }
+
+      .ingredient-picture-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 20px;
+        margin-top: 12px;
+      }
+
+      .ingredient-picture-camera,
+      .ingredient-picture-upload {
+        border: 1.5px solid rgba(0, 0, 0, 0.08);
+        border-radius: 22px;
+        background: #fff;
+        padding: 18px;
+      }
+
+      .ingredient-picture-video-wrap {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        border-radius: 18px;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(75, 174, 82, 0.15), rgba(245, 200, 66, 0.18));
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .ingredient-picture-video,
+      .ingredient-picture-video-placeholder {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .ingredient-picture-video {
+        object-fit: cover;
+        display: none;
+      }
+
+      .ingredient-picture-video.is-visible {
+        display: block;
+      }
+
+      .ingredient-picture-video-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        text-align: center;
+        font-size: 0.92rem;
+        color: #666;
+        background: linear-gradient(135deg, rgba(253, 248, 238, 0.88), rgba(255, 255, 255, 0.82));
+      }
+
+      .ingredient-picture-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .ingredient-picture-action,
+      .ingredient-picture-upload-label {
+        border: 1.5px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-family: 'Syne', 'Nunito', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      .ingredient-picture-action {
+        background: #fff;
+        color: #111008;
+      }
+
+      .ingredient-picture-action:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .ingredient-picture-upload-label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        background: #4bae52;
+        color: #fff;
+        cursor: pointer;
+        margin-bottom: 14px;
+      }
+
+      .ingredient-picture-file {
+        display: none;
+      }
+
+      .ingredient-picture-preview {
+        min-height: 240px;
+        border-radius: 18px;
+        border: 1.5px dashed rgba(0, 0, 0, 0.14);
+        background: #fdf8ee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .ingredient-picture-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+      }
+
+      .ingredient-picture-preview img.is-visible {
+        display: block;
+      }
+
+      .ingredient-picture-preview span,
+      .ingredient-picture-note {
+        color: #888;
+      }
+
+      .ingredient-picture-note {
+        margin: 12px 0 0;
+        font-size: 0.82rem;
+      }
+
+      .ingredient-picture-analyze {
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-family: 'Syne', 'Nunito', sans-serif;
+        font-size: 0.84rem;
+        font-weight: 700;
+        background: #111008;
+        color: #fff;
+      }
+
+      .ingredient-picture-analyze:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .ingredient-picture-ai-status {
+        margin: 10px 0 0;
+        font-size: 0.82rem;
+        color: #555;
+        min-height: 1.2em;
+      }
+
+      .ingredient-picture-ai-results {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .ingredient-picture-ai-tag {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 999px;
+        background: #fff;
+        color: #111008;
+        padding: 6px 12px;
+        font-size: 0.76rem;
+        line-height: 1;
+      }
+
+      @media (max-width: 575.98px) {
+        .ingredient-picture-modal {
+          padding: 12px;
+        }
+
+        .ingredient-picture-modal-inner {
+          padding: 20px 16px;
+          border-radius: 20px;
+          max-height: 88vh;
+        }
+
+        .ingredient-picture-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .ingredient-picture-camera,
+        .ingredient-picture-upload {
+          padding: 14px;
+        }
+
+        .ingredient-picture-preview {
+          min-height: 180px;
+        }
+
+        .ingredient-picture-actions {
+          gap: 8px;
+        }
+
+        .ingredient-picture-action,
+        .ingredient-picture-upload-label {
+          padding: 10px 12px;
+          font-size: 0.78rem;
+        }
+
+        .ingredient-picture-analyze {
+          font-size: 0.8rem;
+          padding: 10px 12px;
+        }
+      }
+    </style>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -262,33 +534,39 @@ ksort($categories);
     <section class="top-cta-section" aria-label="Quick action">
       <div class="container-lg">
         <button type="button" class="top-cta-button" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false">
-          Select your ingrediants
+          &#129382; By ingredients
+          <span class="top-cta-count" id="ingredientCountBadge">0</span>
         </button>
       </div>
     </section>
 
     <section class="ingredients-panel" id="ingredientsPanel" aria-hidden="true">
       <div class="ingredients-panel-inner">
-        <div class="container-lg">
-          <div class="row mb-4">
-            <div class="col-12">
-              <div class="section-header d-flex flex-wrap justify-content-between">
-                <h2 class="section-title">Ingredients</h2>
-              </div>
-              <div class="section-search">
-                <input
-                  type="search"
-                  class="form-control section-search-input"
-                  id="ingredientSearchInput"
-                  placeholder="Search ingredients"
-                  aria-label="Search ingredients"
-                >
-              </div>
-              <div class="ingredient-selected-row is-empty" aria-live="polite">
-                <div class="ingredient-selected-list" id="selectedIngredients"></div>
-              </div>
+        <div class="ingredients-modal-shell">
+          <div class="ingredients-modal-header">
+            <div>
+              <h2 class="ingredients-modal-title">What's in your<br><span>fridge?</span></h2>
+              <p class="ingredients-modal-sub">Select ingredients you have and we'll find matching recipes.</p>
             </div>
+            <button type="button" class="ingredients-modal-close" aria-label="Close ingredients popup">&times;</button>
           </div>
+
+          <div class="ing-search-wrap">
+            <span class="ing-search-icon">&#128269;</span>
+            <input
+              type="search"
+              class="section-search-input"
+              id="ingredientSearchInput"
+              placeholder="Search ingredients..."
+              aria-label="Search ingredients"
+            >
+          </div>
+
+          <div class="ingredient-selected-row is-empty" aria-live="polite">
+            <div class="ingredient-selected-list" id="selectedIngredients"></div>
+            <span class="ingredient-selected-placeholder">No ingredients selected yet</span>
+          </div>
+
           <div class="row g-3 ingredient-grid">
             <?php if (!empty($ingredients)): ?>
               <?php foreach ($ingredients as $ingredient): ?>
@@ -328,18 +606,59 @@ ksort($categories);
               </div>
             <?php endif; ?>
           </div>
-          <div class="row">
-            <div class="col-12">
-              <div class="ingredient-validate-row">
-                <button type="button" class="btn btn-primary ingredient-validate-btn" id="validateIngredientsBtn">
-                  Validate selected ingrediants
-                </button>
-              </div>
-            </div>
+
+          <div class="ingredient-validate-row">
+            <button type="button" class="btn ingredient-picture-btn" id="ingredientPictureBtn">Using a picture</button>
+            <button type="button" class="btn ingredient-clear-btn" id="clearIngredientsBtn">Clear all</button>
+            <button type="button" class="btn btn-primary ingredient-validate-btn" id="validateIngredientsBtn">
+              Find recipes &#8594;
+            </button>
           </div>
         </div>
       </div>
     </section>
+
+    <div class="ingredient-picture-modal" id="ingredientPictureModal" aria-hidden="true">
+      <div class="ingredient-picture-modal-inner">
+        <div class="ingredients-modal-header">
+          <div>
+            <h2 class="ingredients-modal-title" id="ingredientPictureTitle">Using a<br><span>picture</span></h2>
+            <p class="ingredients-modal-sub">Take a photo with your camera or import one from your device.</p>
+          </div>
+          <button type="button" class="ingredients-modal-close ingredient-picture-modal-close" aria-label="Close picture popup">&times;</button>
+        </div>
+
+        <div class="ingredient-picture-grid">
+          <div class="ingredient-picture-camera">
+            <div class="ingredient-picture-video-wrap">
+              <video id="ingredientCameraVideo" class="ingredient-picture-video" autoplay playsinline muted></video>
+              <div class="ingredient-picture-video-placeholder" id="ingredientCameraPlaceholder">
+                Camera preview will appear here.
+              </div>
+            </div>
+            <div class="ingredient-picture-actions">
+              <button type="button" class="btn ingredient-picture-action" id="startCameraBtn">Start camera</button>
+              <button type="button" class="btn ingredient-picture-action" id="capturePhotoBtn" disabled>Take photo</button>
+              <button type="button" class="btn ingredient-picture-action" id="stopCameraBtn" disabled>Stop camera</button>
+            </div>
+            <p class="ingredient-picture-note">If camera access is blocked, you can still import a photo.</p>
+            <button type="button" class="ingredient-picture-analyze" id="analyzePhotoBtn" disabled>Detect ingredients</button>
+            <p class="ingredient-picture-ai-status" id="ingredientAiStatus" aria-live="polite"></p>
+            <div class="ingredient-picture-ai-results" id="ingredientAiResults"></div>
+          </div>
+
+          <div class="ingredient-picture-upload">
+            <label class="ingredient-picture-upload-label" for="ingredientUploadInput">Import a photo</label>
+            <input type="file" accept="image/*" capture="environment" id="ingredientUploadInput" class="ingredient-picture-file">
+            <div class="ingredient-picture-preview">
+              <img id="ingredientPicturePreview" alt="Selected ingredient photo preview">
+              <span id="ingredientPicturePreviewEmpty">No photo selected yet.</span>
+            </div>
+            <p class="ingredient-picture-note">Use a clear image with the ingredients visible.</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <section class="py-5" id="categories">
       <div class="container-lg">
@@ -425,6 +744,20 @@ ksort($categories);
                       $imagePath = 'images/product-thumb-1.png';
                   }
                     $recipeCategoryNames = array_filter(array_map('trim', explode(',', (string)($recipe['categorie_rec'] ?? ''))));
+                    $recipeCategoryNames = array_values($recipeCategoryNames);
+                    $recipePrimaryCategory = $recipeCategoryNames[0] ?? 'Recipe';
+                    $recipeTime = (int)($recipe['duree_rec'] ?? ($recipe['time_rec'] ?? 0));
+                    $recipeDescription = trim((string)($recipe['description_rec'] ?? ''));
+                    if ($recipeDescription === '') {
+                      if (!empty($recipeCategoryNames)) {
+                        $recipeDescription = 'A delicious ' . implode(', ', array_slice($recipeCategoryNames, 0, 2)) . ' recipe to try today.';
+                      } else {
+                        $recipeDescription = 'A delicious recipe to try today.';
+                      }
+                    }
+                    if (strlen($recipeDescription) > 120) {
+                      $recipeDescription = substr($recipeDescription, 0, 117) . '...';
+                    }
                     $recipeCategoryKeys = [];
                     foreach ($recipeCategoryNames as $recipeCategoryName) {
                       $meta = $categoryMetaByName[$recipeCategoryName] ?? null;
@@ -447,31 +780,39 @@ ksort($categories);
                     data-ingredient-ids="<?php echo htmlspecialchars(implode(',', $recipeIngredientIds)); ?>"
                     data-recipe-name="<?php echo htmlspecialchars($recipe['name_rec']); ?>"
                   >
-                    <div class="product-item">
-                      <figure class="recipe-card-media d-flex">
-                        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($recipe['name_rec']); ?>" class="tab-image d-block mx-auto">
-                      </figure>
-                      <div class="recipe-card-content text-center">
-                        <h3 class="recipe-title fs-6 fw-normal"><?php echo htmlspecialchars($recipe['name_rec']); ?></h3>
-                        <div class="recipe-categories-slot">
+                    <div class="product-item recipe-card-shell">
+                      <a class="recipe-card" href="foovia-recipe.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>">
+                        <div class="card-img">
+                          <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($recipe['name_rec']); ?>" class="tab-image d-block mx-auto">
+                          <div class="card-img-overlay"></div>
+                          <div class="card-badges">
+                            <span class="card-badge badge-cat"><?php echo htmlspecialchars($recipePrimaryCategory); ?></span>
+                            <?php if ($recipeTime > 0): ?>
+                              <span class="card-badge badge-time">&#x23F1; <?php echo (int)$recipeTime; ?>m</span>
+                            <?php endif; ?>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <div class="card-title"><?php echo htmlspecialchars($recipe['name_rec']); ?></div>
+                          <div class="card-desc"><?php echo htmlspecialchars($recipeDescription); ?></div>
                           <?php if (!empty($recipeCategoryNames)): ?>
-                            <div class="recipe-tag-cloud">
-                              <?php foreach ($recipeCategoryNames as $recipeCategoryName): ?>
+                            <div class="card-macros">
+                              <?php foreach (array_slice($recipeCategoryNames, 0, 3) as $recipeCategoryName): ?>
                                 <?php
                                   $categoryMeta = $categoryMetaByName[$recipeCategoryName] ?? ['color' => '#f59e0b', 'text' => '#111827'];
                                   $tagStyle = 'background: ' . $categoryMeta['color'] . '; border-color: ' . $categoryMeta['color'] . '; color: ' . $categoryMeta['text'] . ';';
                                 ?>
-                                <span class="recipe-tag" style="<?php echo htmlspecialchars($tagStyle); ?>">
+                                <span class="macro-tag" style="<?php echo htmlspecialchars($tagStyle); ?>">
                                   <?php echo htmlspecialchars($recipeCategoryName); ?>
                                 </span>
                               <?php endforeach; ?>
                             </div>
                           <?php endif; ?>
+                          <div class="card-footer">
+                            <span class="card-view-btn recipe-details-btn">View details &#8594;</span>
+                          </div>
                         </div>
-                      </div>
-                      <div class="button-area p-3 pt-0">
-                        <a href="foovia-recipe.php?id_rec=<?php echo (int)$recipe['id_rec']; ?>" class="btn btn-primary rounded-1 p-2 fs-7 recipe-details-btn">View details</a>
-                      </div>
+                      </a>
                     </div>
                   </div>
                 <?php endforeach; ?>
@@ -569,6 +910,9 @@ ksort($categories);
       (function() {
         const ctaButton = document.querySelector('.top-cta-button');
         const panel = document.getElementById('ingredientsPanel');
+        const closeButton = panel ? panel.querySelector('.ingredients-modal-close') : null;
+        const pictureModal = document.getElementById('ingredientPictureModal');
+        const body = document.body;
 
         if (!ctaButton || !panel) {
           return;
@@ -580,14 +924,30 @@ ksort($categories);
           ctaButton.classList.toggle('is-active', open);
           ctaButton.setAttribute('aria-expanded', String(open));
           ctaButton.setAttribute('aria-pressed', String(open));
-          if (open) {
-            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          body.classList.toggle('ingredients-modal-open', open);
         };
 
         ctaButton.addEventListener('click', () => {
           const isOpen = panel.classList.contains('is-open');
           setOpen(!isOpen);
+        });
+
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            setOpen(false);
+          });
+        }
+
+        panel.addEventListener('click', (event) => {
+          if (event.target === panel) {
+            setOpen(false);
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && panel.classList.contains('is-open') && !(pictureModal && pictureModal.classList.contains('is-open'))) {
+            setOpen(false);
+          }
         });
       })();
 
@@ -595,6 +955,9 @@ ksort($categories);
         const selectedRow = document.querySelector('.ingredient-selected-row');
         const selectedList = document.getElementById('selectedIngredients');
         const ingredientButtons = Array.from(document.querySelectorAll('.ingredient-select-btn'));
+        const clearButton = document.getElementById('clearIngredientsBtn');
+        const placeholder = selectedRow ? selectedRow.querySelector('.ingredient-selected-placeholder') : null;
+        const countBadge = document.getElementById('ingredientCountBadge');
         const selectedIngredientIds = new Set();
 
         if (!selectedRow || !selectedList || ingredientButtons.length === 0) {
@@ -625,7 +988,12 @@ ksort($categories);
         };
 
         const setSelectedRowState = () => {
-          selectedRow.classList.toggle('is-empty', selectedList.children.length === 0);
+          const isEmpty = selectedList.children.length === 0;
+          selectedRow.classList.toggle('is-empty', isEmpty);
+          selectedRow.classList.toggle('has-items', !isEmpty);
+          if (placeholder) {
+            placeholder.style.display = isEmpty ? '' : 'none';
+          }
         };
 
         const syncSelectedIngredientIds = () => {
@@ -638,6 +1006,10 @@ ksort($categories);
             }
           });
           document.body.dataset.selectedIngredients = Array.from(selectedIngredientIds).join(',');
+          if (countBadge) {
+            countBadge.textContent = String(selectedIngredientIds.size);
+            countBadge.classList.toggle('visible', selectedIngredientIds.size > 0);
+          }
         };
 
         const setButtonState = (button, selected) => {
@@ -729,6 +1101,15 @@ ksort($categories);
           syncSelectedIngredientIds();
         });
 
+        if (clearButton) {
+          clearButton.addEventListener('click', () => {
+            selectedList.querySelectorAll('.ingredient-selected-item').forEach((item) => item.remove());
+            ingredientButtons.forEach((button) => setButtonState(button, false));
+            setSelectedRowState();
+            syncSelectedIngredientIds();
+          });
+        }
+
         setSelectedRowState();
         syncSelectedIngredientIds();
       })();
@@ -756,6 +1137,289 @@ ksort($categories);
       })();
 
       (function() {
+        const openButton = document.getElementById('ingredientPictureBtn');
+        const modal = document.getElementById('ingredientPictureModal');
+        const closeButton = modal ? modal.querySelector('.ingredient-picture-modal-close') : null;
+        const startButton = document.getElementById('startCameraBtn');
+        const captureButton = document.getElementById('capturePhotoBtn');
+        const stopButton = document.getElementById('stopCameraBtn');
+        const uploadInput = document.getElementById('ingredientUploadInput');
+        const video = document.getElementById('ingredientCameraVideo');
+        const placeholder = document.getElementById('ingredientCameraPlaceholder');
+        const preview = document.getElementById('ingredientPicturePreview');
+        const previewEmpty = document.getElementById('ingredientPicturePreviewEmpty');
+        const analyzeButton = document.getElementById('analyzePhotoBtn');
+        const aiStatus = document.getElementById('ingredientAiStatus');
+        const aiResults = document.getElementById('ingredientAiResults');
+        const ingredientButtons = Array.from(document.querySelectorAll('.ingredient-select-btn[data-ing-name]'));
+        const body = document.body;
+        let stream = null;
+        let previewObjectUrl = '';
+        let capturedImageDataUrl = '';
+
+        if (!openButton || !modal || !startButton || !captureButton || !stopButton || !uploadInput || !video || !placeholder || !preview || !previewEmpty || !analyzeButton || !aiStatus || !aiResults) {
+          return;
+        }
+
+        const normalizeName = (value) => String(value || '').trim().toLowerCase();
+
+        const setAiStatus = (message) => {
+          aiStatus.textContent = message;
+        };
+
+        const clearAiResults = () => {
+          aiResults.innerHTML = '';
+        };
+
+        const renderAiResults = (names) => {
+          clearAiResults();
+          names.forEach((name) => {
+            const chip = document.createElement('span');
+            chip.className = 'ingredient-picture-ai-tag';
+            chip.textContent = name;
+            aiResults.appendChild(chip);
+          });
+        };
+
+        const dataUrlToFile = async (dataUrl, filename) => {
+          const response = await fetch(dataUrl);
+          const blob = await response.blob();
+          const extension = blob.type.includes('png') ? 'png' : 'jpg';
+          return new File([blob], `${filename}.${extension}`, { type: blob.type || 'image/jpeg' });
+        };
+
+        const findBestButtonMatch = (detectedName) => {
+          const query = normalizeName(detectedName);
+          if (!query) {
+            return null;
+          }
+
+          let directMatch = ingredientButtons.find((button) => normalizeName(button.dataset.ingName) === query);
+          if (directMatch) {
+            return directMatch;
+          }
+
+          directMatch = ingredientButtons.find((button) => {
+            const name = normalizeName(button.dataset.ingName);
+            return name.includes(query) || query.includes(name);
+          });
+          return directMatch || null;
+        };
+
+        const applyDetectedIngredients = (detectedNames) => {
+          let selectedCount = 0;
+          detectedNames.forEach((name) => {
+            const button = findBestButtonMatch(name);
+            if (!button) {
+              return;
+            }
+
+            const isSelected = button.getAttribute('aria-pressed') === 'true';
+            if (!isSelected) {
+              button.click();
+              selectedCount += 1;
+            }
+          });
+          return selectedCount;
+        };
+
+        const pickImageFileForAnalysis = async () => {
+          if (uploadInput.files && uploadInput.files[0]) {
+            return uploadInput.files[0];
+          }
+          if (capturedImageDataUrl) {
+            return dataUrlToFile(capturedImageDataUrl, 'captured-ingredient');
+          }
+          return null;
+        };
+
+        const setModalOpen = (open) => {
+          modal.classList.toggle('is-open', open);
+          modal.setAttribute('aria-hidden', String(!open));
+          body.classList.toggle('ingredient-picture-modal-open', open);
+          if (!open) {
+            stopCamera();
+          }
+        };
+
+        const setPreviewSource = (src) => {
+          preview.src = src;
+          preview.classList.add('is-visible');
+          previewEmpty.style.display = 'none';
+          analyzeButton.disabled = false;
+        };
+
+        const clearPreview = () => {
+          preview.removeAttribute('src');
+          preview.classList.remove('is-visible');
+          previewEmpty.style.display = '';
+          analyzeButton.disabled = true;
+          capturedImageDataUrl = '';
+          setAiStatus('');
+          clearAiResults();
+        };
+
+        const stopCamera = () => {
+          if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+            stream = null;
+          }
+          if (video.srcObject) {
+            video.srcObject = null;
+          }
+          video.classList.remove('is-visible');
+          placeholder.style.display = '';
+          captureButton.disabled = true;
+          stopButton.disabled = true;
+        };
+
+        const startCamera = async () => {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            placeholder.textContent = 'Camera access is not supported in this browser.';
+            return;
+          }
+
+          try {
+            stopCamera();
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: 'environment' },
+              audio: false
+            });
+            video.srcObject = stream;
+            video.classList.add('is-visible');
+            placeholder.style.display = 'none';
+            placeholder.textContent = 'Camera preview will appear here.';
+            captureButton.disabled = false;
+            stopButton.disabled = false;
+          } catch (error) {
+            placeholder.textContent = 'Camera access was denied. You can still import a photo.';
+            stopCamera();
+          }
+        };
+
+        const capturePhoto = () => {
+          if (!video.videoWidth || !video.videoHeight) {
+            return;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const context = canvas.getContext('2d');
+          if (!context) {
+            return;
+          }
+
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          capturedImageDataUrl = canvas.toDataURL('image/png');
+          uploadInput.value = '';
+          setPreviewSource(capturedImageDataUrl);
+          setAiStatus('Photo captured. Click Detect ingredients to analyze.');
+          stopCamera();
+        };
+
+        const analyzePhoto = async () => {
+          const file = await pickImageFileForAnalysis();
+          if (!file) {
+            setAiStatus('Please capture or upload a photo first.');
+            return;
+          }
+
+          analyzeButton.disabled = true;
+          setAiStatus('Analyzing image with Gemini...');
+          clearAiResults();
+
+          try {
+            const formData = new FormData();
+            formData.append('image', file, file.name || 'ingredient.jpg');
+
+            const response = await fetch('analyze_ingredients.php', {
+              method: 'POST',
+              body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data || !Array.isArray(data.ingredients)) {
+              const errorMessage = data && data.error ? data.error : 'Unable to analyze image.';
+              setAiStatus(errorMessage);
+              return;
+            }
+
+            const ingredientNames = data.ingredients
+              .map((value) => String(value || '').trim())
+              .filter(Boolean);
+
+            if (ingredientNames.length === 0) {
+              setAiStatus('No ingredients detected. Try another photo.');
+              return;
+            }
+
+            renderAiResults(ingredientNames);
+            const selectedCount = applyDetectedIngredients(ingredientNames);
+            if (selectedCount > 0) {
+              setAiStatus(`Detected ${ingredientNames.length} ingredient(s). Added ${selectedCount} to your selection.`);
+            } else {
+              setAiStatus(`Detected ${ingredientNames.length} ingredient(s), but none matched the available list.`);
+            }
+          } catch (error) {
+            setAiStatus('Analysis failed. Please try again.');
+          } finally {
+            analyzeButton.disabled = !preview.getAttribute('src');
+          }
+        };
+
+        openButton.addEventListener('click', () => {
+          setModalOpen(true);
+        });
+
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            setModalOpen(false);
+          });
+        }
+
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            setModalOpen(false);
+          }
+        });
+
+        startButton.addEventListener('click', startCamera);
+        captureButton.addEventListener('click', capturePhoto);
+        stopButton.addEventListener('click', stopCamera);
+        analyzeButton.addEventListener('click', analyzePhoto);
+
+        uploadInput.addEventListener('change', () => {
+          const file = uploadInput.files && uploadInput.files[0] ? uploadInput.files[0] : null;
+          if (!file) {
+            return;
+          }
+
+          capturedImageDataUrl = '';
+          setAiStatus('Photo loaded. Click Detect ingredients to analyze.');
+          clearAiResults();
+
+          if (previewObjectUrl) {
+            URL.revokeObjectURL(previewObjectUrl);
+            previewObjectUrl = '';
+          }
+
+          previewObjectUrl = URL.createObjectURL(file);
+          setPreviewSource(previewObjectUrl);
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+            setModalOpen(false);
+          }
+        });
+
+        clearPreview();
+        stopCamera();
+        body.classList.remove('ingredient-picture-modal-open');
+      })();
+
+      (function() {
         const validateButton = document.getElementById('validateIngredientsBtn');
         const panel = document.getElementById('ingredientsPanel');
         const ctaButton = document.querySelector('.top-cta-button');
@@ -768,6 +1432,7 @@ ksort($categories);
         const closePanel = () => {
           panel.classList.remove('is-open');
           panel.setAttribute('aria-hidden', 'true');
+          document.body.classList.remove('ingredients-modal-open');
           if (ctaButton) {
             ctaButton.classList.remove('is-active');
             ctaButton.setAttribute('aria-expanded', 'false');
