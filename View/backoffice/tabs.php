@@ -6,6 +6,7 @@ include_once(__DIR__ . '/../../controller/Controller_user.php');
 $controller = new Controller_user();
 $users = [];
 $searchTerm = trim($_GET['q'] ?? '');
+$genderFilter = trim($_GET['gender'] ?? '');
 $perPage = 15;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $totalUsers = 0;
@@ -91,7 +92,9 @@ if ($editId > 0) {
 $usersResult = null;
 
 try {
-  if ($searchTerm !== '') {
+  if ($genderFilter !== '') {
+    $usersResult = $controller->filter_users_by_gender($genderFilter, $searchTerm);
+  } elseif ($searchTerm !== '') {
     $usersResult = $controller->search_users($searchTerm);
   } else {
     $usersResult = $controller->listusers();
@@ -469,7 +472,17 @@ if (!empty($users)) {
             placeholder="Search by id, name, lastname, email, phone or role"
             value="<?php echo htmlspecialchars($searchTerm); ?>"
           >
+
+          <select name="gender" aria-label="Filter by gender" style="border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; background: #fff; min-width: 170px;">
+            <option value="">All genders</option>
+            <option value="male" <?php echo $genderFilter === 'male' ? 'selected' : ''; ?>>Male</option>
+            <option value="female" <?php echo $genderFilter === 'female' ? 'selected' : ''; ?>>Female</option>
+            <option value="other" <?php echo $genderFilter === 'other' ? 'selected' : ''; ?>>Other</option>
+            <option value="Not specified" <?php echo $genderFilter === 'Not specified' ? 'selected' : ''; ?>>Not specified</option>
+          </select>
+
           <button type="submit">Search users</button>
+          <button type="submit">Filter gender</button>
           <a href="tabs.php" class="btn-ghost">Reset</a>
         </form>
 
@@ -521,7 +534,12 @@ if (!empty($users)) {
 
               <div class="edit-actions">
                 <button class="btn-save" type="submit">Save changes</button>
-                <a class="btn-ghost" href="tabs.php<?php echo $searchTerm !== '' ? '?q=' . urlencode($searchTerm) : ''; ?>">Cancel</a>
+                <a class="btn-ghost" href="tabs.php<?php
+                  $cancelParams = [];
+                  if ($searchTerm !== '') { $cancelParams['q'] = $searchTerm; }
+                  if ($genderFilter !== '') { $cancelParams['gender'] = $genderFilter; }
+                  echo !empty($cancelParams) ? '?' . http_build_query($cancelParams) : '';
+                ?>">Cancel</a>
               </div>
             </form>
           </div>
@@ -564,7 +582,12 @@ if (!empty($users)) {
                   <?php endforeach; ?>
                   <td>
                     <div class="action-cell">
-                      <a class="btn-edit" href="tabs.php?edit_id=<?php echo urlencode((string) ($user['id_user'] ?? '')); ?><?php echo $searchTerm !== '' ? '&q=' . urlencode($searchTerm) : ''; ?>">Edit</a>
+                      <a class="btn-edit" href="tabs.php?<?php
+                        $editParams = ['edit_id' => (string) ($user['id_user'] ?? '')];
+                        if ($searchTerm !== '') { $editParams['q'] = $searchTerm; }
+                        if ($genderFilter !== '') { $editParams['gender'] = $genderFilter; }
+                        echo htmlspecialchars(http_build_query($editParams));
+                      ?>">Edit</a>
 
                       <form method="POST" class="inline" onsubmit="return confirm('Delete this user?');">
                         <input type="hidden" name="action" value="delete">
@@ -584,6 +607,9 @@ if (!empty($users)) {
             $baseParams = [];
             if ($searchTerm !== '') {
               $baseParams['q'] = $searchTerm;
+            }
+            if ($genderFilter !== '') {
+              $baseParams['gender'] = $genderFilter;
             }
           ?>
           <div class="pagination">

@@ -139,6 +139,41 @@ class Controller_user {
         }
     }
 
+    public function filter_users_by_gender(string $gender, string $term = '') {
+
+        $sql = "SELECT * FROM user
+                WHERE gender_user = :gender";
+
+        if ($term !== '') {
+            $sql .= " AND (
+                        CAST(id_user AS CHAR) LIKE :term
+                     OR name_user LIKE :term
+                     OR lastname_user LIKE :term
+                     OR email_user LIKE :term
+                     OR phone_user LIKE :term
+                     OR role_user LIKE :term
+                    )";
+        }
+
+        $sql .= " ORDER BY id_user DESC";
+
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare($sql);
+
+            $params = ['gender' => $gender];
+            if ($term !== '') {
+                $params['term'] = '%' . $term . '%';
+            }
+
+            $query->execute($params);
+            return $query;
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+        }
+    }
+
 
     public function delete_user($id) {
 
