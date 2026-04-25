@@ -1629,6 +1629,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     border-color: var(--green);
   }
 
+  .weekly-upload-wrap {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .lamp-ai-wrap {
+    position: absolute;
+    top: -16px;
+    right: -8px;
+    display: inline-block;
+    z-index: 10;
+  }
+
+  .btn-lamp-ai {
+    position: relative;
+    top: 0;
+    left: 0;
+    transform: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.65rem;
+    line-height: 1;
+    animation: lamp-jump 1.4s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(245, 200, 66, 0.5));
+    transition: filter 0.2s;
+    z-index: 12;
+  }
+
+  .btn-lamp-ai:hover {
+    filter: drop-shadow(0 4px 16px rgba(245, 200, 66, 0.9));
+    animation-play-state: paused;
+  }
+
+  @keyframes lamp-jump {
+    0% { transform: translateY(0) rotate(-8deg) scaleX(1); }
+    25% { transform: translateY(-14px) rotate(4deg) scaleX(0.95); }
+    50% { transform: translateY(0) rotate(-6deg) scaleX(1); }
+    75% { transform: translateY(-8px) rotate(3deg) scaleX(0.97); }
+    100% { transform: translateY(0) rotate(-8deg) scaleX(1); }
+  }
+
+  .lamp-shadow {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 5px;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 50%;
+    animation: lamp-shadow 1.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes lamp-shadow {
+    0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.5; }
+    25% { transform: translateX(-50%) scaleX(0.6); opacity: 0.2; }
+    50% { transform: translateX(-50%) scaleX(1); opacity: 0.5; }
+    75% { transform: translateX(-50%) scaleX(0.75); opacity: 0.3; }
+  }
+
+  .lamp-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 14px);
+    right: -10px;
+    left: auto;
+    transform: none;
+    background: var(--dark);
+    color: #fff;
+    border-radius: 14px;
+    padding: 12px 16px;
+    width: 210px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    text-align: center;
+    z-index: 1200;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .lamp-tooltip.visible {
+    display: block;
+  }
+
+  .lamp-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 16px;
+    left: auto;
+    transform: none;
+    border: 7px solid transparent;
+    border-top-color: var(--dark);
+  }
+
+  .lamp-tooltip strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    color: var(--yellow);
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  .lamp-tooltip .tip-cta {
+    display: inline-block;
+    margin-top: 9px;
+    background: #7c6fcd;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+
+  .lamp-tooltip .tip-cta:hover {
+    background: #5a4faa;
+  }
+
   .weekly-meal-add-btn {
     width: 100%;
     background: var(--green);
@@ -2650,25 +2778,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     overflow: hidden;
   }
 
-  .weight-chart-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .weight-chart-axis-note {
-    font-size: 0.65rem;
-    color: var(--panel-muted);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    background: rgba(17,16,8,0.05);
-    padding: 0.22rem 0.55rem;
-    border-radius: 6px;
-  }
-
   .weight-chart-trend {
     border-radius: 999px;
     padding: 0.35rem 0.85rem;
@@ -3338,7 +3447,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
               <div style="display: flex; gap: 8px; align-items: stretch; position: relative;">
                 <input type="text" id="weekly-meal-name" placeholder="e.g. Grilled Chicken Bowl" style="flex: 1; min-width: 0;" autocomplete="off">
                 <button type="button" id="weekly-meal-search-btn" style="background-color: var(--green); color: #fff; border: none; border-radius: 12px; padding: 0 12px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(75, 174, 82, 0.2); transition: transform 0.15s, background-color 0.2s;" title="Search meal">🔍</button>
-                <button type="button" id="weekly-meal-upload-btn" style="background-color: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(217, 79, 0, 0.2); transition: transform 0.15s, background-color 0.2s;">📸 Upload</button>
+                <div class="weekly-upload-wrap">
+                  <input type="file" id="weekly-meal-img-input" accept="image/*" style="display: none;">
+                  <div class="lamp-ai-wrap" id="weekly-lamp-wrap">
+                    <button type="button" class="btn-lamp-ai" id="weekly-btn-lamp-ai" title="AI food analysis" aria-label="AI food analysis">💡</button>
+                    <div class="lamp-shadow"></div>
+                    <div class="lamp-tooltip" id="weekly-lamp-tooltip">
+                      <strong>AI Food Analyser</strong>
+                      Upload a photo of your meal and I will estimate calories, protein, carbs and fat for you.
+                      <button type="button" class="tip-cta" id="weekly-lamp-upload-cta">📸 Upload and Analyse</button>
+                    </div>
+                  </div>
+                  <button type="button" id="weekly-meal-upload-btn" style="background-color: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(217, 79, 0, 0.2); transition: transform 0.15s, background-color 0.2s;">📸 Upload</button>
+                </div>
                 <div id="meal-search-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px;"></div>
               </div>
             </div>
@@ -3508,10 +3629,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         <div class="weight-chart-trend" id="weight-evolution-trend">Trend pending</div>
       </div>
       <div class="weight-chart-shell">
-        <div class="weight-chart-top">
-          <span class="weight-chart-axis-note">Y-axis: kilograms (kg)</span>
-          <span class="weight-chart-axis-note">X-axis: Last 7 Days</span>
-        </div>
         <div class="weight-chart-svg-wrap" id="body-weight-evolution-chart"></div>
         <div class="weight-chart-xlabels" id="body-weight-evolution-labels"></div>
       </div>
@@ -4157,6 +4274,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
     const weeklyMealFatInput = document.getElementById('weekly-meal-fat');
     const weeklyMealAddBtn = document.getElementById('weekly-meal-add-btn');
+    const weeklyMealUploadBtn = document.getElementById('weekly-meal-upload-btn');
+    const weeklyMealImageInput = document.getElementById('weekly-meal-img-input');
+    const weeklyMealLampWrap = document.getElementById('weekly-lamp-wrap');
+    const weeklyMealLampBtn = document.getElementById('weekly-btn-lamp-ai');
+    const weeklyMealLampTooltip = document.getElementById('weekly-lamp-tooltip');
+    const weeklyMealLampUploadCta = document.getElementById('weekly-lamp-upload-cta');
     const weeklyMealLogEntries = document.getElementById('weekly-meal-log-entries');
     let weeklyWeightEntries = [];
     let weeklyMealEntries = [];
@@ -4410,6 +4533,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       weeklyMealFatInput.value = '';
 
       renderWeeklyMealLog();
+    };
+
+    const closeWeeklyMealLampTooltip = () => {
+      if (weeklyMealLampTooltip) {
+        weeklyMealLampTooltip.classList.remove('visible');
+      }
+      document.removeEventListener('click', closeWeeklyMealLampOnOutside);
+    };
+
+    const closeWeeklyMealLampOnOutside = (event) => {
+      if (!weeklyMealLampWrap) {
+        return;
+      }
+
+      if (!weeklyMealLampWrap.contains(event.target)) {
+        closeWeeklyMealLampTooltip();
+      }
+    };
+
+    const toggleWeeklyMealLampTooltip = () => {
+      if (!weeklyMealLampTooltip) {
+        return;
+      }
+
+      const shouldShow = !weeklyMealLampTooltip.classList.contains('visible');
+      closeWeeklyMealLampTooltip();
+
+      if (shouldShow) {
+        weeklyMealLampTooltip.classList.add('visible');
+        setTimeout(() => {
+          document.addEventListener('click', closeWeeklyMealLampOnOutside);
+        }, 10);
+      }
     };
 
     const addWeeklyWeightEntry = () => {
@@ -4784,6 +4940,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklyMealAddBtn) {
       weeklyMealAddBtn.addEventListener('click', addWeeklyMealEntry);
+    }
+
+    if (weeklyMealUploadBtn && weeklyMealImageInput) {
+      weeklyMealUploadBtn.addEventListener('click', () => {
+        weeklyMealImageInput.click();
+      });
+    }
+
+    if (weeklyMealLampBtn) {
+      weeklyMealLampBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleWeeklyMealLampTooltip();
+      });
+    }
+
+    if (weeklyMealLampUploadCta && weeklyMealUploadBtn) {
+      weeklyMealLampUploadCta.addEventListener('click', () => {
+        closeWeeklyMealLampTooltip();
+        weeklyMealUploadBtn.click();
+      });
     }
 
     const macroBreakdownChart = document.getElementById('macro-breakdown-chart');
