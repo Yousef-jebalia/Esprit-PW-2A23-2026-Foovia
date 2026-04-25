@@ -2,9 +2,16 @@
 session_start();
 require_once '../../controller/ObjectifLongTerme_Controller.php';
 require_once '../../controller/ObjectifHebdomadaire_Controller.php';
+require_once '../../controller/controle_Menu.php';
 
 $controller = new ObjectifLongTerme_Controller();
 $hebdo_controller = new ObjectifHebdomadaire_Controller();
+$menu_controller = new Controller_menu();
+$all_recipes = $menu_controller->list_recipe();
+$all_recipes_json = json_encode($all_recipes, JSON_UNESCAPED_SLASHES);
+if ($all_recipes_json === false) {
+  $all_recipes_json = '[]';
+}
 
 function goal_type_label(string $type): string {
   $labels = [
@@ -3328,7 +3335,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           <div class="weekly-meal-grid">
             <div class="weekly-meal-field wide">
               <label for="weekly-meal-name">Meal name</label>
-              <input type="text" id="weekly-meal-name" placeholder="e.g. Grilled Chicken Bowl">
+              <div style="display: flex; gap: 8px; align-items: stretch; position: relative;">
+                <input type="text" id="weekly-meal-name" placeholder="e.g. Grilled Chicken Bowl" style="flex: 1; min-width: 0;" autocomplete="off">
+                <button type="button" id="weekly-meal-search-btn" style="background-color: var(--green); color: #fff; border: none; border-radius: 12px; padding: 0 12px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(75, 174, 82, 0.2); transition: transform 0.15s, background-color 0.2s;" title="Search meal">🔍</button>
+                <button type="button" id="weekly-meal-upload-btn" style="background-color: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(217, 79, 0, 0.2); transition: transform 0.15s, background-color 0.2s;">📸 Upload</button>
+                <div id="meal-search-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px;"></div>
+              </div>
             </div>
             <div class="weekly-meal-field kcal">
               <label for="weekly-meal-cal">Calories (kcal)</label>
@@ -5103,6 +5115,100 @@ function exportHistoryPDF() {
     </div>
   </div>
 </div>
+
+<script>
+  (function() {
+    const recipes = <?php echo $all_recipes_json; ?>;
+    const searchBtn = document.getElementById('weekly-meal-search-btn');
+    const nameInput = document.getElementById('weekly-meal-name');
+    const dropdown = document.getElementById('meal-search-dropdown');
+    
+    const calInput = document.getElementById('weekly-meal-cal');
+    const protInput = document.getElementById('weekly-meal-prot');
+    const carbInput = document.getElementById('weekly-meal-carb');
+    const fatInput = document.getElementById('weekly-meal-fat');
+    
+    function renderDropdown(list) {
+      dropdown.innerHTML = '';
+      if (list.length === 0) {
+        const noRes = document.createElement('div');
+        noRes.style.padding = '10px';
+        noRes.style.color = '#777';
+        noRes.style.fontSize = '0.85rem';
+        noRes.style.textAlign = 'center';
+        noRes.textContent = 'No meals found';
+        dropdown.appendChild(noRes);
+      } else {
+        list.forEach(recipe => {
+          const item = document.createElement('div');
+          item.style.padding = '8px 12px';
+          item.style.cursor = 'pointer';
+          item.style.borderRadius = '8px';
+          item.style.fontSize = '0.85rem';
+          item.style.fontFamily = "'DM Sans', sans-serif";
+          item.style.color = 'var(--panel-text)';
+          item.style.display = 'flex';
+          item.style.justifyContent = 'space-between';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = recipe.name_rec;
+          nameSpan.style.fontWeight = '600';
+          
+          const infoSpan = document.createElement('span');
+          infoSpan.textContent = `${recipe.cal_rec || 0} kcal`;
+          infoSpan.style.color = 'var(--panel-muted)';
+          infoSpan.style.fontSize = '0.75rem';
+          
+          item.appendChild(nameSpan);
+          item.appendChild(infoSpan);
+          
+          item.addEventListener('mouseover', () => item.style.backgroundColor = 'rgba(75, 174, 82, 0.1)');
+          item.addEventListener('mouseout', () => item.style.backgroundColor = 'transparent');
+          
+          item.addEventListener('click', () => {
+            nameInput.value = recipe.name_rec || '';
+            calInput.value = recipe.cal_rec || '';
+            protInput.value = recipe.prot_rec || '';
+            carbInput.value = recipe.carb_rec || '';
+            fatInput.value = recipe.fat_rec || '';
+            dropdown.style.display = 'none';
+          });
+          
+          dropdown.appendChild(item);
+        });
+      }
+      dropdown.style.display = 'block';
+    }
+    
+    if (searchBtn && nameInput && dropdown) {
+      searchBtn.addEventListener('click', () => {
+        const query = nameInput.value.toLowerCase().trim();
+        let filtered = recipes;
+        if (query) {
+          filtered = recipes.filter(r => (r.name_rec || '').toLowerCase().includes(query));
+        }
+        renderDropdown(filtered);
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!searchBtn.contains(e.target) && !nameInput.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+      
+      nameInput.addEventListener('input', () => {
+        if (dropdown.style.display === 'block') {
+          const query = nameInput.value.toLowerCase().trim();
+          let filtered = recipes;
+          if (query) {
+            filtered = recipes.filter(r => (r.name_rec || '').toLowerCase().includes(query));
+          }
+          renderDropdown(filtered);
+        }
+      });
+    }
+  })();
+</script>
 
 </body>
 </html>

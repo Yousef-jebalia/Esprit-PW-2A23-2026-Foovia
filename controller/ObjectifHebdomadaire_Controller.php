@@ -204,6 +204,35 @@ class ObjectifHebdomadaire_Controller {
         }
     }
 
+    public function save_logged_meals(int $id_suiv, array $meals): bool {
+        $db = config::getConnexion();
+        try {
+            $db->prepare("DELETE FROM log_meal WHERE id_suiv = :id_suiv")->execute(['id_suiv' => $id_suiv]);
+            
+            if (empty($meals)) {
+                return true;
+            }
+
+            $sql = "INSERT INTO log_meal (id_rec, id_suiv, meal_time, meal_type, meal_image) VALUES (:id_rec, :id_suiv, :meal_time, :meal_type, :meal_image)";
+            $query = $db->prepare($sql);
+
+            foreach ($meals as $meal) {
+                $id_rec = isset($meal['id_rec']) ? (int)$meal['id_rec'] : 0;
+                $query->execute([
+                    'id_rec' => $id_rec,
+                    'id_suiv' => $id_suiv,
+                    'meal_time' => date('H:i:s'),
+                    'meal_type' => 'Snack',
+                    'meal_image' => ''
+                ]);
+            }
+            return true;
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return false;
+        }
+    }
+
     public function delete_objectif_hebdo(int $id_suiv, int $id_user): bool {
         $sql = "DELETE FROM objectifhebdomadaire WHERE id_suiv = :id_suiv AND id_user = :id_user";
         $db = config::getConnexion();

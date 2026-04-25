@@ -1,5 +1,5 @@
 <?php
-class ObjectifHebdomadaire
+class LogMeal
 {
     private int $id_rec;
     private int $id_suiv;
