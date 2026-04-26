@@ -215,35 +215,45 @@ function validateWorkoutForm() {
     const duree = Number(document.getElementById('work_duree').value);
     const selectedExercisesRaw = document.getElementById('selected_exercises').value.trim();
     const selectedCategoryId = document.getElementById('work_id_cat').value;
+    const newCategoryName = document.getElementById('new_work_categorie').value.trim();
+    const workoutPicture = document.getElementById('work_picture').value.trim();
+    const errors = [];
 
-    if (name.length < 3) {
-        alert('Workout name must contain at least 3 characters.');
-        return false;
+    if (!name) {
+        errors.push('Workout name cannot be empty.');
+    } else if (name.length < 3) {
+        errors.push('Workout name must contain at least 3 characters.');
     }
 
-    if (!Number.isFinite(duree) || duree <= 0 || duree > 180) {
-        alert('Workout duration must be between 1 and 180 minutes.');
-        return false;
+    if (!String(document.getElementById('work_duree').value).trim()) {
+        errors.push('Workout duration cannot be empty.');
+    } else if (!Number.isFinite(duree) || duree < 15 || duree > 180) {
+        errors.push('Workout duration must be between 15 and 180 minutes.');
     }
 
-    if (!selectedCategoryId) {
-        alert('Please select a category.');
-        return false;
+    if (!selectedCategoryId && !newCategoryName) {
+        errors.push('Please select or create a category.');
     }
 
     if (selectedExercisesRaw === '') {
-        alert('Please select at least one exercise for this workout.');
-        return false;
+        errors.push('Please select at least one exercise for this workout.');
+    }
+
+    if (!workoutPicture) {
+        errors.push('Please upload a workout image.');
     }
 
     try {
         const parsed = JSON.parse(selectedExercisesRaw);
         if (!Array.isArray(parsed) || parsed.length === 0) {
-            alert('Please select at least one exercise for this workout.');
-            return false;
+            errors.push('Please select at least one exercise for this workout.');
         }
     } catch (e) {
-        alert('Selected exercises are invalid. Please select again.');
+        errors.push('Selected exercises are invalid. Please select again.');
+    }
+
+    if (errors.length > 0) {
+        alert(errors.join('\n'));
         return false;
     }
 
@@ -962,8 +972,8 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                 </div>
 
                                 <div style="display: flex; flex-direction: column;">
-                                    <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Duration (minutes)</label>
-                                    <input type="number" id="work_duree" name="work_duree" class="form-input" placeholder="45" min="1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                    <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Duration (minutes): <span id="work_duree_value">45</span></label>
+                                    <input type="range" id="work_duree" name="work_duree" class="form-input" min="15" max="180" value="45" step="1" oninput="document.getElementById('work_duree_value').textContent = this.value" style="padding: 10px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                 </div>
 
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
