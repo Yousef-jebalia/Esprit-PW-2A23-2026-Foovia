@@ -149,6 +149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_save_goal']
     $errors[] = 'Start and end dates are required.';
   } elseif ($data['date_deb_obj'] < $system_date) {
     $errors[] = 'The start date cannot be before today.';
+  } elseif ($data['date_fin_obj'] < $system_date) {
+    $errors[] = 'The end date cannot be before today.';
   } elseif ($data['date_deb_obj'] > $data['date_fin_obj']) {
     $errors[] = 'The start date cannot be later than the end date.';
   } else {
@@ -231,8 +233,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_update_goal
     $long_term_error_message = 'All numeric values must be strictly positive.';
   } elseif (empty($update_data['date_deb_obj']) || empty($update_data['date_fin_obj'])) {
     $long_term_error_message = 'Start and end dates are required.';
-  } elseif ($update_data['date_deb_obj'] < $system_date) {
-    $long_term_error_message = 'The start date cannot be before today.';
+  } elseif ($update_data['date_fin_obj'] < $system_date) {
+    $long_term_error_message = 'The end date cannot be before today.';
   } elseif ($update_data['date_deb_obj'] > $update_data['date_fin_obj']) {
     $long_term_error_message = 'The start date cannot be later than the end date.';
   } elseif ((strtotime($update_data['date_fin_obj']) - strtotime($update_data['date_deb_obj'])) < 30 * 24 * 60 * 60) {
@@ -285,6 +287,13 @@ $weekly_form_objectif = $weekly_today_objectif ?: [
   'nb_pas_suiv' => '',
   'id_user' => $current_user_id,
 ];
+$weekly_weight_default_value = trim((string) ($weekly_form_objectif['poids_suiv'] ?? ''));
+if ($weekly_weight_default_value === '') {
+  $weekly_weight_default_value = trim((string) ($long_term_form['val_init_obj'] ?? ''));
+}
+if ($weekly_weight_default_value === '') {
+  $weekly_weight_default_value = '70';
+}
 $weekly_has_record = !empty($weekly_today_objectif);
 
 $weekly_chart_rows = $hebdo_controller->get_recent_objectifs_by_user($current_user_id, 21);
@@ -647,13 +656,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
       <div class="lt-grid">
         <div class="lt-field">
-          <label class="accent-yellow" for="val_init_obj">Initial weight (kg)</label>
-          <input class="lt-input" type="number" id="val_init_obj" name="val_init_obj" step="0.01" min="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?>">
+          <div class="lt-range-head">
+            <label class="accent-yellow" for="val_init_obj">Initial weight (kg)</label>
+            <span class="lt-range-value lt-range-value-initial" id="val-init-display"><?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?> kg</span>
+          </div>
+          <input class="lt-input" type="range" id="val_init_obj" name="val_init_obj" min="0.1" max="180" step="0.1" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?>">
           <p class="lt-field-warning" id="val-init-warning" aria-live="polite">Initial weight must be a positive value.</p>
         </div>
         <div class="lt-field">
-          <label class="accent-yellow" for="val_cible_obj">Target weight (kg)</label>
-          <input class="lt-input" type="number" id="val_cible_obj" name="val_cible_obj" step="0.01" min="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?>">
+          <div class="lt-range-head">
+            <label class="accent-yellow" for="val_cible_obj">Target weight (kg)</label>
+            <span class="lt-range-value lt-range-value-target" id="val-cible-display"><?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?> kg</span>
+          </div>
+          <input class="lt-input" type="range" id="val_cible_obj" name="val_cible_obj" min="0.1" max="180" step="0.1" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?>">
           <p class="lt-field-warning" id="val-cible-warning" aria-live="polite">Target weight must be a positive value.</p>
           <p class="lt-field-warning" id="val-cible-goal-warning" aria-live="polite">Target weight is not valid for the selected goal type.</p>
         </div>
@@ -666,7 +681,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         </div>
         <div class="lt-field">
           <label for="date_fin_obj">End date</label>
-          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
+          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" min="<?php echo htmlspecialchars($system_date); ?>" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
           <p class="lt-field-warning" id="lt-goal-period-warning" aria-live="polite">The goal period must be at least 30 days.</p>
         </div>
       </div>
@@ -863,8 +878,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
           <div class="weekly-weight-row">
             <div class="weekly-weight-input-wrap">
-              <label for="survey-weight">Today's weight (kg)</label>
-              <input type="number" id="survey-weight" name="poids_suiv" placeholder="e.g. 75.5" min="0" step="0.1" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['poids_suiv'] ?? '')); ?>">
+              <label for="survey-weight">Today's weight (kg) <span class="weekly-weight-live-value" id="weekly-weight-live-value"><?php echo htmlspecialchars($weekly_weight_default_value); ?> kg</span></label>
+              <input type="range" id="survey-weight" name="poids_suiv" min="0" max="180" step="0.1" value="<?php echo htmlspecialchars($weekly_weight_default_value); ?>">
             </div>
             <button type="button" class="weekly-weight-button" id="weekly-weight-save-btn">+ Log weight</button>
           </div>
@@ -941,21 +956,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
             </div>
           </div>
         </div>
-        <div class="weekly-survey-field weekly-macro-field kcal">
-          <label for="survey-cal">Calories (kcal)</label>
-          <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
-        </div>
-        <div class="weekly-survey-field weekly-macro-field prot">
-          <label for="survey-prot">Protein (g)</label>
-          <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_prot_suiv'] ?? '')); ?>">
-        </div>
-        <div class="weekly-survey-field weekly-macro-field fat">
-          <label for="survey-fat">Fat (g)</label>
-          <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
-        </div>
-        <div class="weekly-survey-field weekly-macro-field carb">
-          <label for="survey-carb">Carbs (g)</label>
-          <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_carb_suiv'] ?? '')); ?>">
+        <div class="weekly-survey-macro-grid">
+          <div class="weekly-survey-field weekly-macro-field kcal">
+            <label for="survey-cal">Calories (kcal)</label>
+            <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
+          </div>
+          <div class="weekly-survey-field weekly-macro-field prot">
+            <label for="survey-prot">Protein (g)</label>
+            <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_prot_suiv'] ?? '')); ?>">
+          </div>
+          <div class="weekly-survey-field weekly-macro-field fat">
+            <label for="survey-fat">Fat (g)</label>
+            <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
+          </div>
+          <div class="weekly-survey-field weekly-macro-field carb">
+            <label for="survey-carb">Carbs (g)</label>
+            <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_carb_suiv'] ?? '')); ?>">
+          </div>
         </div>
         <div class="weekly-survey-field weekly-water-field">
           <label for="survey-water">Water (glasses)</label>
@@ -1239,8 +1256,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const longTermPeriodWarning = document.getElementById('lt-goal-period-warning');
     const longTermInitialWeightInput = document.getElementById('val_init_obj');
     const longTermTargetWeightInput = document.getElementById('val_cible_obj');
+    const longTermInitialWeightDisplay = document.getElementById('val-init-display');
+    const longTermTargetWeightDisplay = document.getElementById('val-cible-display');
     const longTermTargetPositiveWarning = document.getElementById('val-cible-warning');
     const longTermTargetGoalWarning = document.getElementById('val-cible-goal-warning');
+    let longTermPeriodTouched = false;
     const positiveLongTermFields = [
       { inputId: 'val_init_obj', warningId: 'val-init-warning', message: 'Initial weight must be a positive value.' },
       { inputId: 'lt-reminder', warningId: 'lt-reminder-warning', message: 'Reminder frequency must be a positive value.' },
@@ -1257,6 +1277,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       const value = parseInt(slider.value || '0', 10) || 0;
       valueNode.textContent = String(value) + '%';
       slider.style.setProperty('--val', String(value) + '%');
+    };
+
+    const syncLongTermWeightSlider = (slider, valueNode) => {
+      if (!slider || !valueNode) {
+        return;
+      }
+
+      const min = parseFloat(slider.min || '0');
+      const max = parseFloat(slider.max || '100');
+      const value = parseFloat(slider.value || String(min)) || 0;
+      const range = Math.max(max - min, 1);
+      const percent = Math.max(0, Math.min(100, ((value - min) / range) * 100));
+      valueNode.textContent = value.toFixed(1).replace(/\.0$/, '') + ' kg';
+      slider.style.setProperty('--val', percent.toFixed(2) + '%');
     };
 
     const updateLongTermGoalBadgeTone = () => {
@@ -1307,7 +1341,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       return parsed;
     };
 
-    const validateLongTermPeriod = () => {
+    const clampLongTermEndDateToMin = () => {
+      if (!longTermEndDateInput) {
+        return;
+      }
+
+      const minValue = longTermEndDateInput.getAttribute('min') || '';
+      const minDate = parseIsoDate(minValue);
+      const currentDate = parseIsoDate(longTermEndDateInput.value);
+      if (!minDate || !currentDate) {
+        return;
+      }
+
+      if (currentDate < minDate) {
+        longTermEndDateInput.value = minValue;
+      }
+    };
+
+    const validateLongTermPeriod = (showWarning = longTermPeriodTouched) => {
       if (!longTermStartDateInput || !longTermEndDateInput || !longTermPeriodWarning) {
         return;
       }
@@ -1325,21 +1376,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       }
 
       const minStartDate = parseIsoDate(longTermStartDateInput.getAttribute('min') || '');
+      const minEndDate = parseIsoDate(longTermEndDateInput.getAttribute('min') || '');
+      const enforceStartDateMinimum = !longTermStartDateInput.readOnly && !longTermStartDateInput.disabled;
       const diffInMs = endDate.getTime() - startDate.getTime();
       const minDurationMs = 30 * 24 * 60 * 60 * 1000;
       const isUnderMonth = diffInMs < minDurationMs;
-      const isBeforeMinDate = !!(minStartDate && startDate < minStartDate);
-      const isPeriodInvalid = isUnderMonth || isBeforeMinDate;
+      const isBeforeMinDate = enforceStartDateMinimum && !!(minStartDate && startDate < minStartDate);
+      const isEndBeforeSystemDate = !!(minEndDate && endDate < minEndDate);
+      const isPeriodInvalid = isUnderMonth || isBeforeMinDate || isEndBeforeSystemDate;
+      const periodWarningMessage = isEndBeforeSystemDate
+        ? 'The end date cannot be before today.'
+        : 'The goal period must be at least 30 days.';
 
       if (isPeriodInvalid) {
-        longTermPeriodWarning.classList.add('is-visible');
-        longTermEndDateInput.setCustomValidity('The goal period must be at least 30 days.');
-        longTermStartDateInput.classList.remove('is-valid');
-        longTermEndDateInput.classList.remove('is-valid');
-        longTermStartDateInput.classList.add('is-invalid');
-        longTermEndDateInput.classList.add('is-invalid');
+        longTermEndDateInput.setCustomValidity(periodWarningMessage);
+        if (showWarning) {
+          longTermPeriodWarning.classList.add('is-visible');
+          longTermPeriodWarning.textContent = periodWarningMessage;
+          longTermStartDateInput.classList.remove('is-valid');
+          longTermEndDateInput.classList.remove('is-valid');
+          longTermStartDateInput.classList.add('is-invalid');
+          longTermEndDateInput.classList.add('is-invalid');
+        } else {
+          longTermPeriodWarning.classList.remove('is-visible');
+          longTermStartDateInput.classList.remove('is-valid');
+          longTermStartDateInput.classList.remove('is-invalid');
+          longTermEndDateInput.classList.remove('is-valid');
+          longTermEndDateInput.classList.remove('is-invalid');
+        }
       } else {
         longTermPeriodWarning.classList.remove('is-visible');
+        longTermPeriodWarning.textContent = 'The goal period must be at least 30 days.';
         longTermEndDateInput.setCustomValidity('');
         longTermStartDateInput.classList.remove('is-invalid');
         longTermEndDateInput.classList.remove('is-invalid');
@@ -1534,21 +1601,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     }
 
     if (longTermStartDateInput && longTermEndDateInput) {
-      validateLongTermPeriod();
-      longTermStartDateInput.addEventListener('input', validateLongTermPeriod);
-      longTermEndDateInput.addEventListener('input', validateLongTermPeriod);
-      longTermStartDateInput.addEventListener('change', validateLongTermPeriod);
-      longTermEndDateInput.addEventListener('change', validateLongTermPeriod);
+      clampLongTermEndDateToMin();
+      validateLongTermPeriod(false);
+      const markLongTermPeriodTouched = () => {
+        longTermPeriodTouched = true;
+        clampLongTermEndDateToMin();
+        validateLongTermPeriod(true);
+      };
+      longTermEndDateInput.addEventListener('focus', clampLongTermEndDateToMin);
+      longTermStartDateInput.addEventListener('input', markLongTermPeriodTouched);
+      longTermEndDateInput.addEventListener('input', markLongTermPeriodTouched);
+      longTermStartDateInput.addEventListener('change', markLongTermPeriodTouched);
+      longTermEndDateInput.addEventListener('change', markLongTermPeriodTouched);
     }
 
     bindPositiveLongTermFieldValidation();
 
     if (longTermInitialWeightInput) {
+      longTermInitialWeightInput.classList.add('weight-initial');
+      syncLongTermWeightSlider(longTermInitialWeightInput, longTermInitialWeightDisplay);
+      longTermInitialWeightInput.addEventListener('input', () => {
+        syncLongTermWeightSlider(longTermInitialWeightInput, longTermInitialWeightDisplay);
+      });
       longTermInitialWeightInput.addEventListener('input', validateTargetWeightAgainstGoalType);
       longTermInitialWeightInput.addEventListener('change', validateTargetWeightAgainstGoalType);
     }
 
     if (longTermTargetWeightInput) {
+      longTermTargetWeightInput.classList.add('weight-target');
+      syncLongTermWeightSlider(longTermTargetWeightInput, longTermTargetWeightDisplay);
+      longTermTargetWeightInput.addEventListener('input', () => {
+        syncLongTermWeightSlider(longTermTargetWeightInput, longTermTargetWeightDisplay);
+      });
       validateTargetWeightAgainstGoalType();
       longTermTargetWeightInput.addEventListener('input', validateTargetWeightAgainstGoalType);
       longTermTargetWeightInput.addEventListener('change', validateTargetWeightAgainstGoalType);
@@ -1712,6 +1796,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyNotesInput = document.getElementById('survey-notes');
     const weeklyNotesCharCount = document.getElementById('weekly-notes-char-count');
     const weeklyWeightInput = document.getElementById('survey-weight');
+    const weeklyWeightLiveValue = document.getElementById('weekly-weight-live-value');
     const weeklyWeightSaveBtn = document.getElementById('weekly-weight-save-btn');
     const weeklyWeightSummary = document.getElementById('weekly-weight-summary');
     const weeklyWeightCurrent = document.getElementById('weekly-weight-current');
@@ -1917,6 +2002,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         label: now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' \u00B7 ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
       }];
       renderWeeklyWeightLog();
+    };
+
+    const syncWeeklyWeightSlider = () => {
+      if (!weeklyWeightInput || !weeklyWeightLiveValue) {
+        return;
+      }
+
+      const min = parseFloat(weeklyWeightInput.min || '0');
+      const max = parseFloat(weeklyWeightInput.max || '180');
+      const value = parseFloat(weeklyWeightInput.value || String(min)) || 0;
+      const range = Math.max(max - min, 1);
+      const percent = Math.max(0, Math.min(100, ((value - min) / range) * 100));
+
+      weeklyWeightLiveValue.textContent = value.toFixed(1).replace(/\.0$/, '') + ' kg';
+      weeklyWeightInput.style.setProperty('--val', percent.toFixed(2) + '%');
     };
 
     const renderWeeklyMealLog = () => {
@@ -2241,6 +2341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     renderWeeklyTrackerOverview();
     updateWeeklyStatusBadge();
     updateWeeklyNotesCharCount();
+    syncWeeklyWeightSlider();
     seedWeeklyWeightEntry();
 
     if (weeklySurveyPanel) {
@@ -2387,6 +2488,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklyWeightSaveBtn) {
       weeklyWeightSaveBtn.addEventListener('click', addWeeklyWeightEntry);
+    }
+
+    if (weeklyWeightInput) {
+      weeklyWeightInput.addEventListener('input', syncWeeklyWeightSlider);
+      weeklyWeightInput.addEventListener('change', syncWeeklyWeightSlider);
     }
 
     if (weeklyMealAddBtn) {
