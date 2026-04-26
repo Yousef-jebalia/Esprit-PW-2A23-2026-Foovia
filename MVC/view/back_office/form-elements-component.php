@@ -5,8 +5,42 @@ $db = config::getConnexion();
 $stmt = $db->query("SELECT * FROM exercice ORDER BY id_ex DESC");
 $exercises = $stmt->fetchAll();
 
-$stmt_workout = $db->query("SELECT * FROM workout ORDER BY id_work DESC");
+$stmt_categories = $db->query("SELECT id_cat, name_cat FROM work_categorie ORDER BY name_cat ASC");
+$workCategories = $stmt_categories->fetchAll();
+$selectedCategoryFromQuery = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+
+$stmt_workout = $db->query(
+    "SELECT w.*, wc.name_cat
+     FROM workout w
+     LEFT JOIN work_categorie wc ON wc.id_cat = w.id_cat
+     ORDER BY w.id_work DESC"
+);
 $workouts = $stmt_workout->fetchAll();
+
+$stmt_workout_exercises = $db->query(
+    "SELECT b.id_work, b.id_ex, b.sets, b.weight, b.`time`, e.name_ex, e.type_ex
+     FROM belong b
+     INNER JOIN exercice e ON e.id_ex = b.id_ex
+     ORDER BY b.id_work DESC, b.id_ex ASC"
+);
+$workoutExerciseRows = $stmt_workout_exercises->fetchAll(PDO::FETCH_ASSOC);
+
+$workoutExercisesByWorkout = [];
+foreach ($workoutExerciseRows as $row) {
+    $workoutId = (int)$row['id_work'];
+    $typeEx = strtolower(trim((string)$row['type_ex']));
+    $isCardio = ($typeEx === 'cardio');
+
+    $workoutExercisesByWorkout[$workoutId][] = [
+        'id_ex' => (int)$row['id_ex'],
+        'name' => (string)$row['name_ex'],
+        'type_ex' => $typeEx,
+        'sets' => $isCardio ? 0 : max(1, (int)$row['sets']),
+        'reps' => $isCardio ? 0 : max(1, (int)$row['time']),
+        'weight' => $isCardio ? 0 : max(0, (float)$row['weight']),
+        'time' => $isCardio ? max(1, (int)$row['time']) : 0,
+    ];
+}
 ?>
 
 
@@ -57,6 +91,77 @@ $workouts = $stmt_workout->fetchAll();
 
 <script>
 let selectedWorkoutExercises = [];
+
+function updateSelectedExercisesInput() {
+    document.getElementById('selected_exercises').value = JSON.stringify(
+        selectedWorkoutExercises.map(function(item) {
+            return {
+                id_ex: item.id_ex,
+                type_ex: item.type_ex,
+                sets: item.sets,
+                reps: item.reps,
+                weight: item.weight,
+                time: item.time
+            };
+        })
+    );
+}
+
+function renderSelectedExercisesSummary() {
+    const summary = document.getElementById('selected-exercises-summary');
+    if (selectedWorkoutExercises.length === 0) {
+        summary.innerHTML = 'No exercises selected';
+        return;
+    }
+
+    summary.innerHTML = selectedWorkoutExercises.map(function(item) {
+        if (item.type_ex === 'cardio') {
+            return item.name + ' (cardio: time ' + item.time + ' min)';
+        }
+        return item.name + ' (sets: ' + item.sets + ', reps: ' + item.reps + ', weight: ' + item.weight + ')';
+    }).join('<br>');
+}
+
+function syncExerciseSelectorWithSelection() {
+    const selectedById = new Map();
+    selectedWorkoutExercises.forEach(function(item) {
+        selectedById.set(Number(item.id_ex), item);
+    });
+
+    document.querySelectorAll('.workout-exercise-row').forEach(function(row) {
+        const checkbox = row.querySelector('.workout-ex-checkbox');
+        const setsInput = row.querySelector('.workout-ex-sets');
+        const repsInput = row.querySelector('.workout-ex-reps');
+        const weightInput = row.querySelector('.workout-ex-weight');
+        const timeInput = row.querySelector('.workout-ex-time');
+
+        if (!checkbox || !setsInput || !repsInput || !weightInput || !timeInput) {
+            return;
+        }
+
+        const idEx = Number(checkbox.value);
+        const item = selectedById.get(idEx);
+
+        if (!item) {
+            checkbox.checked = false;
+            setsInput.value = 3;
+            repsInput.value = 10;
+            weightInput.value = 0;
+            timeInput.value = 30;
+            row.querySelectorAll('.workout-ex-config').forEach(function(input) {
+                input.disabled = true;
+            });
+            return;
+        }
+
+        checkbox.checked = true;
+        setsInput.value = item.sets;
+        repsInput.value = item.reps;
+        weightInput.value = item.weight;
+        timeInput.value = item.time;
+        toggleExerciseConfig(checkbox);
+    });
+}
 
 function validateForm() {
     const name     = document.getElementById('ex_name').value.trim();
@@ -119,6 +224,8 @@ function validateWorkoutForm() {
     const name   = document.getElementById('work_name').value.trim();
     const duree  = document.getElementById('work_duree').value.trim();
     const selectedExercisesRaw = document.getElementById('selected_exercises').value.trim();
+    const selectedCategoryId = document.getElementById('work_id_cat').value;
+    const newCategoryName = document.getElementById('new_work_categorie').value.trim();
 
     let errorMessage = '';
 
@@ -138,6 +245,15 @@ function validateWorkoutForm() {
         errorMessage += 'Duration must be a positive number.\n';
     } else if (Number(duree) > 180) {
         errorMessage += 'Duration seems too long (max 180 minutes).\n';
+    }
+
+    // Category
+    if (selectedCategoryId === '' && newCategoryName === '') {
+        errorMessage += 'Please select a workout category or create one.\n';
+    } else if (newCategoryName !== '' && newCategoryName.length < 2) {
+        errorMessage += 'New category name must be at least 2 characters.\n';
+    } else if (newCategoryName.length > 60) {
+        errorMessage += 'New category name must be less than 60 characters.\n';
     }
 
     // Selected exercises
@@ -162,19 +278,97 @@ function validateWorkoutForm() {
     return true;
 }
 
-function fillEditWorkoutForm(id, name, duree) {
+function submitNewWorkoutCategory() {
+    const input = document.getElementById('new_work_categorie');
+    const hiddenInput = document.getElementById('standalone_new_work_categorie');
+    const form = document.getElementById('standalone-category-form');
+
+    if (!input || !hiddenInput || !form) {
+        return;
+    }
+
+    const categoryName = input.value.trim();
+    if (categoryName.length < 2) {
+        alert('Please enter a category name with at least 2 characters.');
+        input.focus();
+        return;
+    }
+
+    if (categoryName.length > 60) {
+        alert('Category name must be less than 60 characters.');
+        input.focus();
+        return;
+    }
+
+    hiddenInput.value = categoryName;
+    form.submit();
+}
+
+function deleteWorkoutCategory(idCat, nameCat) {
+    const form = document.getElementById('standalone-delete-category-form');
+    const hiddenId = document.getElementById('standalone_delete_id_cat');
+
+    if (!form || !hiddenId) {
+        return;
+    }
+
+    if (!confirm('Delete category "' + nameCat + '"?')) {
+        return;
+    }
+
+    hiddenId.value = String(idCat);
+    form.submit();
+}
+
+function fillEditWorkoutForm(id, name, duree, idCat, exercisesPayload) {
+    const normalizedCategory = (idCat === null || idCat === undefined) ? '' : String(idCat);
+    let parsedExercises = [];
+
+    if (Array.isArray(exercisesPayload)) {
+        parsedExercises = exercisesPayload;
+    } else if (typeof exercisesPayload === 'string' && exercisesPayload.trim() !== '') {
+        try {
+            const decoded = JSON.parse(exercisesPayload);
+            if (Array.isArray(decoded)) {
+                parsedExercises = decoded;
+            }
+        } catch (e) {
+            parsedExercises = [];
+        }
+    }
+
     document.getElementById('work-form-action').value = 'update';
     document.getElementById('work-edit-id').value = id;
     document.getElementById('work_name').value = name;
     document.getElementById('work_duree').value = duree;
-    selectedWorkoutExercises = [];
-    document.getElementById('selected_exercises').value = '';
-    document.getElementById('selected-exercises-summary').innerHTML = 'No exercises selected';
+    document.getElementById('work_id_cat').value = normalizedCategory;
+    document.getElementById('new_work_categorie').value = '';
+    selectedWorkoutExercises = parsedExercises.map(function(item) {
+        const typeEx = String(item.type_ex || '').toLowerCase();
+        const isCardio = typeEx === 'cardio';
+
+        return {
+            id_ex: Number(item.id_ex),
+            name: item.name || ('Exercise #' + item.id_ex),
+            type_ex: typeEx,
+            sets: isCardio ? 0 : Math.max(1, Number(item.sets || 1)),
+            reps: isCardio ? 0 : Math.max(1, Number(item.reps || 1)),
+            weight: isCardio ? 0 : Math.max(0, Number(item.weight || 0)),
+            time: isCardio ? Math.max(1, Number(item.time || 1)) : 0
+        };
+    }).filter(function(item) {
+        return Number.isFinite(item.id_ex) && item.id_ex > 0;
+    });
+
+    updateSelectedExercisesInput();
+    renderSelectedExercisesSummary();
+    syncExerciseSelectorWithSelection();
 
     document.getElementById('workout-form').scrollIntoView({ behavior: 'smooth' });
 }
 
 function openExerciseSelectorModal() {
+    syncExerciseSelectorWithSelection();
     document.getElementById('exercise-selector-modal').style.display = 'flex';
 }
 
@@ -218,30 +412,8 @@ function applySelectedExercises() {
     });
 
     selectedWorkoutExercises = collected;
-    document.getElementById('selected_exercises').value = JSON.stringify(
-        selectedWorkoutExercises.map(function(item) {
-            return {
-                id_ex: item.id_ex,
-                type_ex: item.type_ex,
-                sets: item.sets,
-                reps: item.reps,
-                weight: item.weight,
-                time: item.time
-            };
-        })
-    );
-
-    const summary = document.getElementById('selected-exercises-summary');
-    if (selectedWorkoutExercises.length === 0) {
-        summary.innerHTML = 'No exercises selected';
-    } else {
-        summary.innerHTML = selectedWorkoutExercises.map(function(item) {
-            if (item.type_ex === 'cardio') {
-                return item.name + ' (cardio: time ' + item.time + ' min)';
-            }
-            return item.name + ' (sets: ' + item.sets + ', reps: ' + item.reps + ', weight: ' + item.weight + ')';
-        }).join('<br>');
-    }
+    updateSelectedExercisesInput();
+    renderSelectedExercisesSummary();
 
     closeExerciseSelectorModal();
 }
@@ -293,6 +465,16 @@ function resetWorkoutExerciseSelection() {
             input.disabled = true;
         });
     });
+
+    const workoutCategorySelect = document.getElementById('work_id_cat');
+    if (workoutCategorySelect) {
+        workoutCategorySelect.value = '';
+    }
+
+    const newCategoryInput = document.getElementById('new_work_categorie');
+    if (newCategoryInput) {
+        newCategoryInput.value = '';
+    }
 }
 
 
@@ -315,6 +497,11 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     document.getElementById('exercise-form').scrollIntoView({ behavior: 'smooth' });
 }
 </script>
+
+
+
+
+
 
 <body>
     <!-- Pre-loader start -->
@@ -745,6 +932,11 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                         <span style="background: #fff3cd; color: #d97706; padding: 2px 8px; border-radius: 20px;">
                             🔥 <?= (int)$wk['cal_work'] ?> cal
                         </span>
+                        <?php if (!empty($wk['name_cat'])): ?>
+                            <span style="background: #e8f7ee; color: #218838; padding: 2px 8px; border-radius: 20px;">
+                                🗂️ <?= htmlspecialchars($wk['name_cat']) ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -761,7 +953,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                     <!-- Edit button -->
                     <button type="button"
-                        onclick="fillEditWorkoutForm(<?= $wk['id_work'] ?>, '<?= addslashes($wk['name_work']) ?>', <?= (int)$wk['duree_work'] ?>)"
+                        onclick="fillEditWorkoutForm(<?= (int)$wk['id_work'] ?>, '<?= addslashes($wk['name_work']) ?>', <?= (int)$wk['duree_work'] ?>, <?= isset($wk['id_cat']) ? (int)$wk['id_cat'] : 0 ?>, '<?= htmlspecialchars(json_encode($workoutExercisesByWorkout[(int)$wk['id_work']] ?? []), ENT_QUOTES, 'UTF-8') ?>')"
                         style="background: none; border: none; color: #4099ff; cursor: pointer; font-size: 16px; padding: 5px;">
                         <i class="ti-pencil"></i>
                     </button>
@@ -798,6 +990,43 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                     <input type="number" id="work_duree" name="work_duree" class="form-input" placeholder="45" min="1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                 </div>
 
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Workout Category</label>
+                                        <select id="work_id_cat" name="id_cat" class="form-input" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                            <option value="">Choose a category</option>
+                                            <?php foreach ($workCategories as $cat): ?>
+                                                <option value="<?= (int)$cat['id_cat'] ?>" <?= $selectedCategoryFromQuery === (int)$cat['id_cat'] ? 'selected' : '' ?>><?= htmlspecialchars($cat['name_cat']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Or Create Category</label>
+                                        <input type="text" id="new_work_categorie" name="new_work_categorie" class="form-input" placeholder="e.g., Fat Loss" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                        <button type="button" onclick="submitNewWorkoutCategory()" style="margin-top: 8px; padding: 9px 12px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                            <i class="ti-plus"></i> Add Category
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <label style="font-weight: 600; margin-bottom: 0; font-size: 14px;">Category List</label>
+                                    <div style="max-height: 140px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: #fafafa; padding: 8px;">
+                                        <?php if (empty($workCategories)): ?>
+                                            <div style="font-size: 13px; color: #888;">No categories available.</div>
+                                        <?php else: ?>
+                                            <?php foreach ($workCategories as $cat): ?>
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 4px; border-bottom: 1px solid #eee;">
+                                                    <span style="font-size: 13px; color: #444;"><?= htmlspecialchars($cat['name_cat']) ?></span>
+                                                    <button type="button" onclick="deleteWorkoutCategory(<?= (int)$cat['id_cat'] ?>, '<?= addslashes($cat['name_cat']) ?>')" style="padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                                        <i class="ti-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
                                 <div style="display: flex; flex-direction: column;">
                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Calories Burned</label>
                                     <div style="padding: 10px; border: 1px dashed #ddd; border-radius: 4px; font-size: 13px; color: #666; background: #fafafa;">
@@ -829,6 +1058,16 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                         <i class="ti-close"></i> Clear
                                     </button>
                                 </div>
+                            </form>
+
+                            <form id="standalone-category-form" action="../../controle/controle_workout.php" method="POST" style="display: none;">
+                                <input type="hidden" name="action" value="add_category">
+                                <input type="hidden" id="standalone_new_work_categorie" name="new_work_categorie" value="">
+                            </form>
+
+                            <form id="standalone-delete-category-form" action="../../controle/controle_workout.php" method="POST" style="display: none;">
+                                <input type="hidden" name="action" value="delete_category">
+                                <input type="hidden" id="standalone_delete_id_cat" name="delete_id_cat" value="">
                             </form>
 
                         </div>
@@ -1172,6 +1411,29 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
             if (params.get('added') === '1') {
                 alert('Exercise added successfully.');
                 params.delete('added');
+            }
+
+            if (params.get('category_added') === '1') {
+                alert('Category added successfully.');
+                params.delete('category_added');
+            }
+
+            if (params.get('category_error')) {
+                alert('Category error: ' + params.get('category_error'));
+                params.delete('category_error');
+            }
+
+            if (params.get('category_deleted') === '1') {
+                alert('Category deleted successfully.');
+                params.delete('category_deleted');
+            }
+
+            if (params.get('category_delete_error')) {
+                alert('Category delete error: ' + params.get('category_delete_error'));
+                params.delete('category_delete_error');
+            }
+
+            if (params.toString() !== window.location.search.replace(/^\?/, '')) {
                 const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
                 window.history.replaceState({}, document.title, newUrl);
             }
@@ -1212,8 +1474,14 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                 });
             });
 
+            const currentParams = new URLSearchParams(window.location.search);
+            const forceWorkoutSection = currentParams.get('section') === 'workout' || currentParams.get('category_id') || currentParams.get('category_added') || currentParams.get('category_error') || currentParams.get('category_deleted') || currentParams.get('category_delete_error');
             const initiallyActive = document.querySelector('.dashboard-item.active[data-section]');
-            setActiveSection(initiallyActive ? initiallyActive.dataset.section : 'exercise');
+            if (forceWorkoutSection) {
+                setActiveSection('workout');
+            } else {
+                setActiveSection(initiallyActive ? initiallyActive.dataset.section : 'exercise');
+            }
 
             if (workoutForm) {
                 workoutForm.addEventListener('reset', function() {

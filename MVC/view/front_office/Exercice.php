@@ -225,7 +225,7 @@ $exercises = $stmt->fetchAll();
   <ul class="nav-links">
     <li><a href="Exercice.php">Exercice</a></li>
     <li><a href="Workout.php">Workouts</a></li>
-    <li><a href="CustomWorkouts.php">Custom Workouts</a></li>
+    <li><a href="custome_workout.php">Custom Workouts</a></li>
   </ul>
   <div class="nav-actions">
     <a href="backoffice.html" class="nav-btn nav-backoffice">Backoffice</a>
