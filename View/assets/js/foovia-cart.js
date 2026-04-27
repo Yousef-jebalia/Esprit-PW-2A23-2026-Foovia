@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const pickerName = document.querySelector('[data-picker-product-name]');
   const pickerPrice = document.querySelector('[data-picker-price]');
   const pickerReservationTotal = document.querySelector('[data-picker-reservation-total]');
+  const floatingCartButtons = Array.from(document.querySelectorAll('[data-cart-toggle]'));
+  let dragPreview = null;
   let pendingProduct = null;
 
   const parseQuantity = (value) => {
@@ -33,6 +35,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveCart = () => {
     localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+  };
+
+  const setCartDragState = (isActive) => {
+    floatingCartButtons.forEach((button) => {
+      button.classList.toggle('is-drag-target', isActive);
+    });
+  };
+
+  const cleanupDragPreview = () => {
+    if (dragPreview && dragPreview.parentElement) {
+      dragPreview.remove();
+    }
+    dragPreview = null;
+  };
+
+  const buildDragPreview = (product) => {
+    cleanupDragPreview();
+
+    const preview = document.createElement('div');
+    preview.className = 'foovia-drag-preview';
+    preview.innerHTML = `
+      <img src="${product.image}" alt="${product.name}">
+      <div class="foovia-drag-preview-copy">
+        <strong>${product.name}</strong>
+        <span>${formatPrice(product.price)} TND</span>
+      </div>
+    `;
+    document.body.appendChild(preview);
+    dragPreview = preview;
+    return preview;
+  };
+
+  const showCheckoutMessage = (targetButton, message) => {
+    const oldMessage = cartModal?.querySelector('.foovia-checkout-message');
+    if (oldMessage) {
+      oldMessage.remove();
+    }
+
+    if (!targetButton) {
+      return;
+    }
+
+    const messageNode = document.createElement('div');
+    messageNode.className = 'foovia-checkout-message';
+    messageNode.textContent = message;
+    targetButton.insertAdjacentElement('beforebegin', messageNode);
   };
 
   const renderCart = () => {
@@ -88,6 +136,42 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCart();
   };
 
+  const openPickerForProduct = (product) => {
+    pendingProduct = product;
+
+    if (pickerName) pickerName.textContent = pendingProduct.name;
+    if (pickerPrice) pickerPrice.textContent = `${formatPrice(pendingProduct.price)} TND`;
+    if (pickerStore) {
+      pickerStore.innerHTML = (pendingProduct.stores || []).map((store, index) => `
+        <label class="foovia-store-choice">
+          <input
+            type="radio"
+            name="picker_store"
+            value="${store.id}"
+            data-store-name="${store.name}"
+            data-store-image="${store.image}"
+            ${index === 0 ? 'checked' : ''}
+          >
+          <span>${store.name}</span>
+        </label>
+      `).join('');
+    }
+    if (pickerQuantity) pickerQuantity.value = '1';
+    if (pickerReservationTotal) pickerReservationTotal.textContent = '0 reservations';
+    if (picker) picker.hidden = false;
+  };
+
+  const readProductFromDataset = (source) => {
+    const stores = JSON.parse(source.dataset.productStores || '[]');
+    return {
+      id: Number(source.dataset.productId),
+      name: source.dataset.productName || 'Product',
+      price: Number(source.dataset.productPrice || 0),
+      image: source.dataset.productImage || '',
+      stores
+    };
+  };
+
   const getSelectedDetailStore = () => {
     const checkedStore = document.querySelector('[name="detail_store"]:checked');
     if (checkedStore) {
@@ -124,49 +208,81 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => {
       const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
       const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-      const oldMessage = cartModal?.querySelector('.foovia-checkout-message');
-      if (oldMessage) oldMessage.remove();
+      if (totalItems === 0) {
+        showCheckoutMessage(button, 'Your cart is empty. Add a product before checkout.');
+        return;
+      }
 
-      const message = document.createElement('div');
-      message.className = 'foovia-checkout-message';
-      message.textContent = totalItems === 0
-        ? 'Your cart is empty. Add a product before checkout.'
-        : `Ready to checkout ${totalItems} item(s) for ${formatPrice(totalPrice)} TND.`;
-      button.insertAdjacentElement('beforebegin', message);
+      showCheckoutMessage(button, `Opening checkout for ${totalItems} item(s) worth ${formatPrice(totalPrice)} TND...`);
+      window.setTimeout(() => {
+        window.location.href = 'checkout.php';
+      }, 220);
     });
   });
 
   document.querySelectorAll('[data-open-cart-picker]').forEach((button) => {
     button.addEventListener('click', () => {
-      const stores = JSON.parse(button.dataset.productStores || '[]');
-      pendingProduct = {
-        id: Number(button.dataset.productId),
-        name: button.dataset.productName || 'Product',
-        price: Number(button.dataset.productPrice || 0),
-        image: button.dataset.productImage || '',
-        stores
-      };
+      openPickerForProduct(readProductFromDataset(button));
+    });
+  });
 
-      if (pickerName) pickerName.textContent = pendingProduct.name;
-      if (pickerPrice) pickerPrice.textContent = `${formatPrice(pendingProduct.price)} TND`;
-      if (pickerStore) {
-        pickerStore.innerHTML = stores.map((store, index) => `
-          <label class="foovia-store-choice">
-            <input
-              type="radio"
-              name="picker_store"
-              value="${store.id}"
-              data-store-name="${store.name}"
-              data-store-image="${store.image}"
-              ${index === 0 ? 'checked' : ''}
-            >
-            <span>${store.name}</span>
-          </label>
-        `).join('');
+  document.querySelectorAll('[data-drag-product]').forEach((card) => {
+    card.addEventListener('dragstart', (event) => {
+      const product = readProductFromDataset(card);
+      const preview = buildDragPreview(product);
+      event.dataTransfer?.setData('application/json', JSON.stringify(product));
+      event.dataTransfer?.setData('text/plain', String(product.id));
+      event.dataTransfer.effectAllowed = 'copy';
+      if (event.dataTransfer && preview) {
+        event.dataTransfer.setDragImage(preview, 36, 24);
       }
-      if (pickerQuantity) pickerQuantity.value = '1';
-      if (pickerReservationTotal) pickerReservationTotal.textContent = '0 reservations';
-      if (picker) picker.hidden = false;
+      card.classList.add('is-dragging');
+      setCartDragState(true);
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('is-dragging');
+      setCartDragState(false);
+      cleanupDragPreview();
+    });
+  });
+
+  floatingCartButtons.forEach((button) => {
+    button.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      setCartDragState(true);
+    });
+
+    button.addEventListener('dragenter', (event) => {
+      event.preventDefault();
+      setCartDragState(true);
+    });
+
+    button.addEventListener('dragleave', (event) => {
+      if (event.relatedTarget && button.contains(event.relatedTarget)) {
+        return;
+      }
+      setCartDragState(false);
+    });
+
+    button.addEventListener('drop', (event) => {
+      event.preventDefault();
+      setCartDragState(false);
+      const payload = event.dataTransfer?.getData('application/json');
+      if (!payload) {
+        return;
+      }
+
+      try {
+        const product = JSON.parse(payload);
+        if (!product || !Array.isArray(product.stores)) {
+          return;
+        }
+        openPickerForProduct(product);
+      } catch (error) {
+        // Ignore malformed drag payloads.
+      }
     });
   });
 

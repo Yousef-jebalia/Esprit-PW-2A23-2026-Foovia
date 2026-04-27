@@ -47,7 +47,7 @@ $message = match ($status) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Foovia Back Office</title>
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/pages/waves/css/waves.min.css" type="text/css" media="all">
     <link rel="stylesheet" type="text/css" href="assets/css/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="assets/icon/themify-icons/themify-icons.css">
@@ -55,7 +55,7 @@ $message = match ($status) {
     <link rel="stylesheet" type="text/css" href="assets/icon/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="assets/css/jquery.mCustomScrollbar.css">
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
-    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css">
+    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=foovia-welcome-style-1">
 </head>
 <body>
     <div class="theme-loader">
@@ -383,7 +383,7 @@ $message = match ($status) {
     <script src="assets/js/pcoded.min.js"></script>
     <script src="assets/js/vertical/vertical-layout.min.js"></script>
     <script src="assets/js/script.js"></script>
-    <script src="../../assets/js/backoffice-validation.js?v=decimal-price-2"></script>
+    <script src="../../assets/js/backoffice-validation.js?v=description-fix-4"></script>
     <script src="../../assets/js/backoffice-actions.js"></script>
 </body>
 </html>

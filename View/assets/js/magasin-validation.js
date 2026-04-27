@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('name_mag', 'Magasin name is required.');
         return false;
       }
-      if (value.length > 10) {
-        setError('name_mag', 'Magasin name must stay within 10 characters because of the SQL schema.');
+      if (value.length > 120) {
+        setError('name_mag', 'Magasin name must stay within 120 characters because of the SQL schema.');
         return false;
       }
       clearError('name_mag');
@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('email_mag', 'Enter a valid email address.');
         return false;
       }
-      if (value.length > 20) {
-        setError('email_mag', 'Email must stay within 20 characters because of the SQL schema.');
+      if (value.length > 191) {
+        setError('email_mag', 'Email must stay within 191 characters because of the SQL schema.');
         return false;
       }
       clearError('email_mag');
@@ -61,6 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('phone_mag', 'Phone number must contain 8 to 15 digits.');
         return false;
       }
+      if (value.length > 30) {
+        setError('phone_mag', 'Phone number must stay within 30 characters because of the SQL schema.');
+        return false;
+      }
       clearError('phone_mag');
       return true;
     },
@@ -70,8 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('adress_mag', 'Address is required.');
         return false;
       }
-      if (value.length > 20) {
-        setError('adress_mag', 'Address must stay within 20 characters because of the SQL schema.');
+      if (value.length > 255) {
+        setError('adress_mag', 'Address must stay within 255 characters because of the SQL schema.');
         return false;
       }
       clearError('adress_mag');

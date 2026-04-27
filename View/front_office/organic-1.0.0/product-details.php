@@ -26,7 +26,7 @@ if ($product === null) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=add-popup-friendly-1">
+    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=foovia-hero-hover-brand-1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -42,7 +42,7 @@ if ($product === null) {
                 <div class="col-lg-3 col-md-4 foovia-brand-col">
                     <a href="marketplace.php" class="foovia-brand">
                         <img src="../../assets/imges-autre/pic_logo.png" class="foovia-logo-img" alt="Foovia logo">
-                        <img src="../../assets/imges-autre/pic_name.png" class="foovia-name-img" alt="Foovia">
+                        <span class="foovia-brand-text">Foovia</span>
                     </a>
                 </div>
                 <div class="col-lg-6">
@@ -52,10 +52,7 @@ if ($product === null) {
                     </nav>
                 </div>
                 <div class="col-lg-3 text-lg-end">
-                    <button type="button" class="foovia-cart-toggle" data-cart-toggle aria-label="Open cart">
-                        <svg width="24" height="24" aria-hidden="true"><use xlink:href="#cart-icon"></use></svg>
-                        <span data-cart-count>0</span>
-                    </button>
+                    <a href="marketplace.php" class="foovia-spotlight-link">Keep shopping</a>
                 </div>
             </div>
         </div>
@@ -204,6 +201,11 @@ if ($product === null) {
         </div>
     </main>
 
+    <button type="button" class="foovia-cart-toggle foovia-floating-cart" data-cart-toggle aria-label="Open cart">
+        <svg width="24" height="24" aria-hidden="true"><use xlink:href="#cart-icon"></use></svg>
+        <span data-cart-count>0</span>
+    </button>
+
     <div class="foovia-cart-modal" data-cart-modal hidden>
         <div class="foovia-cart-panel">
             <div class="foovia-cart-header">
@@ -221,6 +223,6 @@ if ($product === null) {
     <script>
         window.FOOVIA_RESERVATION_ENDPOINT = '../../../Controller/Marchandise_Controller.php?action=reserve';
     </script>
-    <script src="../../assets/js/foovia-cart.js?v=add-popup-card-1"></script>
+    <script src="../../assets/js/foovia-cart.js?v=drag-preview-1"></script>
 </body>
 </html>

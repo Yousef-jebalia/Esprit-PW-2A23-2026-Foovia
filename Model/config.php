@@ -17,7 +17,7 @@ final class Database
         }
 
         self::$connection = new PDO(
-            'mysql:host=127.0.0.1;dbname=foovia_db;charset=utf8mb4',
+            'mysql:host=127.0.0.1;dbname=foovia;charset=utf8mb4',
             'root',
             '',
             [

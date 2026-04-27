@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('description_march', 'Description is required.');
         return false;
       }
-      if (value.length > 50) {
-        setError('description_march', 'Description must stay within 50 characters.');
+      if (value.length > 2000) {
+        setError('description_march', 'Description must stay within 2000 characters.');
         return false;
       }
       clearError('description_march');

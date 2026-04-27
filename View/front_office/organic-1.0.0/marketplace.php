@@ -11,10 +11,160 @@ $magasinModel = new Magasin();
 $products = $marchandiseModel->fetchAllWithStores();
 $stores = $magasinModel->fetchAll();
 $storesById = [];
+$storeLogoUrls = [
+    'aziza' => '',
+    'mg' => '',
+    'monoprix' => '',
+    'carrefour' => '',
+];
+$inventoryByBrand = [
+    'aziza' => [],
+    'mg' => [],
+    'monoprix' => [],
+    'carrefour' => [],
+];
 foreach ($stores as $store) {
     $storesById[(int) $store['id_mag']] = $store;
+    if ((int) ($store['has_image'] ?? 0) !== 1) {
+        continue;
+    }
+
+    $storeName = strtolower((string) $store['name_mag']);
+    $logoUrl = '../../../Controller/Magasin_Controller.php?action=image&id=' . (int) $store['id_mag'];
+
+    if ($storeLogoUrls['aziza'] === '' && str_contains($storeName, 'aziza')) {
+        $storeLogoUrls['aziza'] = $logoUrl;
+    }
+    if ($storeLogoUrls['mg'] === '' && (str_contains($storeName, 'mg') || str_contains($storeName, 'magasin general'))) {
+        $storeLogoUrls['mg'] = $logoUrl;
+    }
+    if ($storeLogoUrls['monoprix'] === '' && str_contains($storeName, 'monoprix')) {
+        $storeLogoUrls['monoprix'] = $logoUrl;
+    }
+    if ($storeLogoUrls['carrefour'] === '' && str_contains($storeName, 'carrefour')) {
+        $storeLogoUrls['carrefour'] = $logoUrl;
+    }
 }
 $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((float) $price, 3, '.', ''), '0'), '.');
+
+$detectStoreBrand = static function (string $name): ?string {
+    $normalized = strtolower($name);
+    if (str_contains($normalized, 'aziza')) {
+        return 'aziza';
+    }
+    if (str_contains($normalized, 'monoprix')) {
+        return 'monoprix';
+    }
+    if (str_contains($normalized, 'carrefour')) {
+        return 'carrefour';
+    }
+    if (str_contains($normalized, 'mg') || str_contains($normalized, 'magasin general')) {
+        return 'mg';
+    }
+
+    return null;
+};
+
+foreach ($products as $product) {
+    $storeIds = array_filter(array_map('intval', explode(',', (string) ($product['store_ids'] ?? ''))));
+    foreach ($storeIds as $storeId) {
+        $store = $storesById[$storeId] ?? null;
+        if ($store === null) {
+            continue;
+        }
+
+        $brandKey = $detectStoreBrand((string) $store['name_mag']);
+        if ($brandKey === null || !isset($inventoryByBrand[$brandKey])) {
+            continue;
+        }
+
+        $inventoryByBrand[$brandKey][] = [
+            'name' => (string) $product['name_march'],
+            'quantity' => (int) $product['quantity_march'],
+        ];
+    }
+}
+
+foreach ($inventoryByBrand as $brandKey => $items) {
+    $deduplicated = [];
+    foreach ($items as $item) {
+        $deduplicated[$item['name']] = $item;
+    }
+    usort($deduplicated, static fn (array $left, array $right): int => $right['quantity'] <=> $left['quantity']);
+    $inventoryByBrand[$brandKey] = array_slice(array_values($deduplicated), 0, 5);
+}
+
+$categoryBuckets = [];
+foreach ($products as $product) {
+    $names = array_filter(array_map('trim', explode(',', (string) ($product['category_names'] ?? ''))));
+    foreach ($names as $categoryName) {
+        if (!isset($categoryBuckets[$categoryName])) {
+            $categoryBuckets[$categoryName] = [];
+        }
+        if (count($categoryBuckets[$categoryName]) < 4) {
+            $categoryBuckets[$categoryName][] = $product;
+        }
+    }
+}
+
+$newArrivals = array_slice($products, 0, 4);
+$priceFriendly = $products;
+usort($priceFriendly, static fn (array $left, array $right): int => ((float) $left['price_march']) <=> ((float) $right['price_march']));
+$priceFriendly = array_slice($priceFriendly, 0, 4);
+
+$highStock = $products;
+usort($highStock, static fn (array $left, array $right): int => ((int) $right['quantity_march']) <=> ((int) $left['quantity_march']));
+$highStock = array_slice($highStock, 0, 4);
+$spotlightProducts = $highStock !== [] ? array_slice($highStock, 0, 5) : array_slice($products, 0, 5);
+usort(
+    $spotlightProducts,
+    static function (array $left, array $right): int {
+        $leftIsBanana = str_contains(strtolower((string) $left['name_march']), 'banana');
+        $rightIsBanana = str_contains(strtolower((string) $right['name_march']), 'banana');
+
+        if ($leftIsBanana === $rightIsBanana) {
+            return 0;
+        }
+
+        return $leftIsBanana ? -1 : 1;
+    }
+);
+
+$recommendedPanels = [];
+if ($newArrivals !== []) {
+    $recommendedPanels[] = [
+        'title' => 'New arrivals in Foovia',
+        'caption' => 'Recently published marketplace products',
+        'products' => $newArrivals,
+    ];
+}
+if ($priceFriendly !== []) {
+    $recommendedPanels[] = [
+        'title' => 'Best price picks',
+        'caption' => 'Affordable items ready to order',
+        'products' => $priceFriendly,
+    ];
+}
+foreach ($categoryBuckets as $categoryName => $bucket) {
+    if (count($recommendedPanels) >= 4) {
+        break;
+    }
+    if ($bucket !== []) {
+        $recommendedPanels[] = [
+            'title' => $categoryName . ' recommendations',
+            'caption' => 'Products selected from this food category',
+            'products' => array_slice($bucket, 0, 4),
+        ];
+    }
+}
+if (count($recommendedPanels) < 4 && $highStock !== []) {
+    $recommendedPanels[] = [
+        'title' => 'Stocked and ready',
+        'caption' => 'Products with the highest available quantity',
+        'products' => $highStock,
+    ];
+}
+$recommendedPanels = array_slice($recommendedPanels, 0, 3);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -27,22 +177,21 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=add-popup-friendly-1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" type="text/css" href="../../assets/css/marketplace.css?v=foovia-hero-hover-brand-1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        .foovia-hero::before {
-            background:
-                linear-gradient(90deg, rgba(248, 216, 107, 0.94) 0%, rgba(248, 216, 107, 0.92) 34%, rgba(248, 216, 107, 0.18) 58%, rgba(248, 216, 107, 0) 74%),
-                url('../../assets/imges-autre/background.jpg') center right/cover no-repeat !important;
-        }
-        .foovia-brand-mark {
-            display: none !important;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="foovia-page-loader" data-page-loader>
+        <div class="foovia-page-loader__panel">
+            <span class="foovia-page-loader__dot"></span>
+            <span class="foovia-page-loader__dot"></span>
+            <span class="foovia-page-loader__dot"></span>
+            <p>Loading Foovia marketplace</p>
+        </div>
+    </div>
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <defs>
             <symbol xmlns="http://www.w3.org/2000/svg" id="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7a7 7 0 0 1-7 7Z"/></symbol>
@@ -60,9 +209,8 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
             <div class="row align-items-center g-3">
                 <div class="col-lg-2 col-md-4 foovia-brand-col">
                     <a href="marketplace.php" class="foovia-brand">
-                        <img src="../../assets/imges-autre/pic_logo.png" class="foovia-logo-img" style="height: 42px; width: auto; max-height: 42px;" alt="Foovia logo">
-                        <img src="../../assets/imges-autre/pic_name.png" class="foovia-name-img" style="height: 22px; width: auto; max-height: 22px;" alt="Foovia">
-                        <span class="foovia-brand-mark">❦</span>
+                        <img src="../../assets/imges-autre/pic_logo.png" class="foovia-logo-img" alt="Foovia logo">
+                        <span class="foovia-brand-text">Foovia</span>
                     </a>
                 </div>
                 <div class="col-lg-4 col-md-8">
@@ -81,8 +229,9 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
                 </div>
                 <div class="col-lg-4">
                     <nav class="foovia-nav justify-content-lg-center">
-                        <a href="marketplace.php">HOME</a>
-                        <a href="#products">PAGES</a>
+                        <a href="marketplace.php">Marketplace</a>
+                        <a href="#products">How it works</a>
+                        <a href="#aziza-map">Community</a>
                     </nav>
                 </div>
                 <div class="col-lg-2">
@@ -93,10 +242,6 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
                         <span aria-label="Saved">
                             <svg width="24" height="24" aria-hidden="true"><use xlink:href="#bookmark-icon"></use></svg>
                         </span>
-                        <button type="button" class="foovia-cart-toggle" data-cart-toggle aria-label="Open cart">
-                            <svg width="24" height="24" aria-hidden="true"><use xlink:href="#cart-icon"></use></svg>
-                            <span data-cart-count>0</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -104,74 +249,124 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
     </header>
 
     <main>
-        <section class="foovia-hero">
-            <div class="container-fluid px-0">
-                <div class="row g-0 align-items-stretch foovia-hero-main">
-                    <div class="col-lg-6">
-                        <div class="foovia-hero-copy container-lg">
-                            <h1><span class="foovia-accent">Foovia</span> Foods at your Doorsteps</h1>
-                            <p>Find fresh food, wellness items, and local store offers in one simple marketplace.</p>
-                            <div class="foovia-hero-actions">
-                                <a href="#products" class="foovia-btn-primary">START SHOPPING</a>
-                                <a href="../../back_office/material_able-main/products.php" class="foovia-btn-dark">JOIN NOW</a>
-                            </div>
-                            <div class="foovia-stats">
-                                <div class="foovia-stat">
-                                    <strong><?= max(count($products), 14) ?>+</strong>
-                                    <span>Product Varieties</span>
-                                </div>
-                                <div class="foovia-stat">
-                                    <strong>50k+</strong>
-                                    <span>Happy Customers</span>
-                                </div>
-                                <div class="foovia-stat">
-                                    <strong><?= max(count($stores), 10) ?>+</strong>
-                                    <span>Store Locations</span>
-                                </div>
-                            </div>
+        <section class="foovia-recommend-section">
+            <div class="container-lg">
+                <div class="foovia-recommend-hero">
+                    <div class="foovia-recommend-copy">
+                        <span class="foovia-section-chip">Recommended for you</span>
+                        <h1>Discover products the <span>Foovia</span> way</h1>
+                        <p>A lighter marketplace top section with a moving product spotlight, calmer spacing, and curated picks that are easier to scan.</p>
+                        <div class="foovia-hero-actions-lite">
+                            <a href="#products" class="foovia-hero-primary-link">Browse marketplace</a>
+                            <a href="#products" class="foovia-hero-secondary-link">How it works</a>
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="foovia-hero-image"></div>
-                    </div>
+                    <?php if ($spotlightProducts !== []): ?>
+                        <section class="foovia-spotlight-shell" data-recommend-spotlight>
+                            <div class="foovia-spotlight-stage">
+                                <?php foreach ($spotlightProducts as $index => $spotlightProduct): ?>
+                                    <article class="foovia-spotlight-card<?= $index === 0 ? ' is-active' : '' ?>" data-spotlight-slide>
+                                        <div class="foovia-spotlight-copy">
+                                            <span class="foovia-spotlight-kicker"><?= htmlspecialchars($spotlightProduct['category_names'] ?: 'Foovia pick', ENT_QUOTES) ?></span>
+                                            <h2><?= htmlspecialchars($spotlightProduct['name_march'], ENT_QUOTES) ?></h2>
+                                            <p><?= htmlspecialchars($spotlightProduct['description_march'], ENT_QUOTES) ?></p>
+                                            <div class="foovia-spotlight-meta">
+                                                <strong><?= htmlspecialchars($formatPrice($spotlightProduct['price_march']), ENT_QUOTES) ?> TND</strong>
+                                                <span><?= (int) $spotlightProduct['quantity_march'] ?> in stock</span>
+                                                <span><?= htmlspecialchars((string) ($spotlightProduct['store_names'] ?: 'Foovia stores'), ENT_QUOTES) ?></span>
+                                            </div>
+                                            <div class="foovia-spotlight-actions">
+                                                <a href="product-details.php?id=<?= (int) $spotlightProduct['id_march'] ?>" class="foovia-spotlight-btn">View product</a>
+                                                <a href="#products" class="foovia-spotlight-link">Browse catalog</a>
+                                            </div>
+                                        </div>
+                                        <a href="product-details.php?id=<?= (int) $spotlightProduct['id_march'] ?>" class="foovia-spotlight-media" aria-label="<?= htmlspecialchars($spotlightProduct['name_march'], ENT_QUOTES) ?>">
+                                            <span class="foovia-spotlight-floating foovia-spotlight-floating-top">Market fresh</span>
+                                            <span class="foovia-spotlight-floating foovia-spotlight-floating-middle">Workout ready</span>
+                                            <span class="foovia-spotlight-floating foovia-spotlight-floating-bottom">Fresh everyday</span>
+                                            <img src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $spotlightProduct['id_march'] ?>" alt="<?= htmlspecialchars($spotlightProduct['name_march'], ENT_QUOTES) ?>">
+                                        </a>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="foovia-spotlight-nav" data-spotlight-nav>
+                                <?php foreach ($spotlightProducts as $index => $spotlightProduct): ?>
+                                    <button
+                                        type="button"
+                                        class="foovia-spotlight-dot<?= $index === 0 ? ' is-active' : '' ?>"
+                                        data-spotlight-dot
+                                        data-spotlight-index="<?= $index ?>"
+                                        aria-label="Show <?= htmlspecialchars($spotlightProduct['name_march'], ENT_QUOTES) ?>"
+                                    ></button>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="foovia-recommend-stats">
+                                <div><i></i><strong><?= count($products) ?></strong><span>Products live</span></div>
+                                <div><i></i><strong><?= count($stores) ?></strong><span>Stores linked</span></div>
+                                <div><i></i><strong><?= max(array_sum(array_map(static fn (array $product): int => (int) $product['quantity_march'], $products)), 0) ?></strong><span>Total stock</span></div>
+                            </div>
+                        </section>
+                    <?php endif; ?>
                 </div>
-                <div class="container-lg foovia-feature-strip">
-                    <div class="row g-0">
-                        <div class="col-lg-4">
-                            <div class="foovia-feature-card foovia-feature-green">
-                                <div class="foovia-feature-icon">
-                                    <svg width="60" height="60" aria-hidden="true"><use xlink:href="#fresh-icon"></use></svg>
-                                </div>
-                                <div>
-                                    <h3>Fresh from farm</h3>
-                                    <p>Products selected from trusted local stores and prepared for everyday healthy choices.</p>
-                                </div>
-                            </div>
+
+                <?php if ($recommendedPanels !== []): ?>
+                    <div class="foovia-recommend-subhead">
+                        <div>
+                            <span class="foovia-recommend-label">Shopping moods</span>
+                            <h2>Quick picks without the clutter</h2>
                         </div>
-                        <div class="col-lg-4">
-                            <div class="foovia-feature-card foovia-feature-dark">
-                                <div class="foovia-feature-icon">
-                                    <svg width="60" height="60" aria-hidden="true"><use xlink:href="#organic-icon"></use></svg>
-                                </div>
-                                <div>
-                                    <h3>100% Organic</h3>
-                                    <p>Carefully chosen goods for a cleaner, fresher, and more balanced lifestyle.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="foovia-feature-card foovia-feature-orange">
-                                <div class="foovia-feature-icon">
-                                    <svg width="60" height="60" aria-hidden="true"><use xlink:href="#delivery"></use></svg>
-                                </div>
-                                <div>
-                                    <h3>Free delivery</h3>
-                                    <p>Fast access to store products so your favorite essentials are always within reach.</p>
-                                </div>
+                        <div class="foovia-recommend-tools">
+                            <p>Each block stays focused on just a few items so the page feels lighter and easier to browse.</p>
+                            <div class="foovia-recommend-scroll">
+                                <button type="button" class="foovia-scroll-btn" data-recommend-prev aria-label="Scroll recommendations left">&larr;</button>
+                                <button type="button" class="foovia-scroll-btn" data-recommend-next aria-label="Scroll recommendations right">&rarr;</button>
                             </div>
                         </div>
                     </div>
-                </div>
+                    <section class="foovia-recommend-promote" data-recommend-promote>
+                        <div class="foovia-recommend-promote-slot" data-recommend-promote-slot>
+                            <div class="foovia-recommend-promote-empty" data-recommend-empty>
+                                <span class="foovia-recommend-empty-chip">Interactive preview</span>
+                                <strong>Press a recommendation once to bring it here.</strong>
+                                <p>Press the same promoted item again and Foovia will open its product page.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="foovia-recommend-grid" data-recommend-track>
+                        <?php foreach ($recommendedPanels as $panel): ?>
+                            <section class="foovia-recommend-card">
+                                <div class="foovia-recommend-card-head">
+                                    <h2><?= htmlspecialchars($panel['title'], ENT_QUOTES) ?></h2>
+                                    <p><?= htmlspecialchars($panel['caption'], ENT_QUOTES) ?></p>
+                                </div>
+                                <div class="foovia-mini-grid">
+                                    <?php foreach (array_slice($panel['products'], 0, 3) as $recommendedProduct): ?>
+                                        <a
+                                            href="product-details.php?id=<?= (int) $recommendedProduct['id_march'] ?>"
+                                            class="foovia-mini-item"
+                                            data-recommend-item
+                                            data-product-id="<?= (int) $recommendedProduct['id_march'] ?>"
+                                            data-product-name="<?= htmlspecialchars($recommendedProduct['name_march'], ENT_QUOTES) ?>"
+                                            data-product-price="<?= htmlspecialchars($formatPrice($recommendedProduct['price_march']), ENT_QUOTES) ?>"
+                                            data-product-description="<?= htmlspecialchars($recommendedProduct['description_march'], ENT_QUOTES) ?>"
+                                            data-product-category="<?= htmlspecialchars((string) ($recommendedProduct['category_names'] ?: 'Foovia pick'), ENT_QUOTES) ?>"
+                                            data-product-stock="<?= (int) $recommendedProduct['quantity_march'] ?>"
+                                            data-product-stores="<?= htmlspecialchars((string) ($recommendedProduct['store_names'] ?? 'Selected Foovia stores'), ENT_QUOTES) ?>"
+                                            data-product-image="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $recommendedProduct['id_march'] ?>"
+                                        >
+                                            <span class="foovia-mini-thumb">
+                                                <img src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $recommendedProduct['id_march'] ?>" alt="<?= htmlspecialchars($recommendedProduct['name_march'], ENT_QUOTES) ?>">
+                                            </span>
+                                            <span class="foovia-mini-name"><?= htmlspecialchars($recommendedProduct['name_march'], ENT_QUOTES) ?></span>
+                                            <span class="foovia-mini-meta"><?= htmlspecialchars($formatPrice($recommendedProduct['price_march']), ENT_QUOTES) ?> TND</span>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                                <a href="#products" class="foovia-mini-link">Explore all products</a>
+                            </section>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
 
@@ -218,8 +413,17 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
                                 ];
                             }
                         ?>
-                        <div class="col-md-6 col-xl-4" data-product-card data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>" data-store-name="<?= htmlspecialchars(strtolower((string) ($product['store_names'] ?? '')), ENT_QUOTES) ?>" data-product-description="<?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?>">
-                            <article class="market-card">
+                        <div class="col-sm-6 col-lg-4 col-xl-3" data-product-card data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>" data-store-name="<?= htmlspecialchars(strtolower((string) ($product['store_names'] ?? '')), ENT_QUOTES) ?>" data-product-description="<?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?>">
+                            <article
+                                class="market-card"
+                                draggable="true"
+                                data-drag-product
+                                data-product-id="<?= (int) $product['id_march'] ?>"
+                                data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>"
+                                data-product-price="<?= htmlspecialchars($formatPrice($product['price_march']), ENT_QUOTES) ?>"
+                                data-product-image="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>"
+                                data-product-stores="<?= htmlspecialchars(json_encode($storePayload), ENT_QUOTES) ?>"
+                            >
                                 <div class="market-card-media">
                                     <a href="product-details.php?id=<?= (int) $product['id_march'] ?>" class="market-card-image-link">
                                         <img src="../../../Controller/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>">
@@ -296,7 +500,64 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
                 <?php endif; ?>
             </div>
         </section>
+
+        <section class="foovia-map-section" id="aziza-map">
+            <div class="container-lg">
+                <div class="foovia-map-card">
+                    <div class="foovia-map-copy">
+                        <p class="foovia-section-eyebrow">Near you</p>
+                        <h2>Markets around your location</h2>
+                        <p>Allow location access or choose a nearby city. Foovia will place pins for nearby markets, and stores named عزيزة are shown as Aziza.</p>
+                        <div class="foovia-map-controls">
+                            <select data-aziza-city-select>
+                                <option value="auto">Use my location</option>
+                                <option value="tunis">Tunis</option>
+                                <option value="ariana">Ariana</option>
+                                <option value="manouba">Manouba</option>
+                                <option value="ben_arous">Ben Arous</option>
+                                <option value="sousse">Sousse</option>
+                                <option value="sfax">Sfax</option>
+                            </select>
+                            <button type="button" data-aziza-city-search>Search</button>
+                        </div>
+                        <span class="foovia-map-status" data-aziza-map-status>Waiting for your location...</span>
+                    </div>
+                    <div
+                        class="foovia-map-canvas"
+                        data-aziza-map
+                        data-aziza-logo="<?= htmlspecialchars($storeLogoUrls['aziza'], ENT_QUOTES) ?>"
+                        data-mg-logo="<?= htmlspecialchars($storeLogoUrls['mg'], ENT_QUOTES) ?>"
+                        data-monoprix-logo="<?= htmlspecialchars($storeLogoUrls['monoprix'], ENT_QUOTES) ?>"
+                        data-carrefour-logo="<?= htmlspecialchars($storeLogoUrls['carrefour'], ENT_QUOTES) ?>"
+                        data-store-inventory="<?= htmlspecialchars(json_encode($inventoryByBrand), ENT_QUOTES) ?>"
+                    ></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="foovia-site-footer">
+            <div class="container-lg">
+                <div class="foovia-footer-inner">
+                    <a href="marketplace.php" class="foovia-footer-brand">
+                        <img src="../../assets/imges-autre/pic_logo.png" alt="Foovia logo">
+                        <img src="../../assets/imges-autre/pic_name.png" alt="Foovia">
+                    </a>
+                    <p class="foovia-footer-copy">© 2026 Foovia. All rights reserved.</p>
+                    <nav class="foovia-footer-nav" aria-label="Footer">
+                        <a href="#!">Privacy</a>
+                        <a href="#!">Terms</a>
+                        <a href="#!">Support</a>
+                        <a href="#!">Contact</a>
+                    </nav>
+                </div>
+            </div>
+        </footer>
     </main>
+
+    <button type="button" class="foovia-cart-toggle foovia-floating-cart" data-cart-toggle aria-label="Open cart">
+        <svg width="24" height="24" aria-hidden="true"><use xlink:href="#cart-icon"></use></svg>
+        <span data-cart-count>0</span>
+    </button>
 
     <div class="foovia-cart-picker" data-cart-picker hidden>
         <div class="foovia-cart-picker-panel">
@@ -335,7 +596,10 @@ $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((fl
     <script>
         window.FOOVIA_RESERVATION_ENDPOINT = '../../../Controller/Marchandise_Controller.php?action=reserve';
     </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../../assets/js/frontoffice-filters.js"></script>
-    <script src="../../assets/js/foovia-cart.js?v=add-popup-card-1"></script>
+    <script src="../../assets/js/frontoffice-recommendations.js?v=spotlight-3"></script>
+    <script src="../../assets/js/foovia-cart.js?v=drag-preview-1"></script>
+    <script src="../../assets/js/aziza-map.js?v=stock-click-1"></script>
 </body>
 </html>
