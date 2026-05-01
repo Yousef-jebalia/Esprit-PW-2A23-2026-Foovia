@@ -12,7 +12,8 @@ function read_api_key_from_file(string $filePath): string {
     return '';
   }
 
-  return trim((string) @file_get_contents($filePath));
+  $key = trim((string) @file_get_contents($filePath));
+  return $key;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -25,15 +26,19 @@ if (!is_array($payload)) {
   send_json_response(['success' => false, 'error' => 'Invalid request body.'], 400);
 }
 
-$goalType = trim((string) ($payload['goal_type'] ?? 'not specified'));
-$initialWeight = trim((string) ($payload['initial_weight'] ?? 'not specified'));
-$targetWeight = trim((string) ($payload['target_weight'] ?? 'not specified'));
-$startDate = trim((string) ($payload['start_date'] ?? 'not specified'));
-$endDate = trim((string) ($payload['end_date'] ?? 'not specified'));
-$sportConsistency = trim((string) ($payload['sport_consistency'] ?? 'not specified'));
-$dietConsistency = trim((string) ($payload['diet_consistency'] ?? 'not specified'));
+$imageDataUrl = (string) ($payload['image_data_url'] ?? '');
+if ($imageDataUrl === '' || !preg_match('/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/', $imageDataUrl, $matches)) {
+  send_json_response(['success' => false, 'error' => 'Missing or invalid image data.'], 400);
+}
 
-$apiKeyPath = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'api tracking.txt';
+$mediaType = $matches[1];
+$imageBase64 = $matches[2];
+$imageBinary = base64_decode($imageBase64, true);
+if ($imageBinary === false) {
+  send_json_response(['success' => false, 'error' => 'Unable to decode image data.'], 400);
+}
+
+$apiKeyPath = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . 'api tracking.txt';
 $apiKey = read_api_key_from_file($apiKeyPath);
 if ($apiKey === '') {
   send_json_response(['success' => false, 'error' => 'AI API key is missing.'], 500);
@@ -42,9 +47,17 @@ if ($apiKey === '') {
 $requestBody = [
   'contents' => [[
     'role' => 'user',
-    'parts' => [[
-      'text' => "You are a nutrition expert. Based on the user's long-term objective, suggest personalized DAILY macronutrient targets.\n\nUser profile:\n- Goal type: {$goalType}\n- Initial weight: {$initialWeight} kg\n- Target weight: {$targetWeight} kg\n- Start date: {$startDate}\n- End date: {$endDate}\n- Sport consistency: {$sportConsistency}\n- Diet consistency: {$dietConsistency}\n\nReturn ONLY a JSON object, with no markdown and no extra text, in this exact shape:\n{\n  \"meal_name\": \"Suggested macro targets\",\n  \"kcal\": number,\n  \"prot\": number,\n  \"carb\": number,\n  \"fat\": number,\n  \"rationale\": \"2 sentences max explaining the reasoning behind these targets\"\n}\nKeep the targets realistic, conservative, and aligned with the stated goal.",
-    ]],
+    'parts' => [
+      [
+        'text' => "Analyse this food photo and estimate the meal name and its nutritional content. Respond ONLY with a JSON object, no markdown, no extra text:\n{\n  \"meal_name\": \"string\",\n  \"kcal\": number,\n  \"prot\": number,\n  \"carb\": number,\n  \"fat\": number\n}\nUse realistic values and keep the meal name concise.",
+      ],
+      [
+        'inline_data' => [
+          'mime_type' => $mediaType,
+          'data' => $imageBase64,
+        ],
+      ],
+    ],
   ]],
   'generationConfig' => [
     'temperature' => 0.2,
@@ -136,9 +149,9 @@ if (!is_array($parsed)) {
   send_json_response(['success' => false, 'error' => 'AI returned invalid JSON.'], 502);
 }
 
-$mealName = trim((string) ($parsed['meal_name'] ?? 'Suggested macro targets'));
+$mealName = trim((string) ($parsed['meal_name'] ?? 'Meal'));
 if ($mealName === '') {
-  $mealName = 'Suggested macro targets';
+  $mealName = 'Meal';
 }
 
 send_json_response([
@@ -148,5 +161,4 @@ send_json_response([
   'prot' => isset($parsed['prot']) ? (float) $parsed['prot'] : '',
   'carb' => isset($parsed['carb']) ? (float) $parsed['carb'] : '',
   'fat' => isset($parsed['fat']) ? (float) $parsed['fat'] : '',
-  'rationale' => (string) ($parsed['rationale'] ?? ''),
 ]);

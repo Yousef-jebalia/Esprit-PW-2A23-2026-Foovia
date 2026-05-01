@@ -1,6 +1,6 @@
 ﻿@font-face {
   font-family: 'Boldonse';
-  src: url('assets/Boldonse-Regular.ttf') format('truetype');
+  src: url('../assets/Boldonse-Regular.ttf') format('truetype');
 }
 
 :root {
@@ -201,7 +201,7 @@ nav {
   padding: 126px 64px 80px;
   background:
     linear-gradient(135deg, rgba(17,16,8,.78) 0%, rgba(17,16,8,.38) 45%, rgba(17,16,8,.12) 100%),
-    url('assets/macro-tracking_welcomePage.jpg') center/cover no-repeat;
+    url('../assets/macro-tracking_welcomePage.jpg') center/cover no-repeat;
 }
 .hero.hero-tracking::before {
   width: 0;
@@ -928,12 +928,12 @@ nav {
   background: rgba(0,0,0,.38);
 }
 
-.feat-card.photo-recipes { background-image: url('assets/manu_welcomePage.avif'); }
-.feat-card.photo-macro-tracking { background-image: url('assets/macro-tracking_welcomePage.jpg'); }
-.feat-card.photo-sport { background-image: url('assets/sport_welcomePage.jpg'); }
-.feat-card.photo-marketplace { background-image: url('assets/marketplace_welcomePage.webp'); }
-.feat-card.photo-survey-user { background-image: url('assets/surveyUser_welcomePage.png'); }
-.feat-card.photo-support { background-image: url('assets/support_welcomePage.jpg'); }
+.feat-card.photo-recipes { background-image: url('../assets/manu_welcomePage.avif'); }
+.feat-card.photo-macro-tracking { background-image: url('../assets/macro-tracking_welcomePage.jpg'); }
+.feat-card.photo-sport { background-image: url('../assets/sport_welcomePage.jpg'); }
+.feat-card.photo-marketplace { background-image: url('../assets/marketplace_welcomePage.webp'); }
+.feat-card.photo-survey-user { background-image: url('../assets/surveyUser_welcomePage.png'); }
+.feat-card.photo-support { background-image: url('../assets/support_welcomePage.jpg'); }
 
 .feat-card.c-yellow { background: var(--yellow); }
 .feat-card.c-green  { background: var(--green); color: #fff; }

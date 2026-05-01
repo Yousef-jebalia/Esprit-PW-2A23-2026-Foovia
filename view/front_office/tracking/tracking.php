@@ -1,7 +1,7 @@
 ﻿<?php
 session_start();
-require_once '../../controller/ObjectifLongTerme_Controller.php';
-require_once '../../controller/ObjectifHebdomadaire_Controller.php';
+require_once '../../../controller/tracking/ObjectifLongTerme_Controller.php';
+require_once '../../../controller/tracking/ObjectifHebdomadaire_Controller.php';
 
 $controller = new ObjectifLongTerme_Controller();
 $hebdo_controller = new ObjectifHebdomadaire_Controller();
@@ -444,6 +444,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link id="foovia-style" rel="stylesheet" href="./styleT.css?v=20260426">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+  /* Improved AI result panel styling */
+  .ai-result-panel {
+    display: none;
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    border: 1px solid rgba(30,40,50,0.06);
+    box-shadow: 0 6px 18px rgba(15,30,50,0.06);
+    padding: 14px;
+    border-radius: 12px;
+    max-width: 680px;
+    margin: 8px 0 20px 0;
+  }
+  .ai-result-panel.visible { display: block; }
+  .ai-result-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border: none;
+    background: transparent;
+    font-size: 1.05rem;
+    cursor: pointer;
+    color: #58606b;
+  }
+  .ai-result-header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    color:#102a43;
+    margin-bottom:10px;
+  }
+  .ai-result-header svg { color:#0b7285; }
+  .ai-result-desc { color:#253243; margin:8px 0 12px 0; line-height:1.35; }
+  .ai-result-grid { display:flex; gap:10px; flex-wrap:wrap; }
+  .ai-macro-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:110px; padding:10px; border-radius:10px; background:#fbfcff; border:1px solid rgba(16,42,67,0.06); }
+  .ai-macro-chip.kcal { background: linear-gradient(90deg,#fff9f0,#fff); }
+  .ai-macro-chip.prot { background: linear-gradient(90deg,#f6fffb,#fff); }
+  .ai-macro-chip.carb { background: linear-gradient(90deg,#f8fbff,#fff); }
+  .ai-macro-chip.fat { background: linear-gradient(90deg,#fff7f9,#fff); }
+  .ai-macro-chip .chip-val { font-size:1.15rem; font-weight:700; color:#102a43; }
+  .ai-macro-chip .chip-lbl { font-size:0.8rem; color:#5b6b76; margin-top:4px; text-transform:lowercase; }
+  .btn-ai-apply { display:inline-block; margin-top:12px; border-radius:8px; padding:8px 12px; background:#0b7285; color:#fff; border:none; cursor:pointer; font-weight:600; }
+  .ai-error-msg { color:#8b2e2e; background:rgba(255,235,235,0.9); padding:8px; border-radius:8px; border:1px solid rgba(139,46,46,0.08); }
+  @media (max-width:720px) { .ai-result-panel { max-width:100%; padding:12px; } .ai-result-grid{justify-content:space-between;} }
+</style>
 <script>
   (function () {
     const styleLink = document.getElementById('foovia-style');
@@ -602,7 +648,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
 <nav>
   <a href="foovia.html" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
+    <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
     FOOVIA
   </a>
   <ul class="nav-links">
@@ -612,7 +658,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     <li><a href="#history">History</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="../back_office/index.html" class="nav-btn nav-backoffice">Backoffice</a> 
+    <a href="../../back_office/index.html" class="nav-btn nav-backoffice">Backoffice</a> 
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -1197,7 +1243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
 <footer>
   <div class="footer-brand">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 36px; width: auto;">
+    <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 36px; width: auto;">
     FOOVIA
   </div>
   <p>Â© 2026 Foovia. All rights reserved.</p>
@@ -1714,7 +1760,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       longTermMacroResultPanel.classList.remove('visible');
 
       try {
-        const response = await fetch('../../controller/analyze_goal_ai.php', {
+        const response = await fetch('../../../controller/tracking/analyze_goal_ai.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3460,7 +3506,7 @@ function exportHistoryPDF() {
     }
 
     try {
-      const response = await fetch('../../controller/analyze_meal_ai.php', {
+      const response = await fetch('../../../controller/tracking/analyze_meal_ai.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_data_url: imageDataURL })

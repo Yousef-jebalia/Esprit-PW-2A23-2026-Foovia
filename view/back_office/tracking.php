@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once '../../controller/ObjectifLongTerme_Controller.php';
-require_once '../../controller/ObjectifHebdomadaire_Controller.php';
+require_once '../../controller/tracking/ObjectifLongTerme_Controller.php';
+require_once '../../controller/tracking/ObjectifHebdomadaire_Controller.php';
 
 $longTermController = new ObjectifLongTerme_Controller();
 $weeklyController = new ObjectifHebdomadaire_Controller();
