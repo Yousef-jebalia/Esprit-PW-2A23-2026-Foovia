@@ -916,8 +916,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
           <div class="weekly-meal-grid">
             <div class="weekly-meal-field wide">
-              <div style="display: flex; gap: 8px; align-items: stretch; position: relative;">
-                <!-- <div style="flex: 1;"></div> -->
+              <div style="display: flex; gap: 8px; align-items: stretch; position: relative; width: 100%;">
+                <div style="flex: 1 1 auto; min-width: 16px;"></div>
                 <div class="weekly-upload-wrap" style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
                   <input type="file" id="weekly-meal-img-input" accept="image/*" style="display: none;">
                   <div class="lamp-ai-wrap" id="weekly-lamp-wrap">
@@ -929,7 +929,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
                       <button type="button" class="tip-cta" id="weekly-lamp-upload-cta">&#128247; Upload and Analyse</button>
                     </div>
                   </div>
-                  <input type="text" id="weekly-meal-name-input" readonly value="Meal" aria-label="Meal name" style="height: auto; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 12px; background: #f6f6f6; color: #222; font-family: 'DM Sans', sans-serif; font-weight:500; border: 1px solid #e6e6e6; white-space:nowrap; margin-right:6px;" />
+                  <input type="text" id="weekly-meal-name-input" readonly value="Meal" aria-label="Meal name" style="height: auto; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 12px; background: #f6f6f6; color: #222; font-family: 'DM Sans', sans-serif; font-weight:500; border: 1px solid #e6e6e6; white-space:nowrap; margin-right:6px; width: 260px; min-width: 260px; flex: 0 0 260px;" />
                   <button type="button" id="weekly-meal-upload-btn" style="background-color: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(217, 79, 0, 0.2); transition: transform 0.15s, background-color 0.2s;">&#128247; Upload</button>
                   <button type="button" id="weekly-meal-camera-btn" onclick="openCameraModal()" style="background-color: #2a2c2e; color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(42, 44, 46, 0.2); transition: transform 0.15s, background-color 0.2s;">📸 Camera</button>
                 </div>
@@ -1814,6 +1814,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealProtInput = document.getElementById('weekly-meal-prot');
     const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
     const weeklyMealFatInput = document.getElementById('weekly-meal-fat');
+    const weeklyMealNameInput = document.getElementById('weekly-meal-name-input');
     const weeklyMealAddBtn = document.getElementById('weekly-meal-add-btn');
     const weeklyMealUploadBtn = document.getElementById('weekly-meal-upload-btn');
     const weeklyMealImageInput = document.getElementById('weekly-meal-img-input');
@@ -2083,7 +2084,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       }
 
       const entry = {
-        name: 'Meal',
+        name: weeklyMealNameInput && weeklyMealNameInput.value.trim() ? weeklyMealNameInput.value.trim() : 'Meal',
         cal: parseFloat(weeklyMealCalInput.value || '0') || 0,
         prot: parseFloat(weeklyMealProtInput.value || '0') || 0,
         carb: parseFloat(weeklyMealCarbInput.value || '0') || 0,
@@ -3079,50 +3080,45 @@ function exportHistoryPDF() {
     const weeklyMealProtInput = document.getElementById('weekly-meal-prot');
     const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
     const weeklyMealFatInput = document.getElementById('weekly-meal-fat');
+    const weeklyMealNameInput = document.getElementById('weekly-meal-name-input');
 
-    closeCameraModal();
-    analyzePhotoWithAI(dataURL, weeklyMealCalInput, weeklyMealProtInput, weeklyMealCarbInput, weeklyMealFatInput);
+    analyzePhotoWithAI(
+      dataURL,
+      weeklyMealNameInput,
+      weeklyMealCalInput,
+      weeklyMealProtInput,
+      weeklyMealCarbInput,
+      weeklyMealFatInput
+    );
   }
 
-  async function analyzePhotoWithAI(imageDataURL, calInput, protInput, carbInput, fatInput) {
+  async function analyzePhotoWithAI(imageDataURL, nameInput, calInput, protInput, carbInput, fatInput) {
     const [meta, b64] = imageDataURL.split(',');
     const mediaType = meta.match(/:(.*?);/)[1];
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('../../controller/analyze_meal_ai.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
-              { type: 'text', text: `Analyse this food photo and estimate its nutritional content. Respond ONLY with a JSON object, no markdown, no extra text:
-{
-  "kcal": number,
-  "prot": number,
-  "carb": number,
-  "fat": number
-}
-All values should be numbers representing grams (or kcal for calories). Be realistic.` }
-            ]
-          }]
-        })
+        body: JSON.stringify({ image_data_url: imageDataURL })
       });
 
-      const data = await response.json();
-      const text = data.content.map(b => b.text || '').join('').replace(/\`\`\`json|\`\`\`/g, '').trim();
-      const result = JSON.parse(text);
+      const result = await response.json();
 
+      if (!response.ok || !result || result.success !== true) {
+        throw new Error((result && result.error) ? result.error : 'AI analysis failed');
+      }
+
+      if (nameInput) nameInput.value = result.meal_name || 'Meal';
       if (calInput) calInput.value = result.kcal || '';
       if (protInput) protInput.value = result.prot || '';
       if (carbInput) carbInput.value = result.carb || '';
       if (fatInput) fatInput.value = result.fat || '';
+
+      closeCameraModal();
     } catch (err) {
       console.error('AI analysis error:', err);
-      alert('Could not analyze the photo. Please enter values manually.');
+      alert((err && err.message ? err.message + '\n\n' : '') + 'Could not analyze the photo. Please enter values manually.');
     }
   }
 
