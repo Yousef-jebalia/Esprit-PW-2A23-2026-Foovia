@@ -118,6 +118,24 @@
     }
     .tag:hover { background: #1f3fa8; }
     :root[data-theme="dark"] .tag:hover { background: var(--tag-hover); }
+
+    body.readonly-mode {
+      justify-content: flex-start;
+      gap: 10px;
+      min-height: auto;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    body.readonly-mode .status,
+    body.readonly-mode .selected-tags {
+      display: none;
+    }
+
+    body.readonly-mode .svg-wrapper {
+      pointer-events: none;
+      cursor: default;
+    }
   </style>
 </head>
 <body>
@@ -193,6 +211,37 @@ const statusText = document.getElementById('status-text');
 const tagsContainer = document.getElementById('tags');
 const svgEl = document.getElementById('main-svg');
 const wrapper = document.getElementById('svg-wrapper');
+const isInfoWindow = new URLSearchParams(window.location.search).get('readonly') === '1';
+// for the selected muscles to be sent to the parent window when in info window mode we need to keep track of them in a variable and update the parent on every change
+function normalizeMuscles(muscles) {
+  if (Array.isArray(muscles)) {
+    return Array.from(new Set(muscles.map((muscle) => String(muscle || '').trim()).filter(Boolean)));
+  }
+
+  if (typeof muscles === 'string') {
+    try {
+      return normalizeMuscles(JSON.parse(muscles));
+    } catch (error) {
+      return normalizeMuscles([muscles]);
+    }
+  }
+
+  return [];
+}
+// this function is used to apply the selected muscles from the parent window when in info window mode, it normalizes the input and updates the UI accordingly
+function applySelectedMuscles(muscles) {
+  const muscleList = normalizeMuscles(muscles);
+
+  selected.clear();
+  document.querySelectorAll('[data-name]').forEach((el) => el.classList.remove('selected'));
+
+  muscleList.forEach((name) => {
+    selected.add(name);
+    document.querySelectorAll('[data-name="' + name + '"]').forEach((el) => el.classList.add('selected'));
+  });
+
+  updateUI();
+}
 
 function applyTheme(theme) {
   const mode = theme === 'dark' ? 'dark' : 'light';
@@ -203,10 +252,19 @@ function applyTheme(theme) {
 const params = new URLSearchParams(window.location.search);
 applyTheme(params.get('theme') || 'light');
 
+if (isInfoWindow) {
+  document.body.classList.add('readonly-mode');
+}
+
 window.addEventListener('message', (event) => {
   if (!event || !event.data) return;
   if (event.data.type === 'foovia-theme') {
     applyTheme(event.data.theme);
+    return;
+  }
+
+  if (event.data.type === 'foovia-info-window') {
+    applySelectedMuscles(event.data.muscles);
   }
 });
 
@@ -262,6 +320,7 @@ function clearHover() {
 }
 
 wrapper.addEventListener('mousemove', (e) => {
+  if (isInfoWindow) return;
   const coords = svgCoords(e);
   const hit = getMuscleAt(coords.x, coords.y);
   if (hit) {
@@ -283,11 +342,13 @@ wrapper.addEventListener('mousemove', (e) => {
 });
 
 wrapper.addEventListener('mouseleave', () => {
+  if (isInfoWindow) return;
   clearHover();
   tooltip.style.opacity = '0';
 });
 
 wrapper.addEventListener('click', (e) => {
+  if (isInfoWindow) return;
   const coords = svgCoords(e);
   const hit = getMuscleAt(coords.x, coords.y);
   if (!hit) return;
@@ -304,6 +365,12 @@ wrapper.addEventListener('click', (e) => {
 });
 
 function updateUI() {
+  if (isInfoWindow) {
+    statusText.textContent = selected.size === 0 ? 'Info Window' : selected.size + ' selected muscle' + (selected.size > 1 ? 's' : '');
+    tagsContainer.innerHTML = '';
+    return;
+  }
+
   if (selected.size === 0) {
     statusText.textContent = 'Click muscles to select';
     tagsContainer.innerHTML = '';

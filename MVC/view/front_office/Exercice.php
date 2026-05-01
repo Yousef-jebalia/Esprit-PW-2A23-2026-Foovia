@@ -236,6 +236,235 @@ $exercises = $stmt->fetchAll();
     background: var(--forest);
   }
 
+  .exercise-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(8, 14, 20, 0.62);
+    z-index: 1200;
+  }
+
+  .exercise-modal {
+    width: min(780px, 96vw);
+    max-height: 88vh;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid var(--surface-border);
+    background: var(--panel-bg);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .exercise-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .exercise-modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--page-text);
+  }
+
+  .exercise-modal-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--surface-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--page-text);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .exercise-modal-body {
+    padding: 14px;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 14px;
+  }
+
+  .exercise-modal-media {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .exercise-modal-image,
+  .exercise-modal-image-empty {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-2);
+    object-fit: cover;
+  }
+
+  .exercise-modal-image-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--page-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+  }
+
+  .exercise-modal-anatomy {
+    width: 100%;
+    height: 200px;
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+
+  .exercise-modal-anatomy iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .exercise-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .exercise-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .exercise-modal-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .exercise-modal-card h3 {
+    margin: 0 0 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.84rem;
+    color: var(--page-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .exercise-modal-card p,
+  .exercise-modal-card div {
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--page-text);
+  }
+
+  .info-window-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(8, 14, 20, 0.58);
+    z-index: 1250;
+  }
+
+  .info-window {
+    width: min(420px, 96vw);
+    max-height: 88vh;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid var(--surface-border);
+    background: var(--panel-bg);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-window-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .info-window-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--page-text);
+  }
+
+  .info-window-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--surface-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--page-text);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .info-window-body {
+    padding: 10px;
+  }
+
+  .info-window-frame {
+    width: 100%;
+    height: 560px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+  }
+
+  @media (max-width: 760px) {
+    .info-window-frame {
+      height: 480px;
+    }
+  }
+
+  .exercise-muscle-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .exercise-muscle-tag {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(17, 121, 90, 0.1);
+    color: var(--forest);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 760px) {
+    .exercise-modal-body {
+      grid-template-columns: 1fr;
+    }
+
+    .exercise-modal-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .empty-state {
     text-align: center;
     width: 100%;
@@ -377,7 +606,11 @@ $exercises = $stmt->fetchAll();
                 class="exercise-card"
                 data-muscle="<?= htmlspecialchars((string)$ex['muscle_ex'], ENT_QUOTES) ?>"
                 data-type="<?= htmlspecialchars((string)$ex['type_ex'], ENT_QUOTES) ?>"
-                data-name="<?= htmlspecialchars((string)$ex['name_ex'], ENT_QUOTES) ?>">
+                data-name="<?= htmlspecialchars((string)$ex['name_ex'], ENT_QUOTES) ?>"
+                data-calories="<?= (int)$ex['cal_ex'] ?>"
+                data-fatigue="<?= htmlspecialchars((string)$ex['fatigue_ex'], ENT_QUOTES) ?>"
+                data-description="<?= htmlspecialchars((string)$ex['description_ex'], ENT_QUOTES) ?>"
+                data-gif="<?= !empty($ex['gif_ex']) ? htmlspecialchars(base64_encode($ex['gif_ex']), ENT_QUOTES) : '' ?>">
                 <div class="exercise-card-content">
                   <?php if (!empty($ex['gif_ex'])): ?>
                     <img src="data:image/gif;base64,<?= base64_encode($ex['gif_ex']) ?>" class="exercise-gif" alt="<?= htmlspecialchars($ex['name_ex']) ?>" />
@@ -393,10 +626,10 @@ $exercises = $stmt->fetchAll();
                     <button
                       type="button"
                       class="exercise-info-btn"
-                      title="<?= htmlspecialchars($ex['description_ex']) ?>"
                       aria-label="Exercise info">
                       i
                     </button>
+                    
                   </div>
                 </div>
               </article>
@@ -406,6 +639,66 @@ $exercises = $stmt->fetchAll();
         <?php endif; ?>
       </div>
 
+      <div id="exercise-modal-overlay" class="exercise-modal-overlay" aria-hidden="true">
+        <div class="exercise-modal" role="dialog" aria-modal="true" aria-labelledby="exercise-modal-title">
+          <div class="exercise-modal-header">
+            <div id="exercise-modal-title" class="exercise-modal-title">Exercise details</div>
+            <button type="button" id="exercise-modal-close" class="exercise-modal-close" aria-label="Close exercise details">&times;</button>
+          </div>
+          <div class="exercise-modal-body">
+            <div class="exercise-modal-media">
+              <div id="exercise-modal-image-empty" class="exercise-modal-image-empty">No GIF</div>
+              <img id="exercise-modal-image" class="exercise-modal-image" alt="Exercise gif" style="display:none;" />
+              <div class="exercise-modal-anatomy">
+                <iframe id="exercise-modal-anatomy-frame" src="anatomy_man.html" title="Exercise muscles anatomy" loading="lazy"></iframe>
+              </div>
+            </div>
+            <div class="exercise-modal-content">
+              <div class="exercise-modal-grid">
+                <div class="exercise-modal-card">
+                  <h3>Name</h3>
+                  <p id="exercise-modal-name"></p>
+                </div>
+                <div class="exercise-modal-card">
+                  <h3>Type</h3>
+                  <p id="exercise-modal-type"></p>
+                </div>
+                <div class="exercise-modal-card">
+                  <h3>Calories</h3>
+                  <p id="exercise-modal-calories"></p>
+                </div>
+                <div class="exercise-modal-card">
+                  <h3>Fatigue Ratio</h3>
+                  <p id="exercise-modal-fatigue"></p>
+                </div>
+              </div>
+
+              <div class="exercise-modal-card">
+                <h3>Working Muscles</h3>
+                <div id="exercise-modal-muscles" class="exercise-muscle-tags"></div>
+              </div>
+
+              <div class="exercise-modal-card">
+                <h3>Description</h3>
+                <p id="exercise-modal-description"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="info-window-overlay" class="info-window-overlay" aria-hidden="true">
+        <div class="info-window" role="dialog" aria-modal="true" aria-labelledby="info-window-title">
+          <div class="info-window-header">
+            <div id="info-window-title" class="info-window-title">Info Window</div>
+            <button type="button" id="info-window-close" class="info-window-close" aria-label="Close info window">&times;</button>
+          </div>
+          <div class="info-window-body">
+            <iframe id="info-window-frame" class="info-window-frame" src="anatomy_man.html?readonly=1" title="Info Window anatomy" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+
       <script>
         function initExerciseSearch() {
           const cards = Array.from(document.querySelectorAll('.exercise-card'));
@@ -413,6 +706,18 @@ $exercises = $stmt->fetchAll();
           const emptyState = document.getElementById('exercise-filter-empty');
           const searchInput = document.getElementById('exercise-search-input');
           const clearButton = document.getElementById('exercise-search-clear');
+          const overlay = document.getElementById('exercise-modal-overlay');
+          const closeButton = document.getElementById('exercise-modal-close');
+          const modalTitle = document.getElementById('exercise-modal-title');
+          const modalImage = document.getElementById('exercise-modal-image');
+          const modalImageEmpty = document.getElementById('exercise-modal-image-empty');
+          const modalName = document.getElementById('exercise-modal-name');
+          const modalType = document.getElementById('exercise-modal-type');
+          const modalCalories = document.getElementById('exercise-modal-calories');
+          const modalFatigue = document.getElementById('exercise-modal-fatigue');
+          const modalMuscles = document.getElementById('exercise-modal-muscles');
+          const modalDescription = document.getElementById('exercise-modal-description');
+          const anatomyFrame = document.getElementById('exercise-modal-anatomy-frame');
 
           let selectedMuscles = [];
           let searchQuery = '';
@@ -487,12 +792,98 @@ $exercises = $stmt->fetchAll();
             }
           };
 
+          const openExerciseModal = (card) => {
+            if (!overlay || !card) {
+              return;
+            }
+
+            const muscles = String(card.dataset.muscle || '')
+              .split(',')
+              .map((item) => item.trim())
+              .filter(Boolean);
+            const uniqueMuscles = Array.from(new Set(muscles));
+
+            modalTitle.textContent = (card.dataset.name || 'Exercise') + ' details';
+            modalName.textContent = card.dataset.name || 'Unknown';
+            modalType.textContent = card.dataset.type || 'Unknown';
+            modalCalories.textContent = (card.dataset.calories || '0') + ' cal';
+            modalFatigue.textContent = card.dataset.fatigue || 'N/A';
+            modalDescription.textContent = card.dataset.description || 'No description available.';
+
+            const gif = card.dataset.gif || '';
+            if (gif) {
+              modalImage.src = 'data:image/gif;base64,' + gif;
+              modalImage.style.display = 'block';
+              modalImageEmpty.style.display = 'none';
+            } else {
+              modalImage.removeAttribute('src');
+              modalImage.style.display = 'none';
+              modalImageEmpty.style.display = 'flex';
+            }
+
+            modalMuscles.innerHTML = '';
+            if (uniqueMuscles.length === 0) {
+              modalMuscles.innerHTML = '<span class="exercise-muscle-tag">No muscles detected</span>';
+            } else {
+              uniqueMuscles.forEach((muscle) => {
+                const tag = document.createElement('span');
+                tag.className = 'exercise-muscle-tag';
+                tag.textContent = muscle;
+                modalMuscles.appendChild(tag);
+              });
+            }
+
+            if (anatomyFrame && anatomyFrame.contentWindow) {
+              anatomyFrame.contentWindow.postMessage({ type: 'foovia-muscles', muscles: uniqueMuscles }, '*');
+            } else if (anatomyFrame) {
+              anatomyFrame.addEventListener('load', () => {
+                anatomyFrame.contentWindow.postMessage({ type: 'foovia-muscles', muscles: uniqueMuscles }, '*');
+              }, { once: true });
+            }
+
+            overlay.style.display = 'flex';
+            overlay.setAttribute('aria-hidden', 'false');
+          };
+
+          const closeExerciseModal = () => {
+            if (!overlay) {
+              return;
+            }
+            overlay.style.display = 'none';
+            overlay.setAttribute('aria-hidden', 'true');
+          };
+
           if (searchInput) {
             searchInput.addEventListener('input', (event) => {
               searchQuery = normalize(event.target.value);
               applyFilter();
             });
           }
+
+          cards.forEach((card) => {
+            const infoButton = card.querySelector('.exercise-info-btn');
+            if (infoButton) {
+              infoButton.addEventListener('click', () => openExerciseModal(card));
+            }
+          });
+
+          if (closeButton) {
+            closeButton.addEventListener('click', closeExerciseModal);
+          }
+
+          if (overlay) {
+            overlay.addEventListener('click', (event) => {
+              if (event.target === overlay) {
+                closeExerciseModal();
+              }
+            });
+          }
+
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && overlay && overlay.style.display === 'flex') {
+              closeExerciseModal();
+            }
+          });
 
           if (clearButton) {
             clearButton.addEventListener('click', () => {
@@ -517,6 +908,83 @@ $exercises = $stmt->fetchAll();
         }
 
         initExerciseSearch();
+      </script>
+
+      <script>
+        function showInfoWindow(workingMusclesJson) {
+          const overlay = document.getElementById('info-window-overlay');
+          const closeButton = document.getElementById('info-window-close');
+          const frame = document.getElementById('info-window-frame');
+
+          const normalizeMuscles = (value) => {
+            if (Array.isArray(value)) {
+              return Array.from(new Set(value.map((item) => String(item || '').trim()).filter(Boolean)));
+            }
+
+            if (typeof value === 'string') {
+              try {
+                return normalizeMuscles(JSON.parse(value));
+              } catch (error) {
+                return normalizeMuscles([value]);
+              }
+            }
+
+            if (value && Array.isArray(value.working_muscles)) {
+              return normalizeMuscles(value.working_muscles);
+            }
+
+            if (value && Array.isArray(value.muscles)) {
+              return normalizeMuscles(value.muscles);
+            }
+
+            return [];
+          };
+
+          const muscles = normalizeMuscles(workingMusclesJson);
+
+          const sendMuscles = () => {
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage({ type: 'foovia-info-window', muscles: muscles }, '*');
+            }
+          };
+
+          if (!overlay || !frame) {
+            return;
+          }
+
+          overlay.style.display = 'flex';
+          overlay.setAttribute('aria-hidden', 'false');
+
+          if (frame.contentWindow) {
+            sendMuscles();
+          } else {
+            frame.addEventListener('load', sendMuscles, { once: true });
+          }
+
+          if (closeButton && !closeButton.dataset.bound) {
+            closeButton.dataset.bound = '1';
+            closeButton.addEventListener('click', () => {
+              overlay.style.display = 'none';
+              overlay.setAttribute('aria-hidden', 'true');
+            });
+
+            overlay.addEventListener('click', (event) => {
+              if (event.target === overlay) {
+                overlay.style.display = 'none';
+                overlay.setAttribute('aria-hidden', 'true');
+              }
+            });
+
+            document.addEventListener('keydown', (event) => {
+              if (event.key === 'Escape' && overlay.style.display === 'flex') {
+                overlay.style.display = 'none';
+                overlay.setAttribute('aria-hidden', 'true');
+              }
+            });
+          }
+        }
+
+        window.showInfoWindow = showInfoWindow;
       </script>
 
 </section>
