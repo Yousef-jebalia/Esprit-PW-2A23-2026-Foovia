@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id_obj'])) {
 
   if (!empty($goal_to_delete) && (int) ($goal_to_delete['id_user'] ?? 0) === $current_user_id) {
     if ($controller->delete_objectif($delete_id_obj)) {
-      header('Location: tracking.php#long-term-goals');
+      header('Location: tracking.php?lt_deleted=1#long-term-goals');
       exit;
     }
 
@@ -143,8 +143,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_save_goal']
     $errors[] = 'All numeric values must be strictly positive.';
   }
 
+  if (empty($missing_fields) && ($data['val_init_obj'] < 0.1 || $data['val_init_obj'] > 180 || $data['val_cible_obj'] < 0.1 || $data['val_cible_obj'] > 180)) {
+    $errors[] = 'Weight values must be between 0.1 and 180 kg.';
+  }
+
   if (empty($data['date_deb_obj']) || empty($data['date_fin_obj'])) {
     $errors[] = 'Start and end dates are required.';
+  } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['date_deb_obj']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['date_fin_obj'])) {
+    $errors[] = 'Dates must be in YYYY-MM-DD format.';
   } elseif ($data['date_deb_obj'] < $system_date) {
     $errors[] = 'The start date cannot be before today.';
   } elseif ($data['date_fin_obj'] < $system_date) {
@@ -256,6 +262,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_update_goal
 
 $user_has_goal = !empty($current_user_goal);
 
+$normalize_long_term_weight = static function ($value, float $fallback): string {
+  $raw = trim((string) $value);
+  $num = is_numeric($raw) ? (float) $raw : $fallback;
+  if ($num < 0.1 || $num > 180) {
+    $num = $fallback;
+  }
+  return number_format($num, 1, '.', '');
+};
+
+$long_term_initial_weight_value = $normalize_long_term_weight($long_term_form['val_init_obj'] ?? '', 70.0);
+$long_term_target_weight_value = $normalize_long_term_weight($long_term_form['val_cible_obj'] ?? '', (float) $long_term_initial_weight_value);
+
 $goal_start_date = null;
 $goal_end_date = null;
 $long_term_edit_mode = $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_update_goal']) && !empty($long_term_error_message);
@@ -267,7 +285,9 @@ if (!empty($current_user_goal) && !empty($current_user_goal['date_fin_obj'])) {
 }
 
 $today_date = date('Y-m-d');
-$weekly_today_objectif = $hebdo_controller->get_objectif_by_user_and_date($current_user_id, $today_date);
+$weekly_today_objectif = !empty($current_user_goal)
+  ? $hebdo_controller->get_objectif_by_user_and_date($current_user_id, $today_date)
+  : null;
 $weekly_error_message = '';
 $weekly_form_objectif = $weekly_today_objectif ?: [
   'id_suiv' => '',
@@ -347,7 +367,9 @@ if ($weekly_weight_evolution_json === false) {
   $weekly_weight_evolution_json = '[]';
 }
 
-$weekly_history_rows = $hebdo_controller->list_objectifs_by_user($current_user_id);
+$weekly_history_rows = !empty($current_user_goal)
+  ? $hebdo_controller->list_objectifs_by_user($current_user_id)
+  : [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_save_objective'])) {
   if (empty($current_user_goal)) {
@@ -665,17 +687,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         <div class="lt-field">
           <div class="lt-range-head">
             <label class="accent-yellow" for="val_init_obj">Initial weight (kg)</label>
-            <span class="lt-range-value lt-range-value-initial" id="val-init-display"><?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?> kg</span>
+            <span class="lt-range-value lt-range-value-initial" id="val-init-display"><?php echo htmlspecialchars($long_term_initial_weight_value); ?> kg</span>
           </div>
-          <input class="lt-input" type="range" id="val_init_obj" name="val_init_obj" min="0.1" max="180" step="0.1" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?>">
+          <input class="lt-input" type="range" id="val_init_obj" name="val_init_obj" min="0.1" max="180" step="0.1" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars($long_term_initial_weight_value); ?>">
           <p class="lt-field-warning" id="val-init-warning" aria-live="polite">Initial weight must be a positive value.</p>
         </div>
         <div class="lt-field">
           <div class="lt-range-head">
             <label class="accent-yellow" for="val_cible_obj">Target weight (kg)</label>
-            <span class="lt-range-value lt-range-value-target" id="val-cible-display"><?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?> kg</span>
+            <span class="lt-range-value lt-range-value-target" id="val-cible-display"><?php echo htmlspecialchars($long_term_target_weight_value); ?> kg</span>
           </div>
-          <input class="lt-input" type="range" id="val_cible_obj" name="val_cible_obj" min="0.1" max="180" step="0.1" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?>">
+          <input class="lt-input" type="range" id="val_cible_obj" name="val_cible_obj" min="0.1" max="180" step="0.1" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars($long_term_target_weight_value); ?>">
           <p class="lt-field-warning" id="val-cible-warning" aria-live="polite">Target weight must be a positive value.</p>
           <p class="lt-field-warning" id="val-cible-goal-warning" aria-live="polite">Target weight is not valid for the selected goal type.</p>
         </div>
@@ -683,12 +705,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
       <div class="lt-grid">
         <div class="lt-field">
-          <label for="date_deb_obj">Start date</label>
-          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" <?php echo $user_has_goal ? 'readonly' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
+          <label for="date_deb_obj">Start date (YYYY-MM-DD)</label>
+          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" min="<?php echo htmlspecialchars($system_date); ?>" <?php echo $user_has_goal ? 'readonly' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
         </div>
         <div class="lt-field">
-          <label for="date_fin_obj">End date</label>
-          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
+          <label for="date_fin_obj">End date (YYYY-MM-DD)</label>
+          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" min="<?php echo htmlspecialchars($system_date); ?>" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
           <p class="lt-field-warning" id="lt-goal-period-warning" aria-live="polite">The goal period must be at least 30 days.</p>
         </div>
       </div>
@@ -706,7 +728,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         </div>
       </div>
 
-      <div class="lt-divider"><span>Macronutrient targets</span></div>
+      <div class="lt-divider" style="position:relative;">
+        <span>Macronutrient targets</span>
+        <div class="lamp-ai-wrap" id="ltg-macro-wrap" style="position:absolute;right:0;top:50%;transform:translateY(-50%);margin-top:-18px;">
+          <button type="button" class="btn-lamp-ai" id="ltg-btn-lamp-ai" title="AI macro suggestions" aria-label="AI macro suggestions" style="font-size:1.3rem;top:-30px;">💡</button>
+          <div class="lamp-shadow" style="width:16px;height:4px;bottom:-2px;"></div>
+          <div class="lamp-tooltip" id="ltg-macro-tooltip" style="right:0;left:auto;transform:none;width:230px;">
+            <strong>AI Macro Suggester</strong>
+            Based on your goal type and weight, I'll suggest personalized daily macro targets for you!
+            <button type="button" class="tip-cta" id="ltg-macro-suggest-btn">⚡ Suggest my macros</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-result-panel" id="ai-macro-result-panel" style="margin-bottom:14px;">
+        <button type="button" class="ai-result-close" id="ai-macro-result-close">✕</button>
+        <div class="ai-result-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          AI Macro Suggestion
+        </div>
+        <div id="ai-macro-result-body"></div>
+      </div>
 
       <div class="lt-macros-grid">
         <div class="lt-macro-pill m-kcal">
@@ -1266,6 +1308,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const longTermTargetWeightDisplay = document.getElementById('val-cible-display');
     const longTermTargetPositiveWarning = document.getElementById('val-cible-warning');
     const longTermTargetGoalWarning = document.getElementById('val-cible-goal-warning');
+    const longTermMacroLampWrap = document.getElementById('ltg-macro-wrap');
+    const longTermMacroLampBtn = document.getElementById('ltg-btn-lamp-ai');
+    const longTermMacroLampTooltip = document.getElementById('ltg-macro-tooltip');
+    const longTermMacroSuggestBtn = document.getElementById('ltg-macro-suggest-btn');
+    const longTermMacroResultPanel = document.getElementById('ai-macro-result-panel');
+    const longTermMacroResultBody = document.getElementById('ai-macro-result-body');
+    const longTermMacroResultClose = document.getElementById('ai-macro-result-close');
     let longTermPeriodTouched = false;
     const positiveLongTermFields = [
       { inputId: 'val_init_obj', warningId: 'val-init-warning', message: 'Initial weight must be a positive value.' },
@@ -1347,20 +1396,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       return parsed;
     };
 
+    const validateDateFormat = (dateString) => {
+      const pattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!pattern.test(dateString)) {
+        return false;
+      }
+      const parsed = parseIsoDate(dateString);
+      return parsed !== null;
+    };
+
+    const validateWeightRangeBounds = (value) => {
+      const numVal = parseFloat(value);
+      return !Number.isNaN(numVal) && numVal >= 0.1 && numVal <= 180;
+    };
+
+    const getTodayIsoDate = () => {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const enforceLongTermDateMinimums = () => {
+      const todayIso = getTodayIsoDate();
+      if (longTermStartDateInput) {
+        longTermStartDateInput.min = todayIso;
+      }
+      if (longTermEndDateInput) {
+        longTermEndDateInput.min = todayIso;
+      }
+    };
+
     const clampLongTermEndDateToMin = () => {
       if (!longTermEndDateInput) {
         return;
       }
 
-      const minValue = longTermEndDateInput.getAttribute('min') || '';
-      const minDate = parseIsoDate(minValue);
+      const systemDate = parseIsoDate(getTodayIsoDate());
       const currentDate = parseIsoDate(longTermEndDateInput.value);
-      if (!minDate || !currentDate) {
+      if (!currentDate || !systemDate) {
         return;
       }
 
-      if (currentDate < minDate) {
-        longTermEndDateInput.value = minValue;
+      if (currentDate < systemDate) {
+        longTermEndDateInput.value = getTodayIsoDate();
       }
     };
 
@@ -1489,9 +1569,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       const initial = Number(initialRaw);
       const type = longTermTypeSelect.value;
       if (initialRaw === '' || Number.isNaN(initial) || initial <= 0 || !type) {
-        longTermTargetGoalWarning.textContent = 'Select a goal type and enter a positive initial weight first.';
+        longTermTargetGoalWarning.textContent = 'Select a goal type and enter your initial weight first.';
         longTermTargetGoalWarning.classList.add('is-visible');
-        longTermTargetWeightInput.setCustomValidity('Select a goal type and enter a positive initial weight first.');
+        longTermTargetWeightInput.setCustomValidity('Select a goal type and enter your initial weight first.');
         longTermTargetWeightInput.classList.remove('is-valid');
         longTermTargetWeightInput.classList.add('is-invalid');
         if (longTermTypeSelect) {
@@ -1533,6 +1613,159 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         longTermTargetWeightInput.classList.add('is-valid');
       }
     };
+
+    const closeLongTermMacroLampTooltip = () => {
+      if (longTermMacroLampTooltip) {
+        longTermMacroLampTooltip.classList.remove('visible');
+      }
+      document.removeEventListener('click', closeLongTermMacroLampOnOutside);
+    };
+
+    const closeLongTermMacroLampOnOutside = (event) => {
+      if (!longTermMacroLampWrap) {
+        return;
+      }
+
+      if (!longTermMacroLampWrap.contains(event.target)) {
+        closeLongTermMacroLampTooltip();
+      }
+    };
+
+    const toggleMacroLampTooltip = () => {
+      if (!longTermMacroLampTooltip) {
+        return;
+      }
+
+      const shouldShow = !longTermMacroLampTooltip.classList.contains('visible');
+      closeLongTermMacroLampTooltip();
+
+      if (shouldShow) {
+        longTermMacroLampTooltip.classList.add('visible');
+        setTimeout(() => {
+          document.addEventListener('click', closeLongTermMacroLampOnOutside);
+        }, 10);
+      }
+    };
+
+    const openLongTermMacroPanel = (html) => {
+      if (!longTermMacroResultPanel || !longTermMacroResultBody) {
+        return;
+      }
+
+      longTermMacroResultBody.innerHTML = html;
+      longTermMacroResultPanel.classList.add('visible');
+    };
+
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const renderLongTermMacroSuggestion = (result) => {
+      const rationale = escapeHtml(result && result.rationale ? result.rationale : '');
+      const kcal = escapeHtml(result && result.kcal !== undefined ? result.kcal : '');
+      const prot = escapeHtml(result && result.prot !== undefined ? result.prot : '');
+      const carb = escapeHtml(result && result.carb !== undefined ? result.carb : '');
+      const fat = escapeHtml(result && result.fat !== undefined ? result.fat : '');
+
+      openLongTermMacroPanel(
+        '<p class="ai-result-desc">' + rationale + '</p>' +
+        '<div class="ai-result-grid">' +
+          '<div class="ai-macro-chip kcal"><div class="chip-val">' + kcal + '</div><div class="chip-lbl">kcal</div></div>' +
+          '<div class="ai-macro-chip prot"><div class="chip-val">' + prot + 'g</div><div class="chip-lbl">protein</div></div>' +
+          '<div class="ai-macro-chip carb"><div class="chip-val">' + carb + 'g</div><div class="chip-lbl">carbs</div></div>' +
+          '<div class="ai-macro-chip fat"><div class="chip-val">' + fat + 'g</div><div class="chip-lbl">fat</div></div>' +
+        '</div>' +
+        '<button type="button" class="btn-ai-apply" id="ltg-macro-apply">↓ Apply these targets</button>'
+      );
+
+      const applyButton = document.getElementById('ltg-macro-apply');
+      if (applyButton) {
+        applyButton.addEventListener('click', () => {
+          applyMacroSuggestion(kcal, prot, carb, fat);
+        });
+      }
+    };
+
+    const showLongTermMacroError = (message) => {
+      openLongTermMacroPanel('<p class="ai-error-msg">⚠️ ' + String(message || 'Could not generate suggestions.') + '</p>');
+    };
+
+    async function suggestMacrosWithAI() {
+      closeLongTermMacroLampTooltip();
+
+      if (!longTermMacroLampBtn || !longTermMacroResultPanel || !longTermMacroResultBody) {
+        return;
+      }
+
+      const goalType = longTermTypeSelect ? (longTermTypeSelect.value || 'not specified') : 'not specified';
+      const initialWeight = longTermInitialWeightInput ? (longTermInitialWeightInput.value || 'not specified') : 'not specified';
+      const targetWeight = longTermTargetWeightInput ? (longTermTargetWeightInput.value || 'not specified') : 'not specified';
+      const startDate = longTermStartDateInput ? (longTermStartDateInput.value || 'not specified') : 'not specified';
+      const endDate = longTermEndDateInput ? (longTermEndDateInput.value || 'not specified') : 'not specified';
+      const sportConsistency = longTermSportSlider ? (longTermSportSlider.value + '%') : 'not specified';
+      const dietConsistency = longTermDietSlider ? (longTermDietSlider.value + '%') : 'not specified';
+
+      longTermMacroLampBtn.style.pointerEvents = 'none';
+      longTermMacroLampBtn.style.opacity = '0.5';
+      longTermMacroLampBtn.textContent = '⏳';
+      longTermMacroResultPanel.classList.remove('visible');
+
+      try {
+        const response = await fetch('../../controller/analyze_goal_ai.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            goal_type: goalType,
+            initial_weight: initialWeight,
+            target_weight: targetWeight,
+            start_date: startDate,
+            end_date: endDate,
+            sport_consistency: sportConsistency,
+            diet_consistency: dietConsistency
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result || result.success !== true) {
+          throw new Error((result && result.error) ? result.error : 'AI macro suggestion failed');
+        }
+
+        renderLongTermMacroSuggestion(result);
+      } catch (err) {
+        console.error('AI macro suggestion error:', err);
+        showLongTermMacroError((err && err.message ? err.message + '\n\n' : '') + 'Could not generate macro suggestions. Please adjust the goal manually.');
+      } finally {
+        longTermMacroLampBtn.style.pointerEvents = '';
+        longTermMacroLampBtn.style.opacity = '';
+        longTermMacroLampBtn.textContent = '💡';
+      }
+    }
+
+    function applyMacroSuggestion(kcal, prot, carb, fat) {
+      const setFieldValue = (fieldId, value) => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.value = String(Math.max(0, Math.round(parseFloat(value) || 0)));
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+          field.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+
+      setFieldValue('obj_cal_obj', kcal);
+      setFieldValue('obj_prot_obj', prot);
+      setFieldValue('obj_carb_obj', carb);
+      setFieldValue('obj_fat_obj', fat);
+
+      if (longTermMacroResultPanel) {
+        longTermMacroResultPanel.classList.remove('visible');
+      }
+    }
+
+    window.toggleMacroLampTooltip = toggleMacroLampTooltip;
 
     const bindPositiveLongTermFieldValidation = () => {
       positiveLongTermFields.forEach((fieldConfig) => {
@@ -1607,14 +1840,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     }
 
     if (longTermStartDateInput && longTermEndDateInput) {
+      enforceLongTermDateMinimums();
       clampLongTermEndDateToMin();
       validateLongTermPeriod(false);
       const markLongTermPeriodTouched = () => {
         longTermPeriodTouched = true;
+        enforceLongTermDateMinimums();
         clampLongTermEndDateToMin();
         validateLongTermPeriod(true);
       };
-      longTermEndDateInput.addEventListener('focus', clampLongTermEndDateToMin);
+      longTermEndDateInput.addEventListener('focus', () => {
+        enforceLongTermDateMinimums();
+        clampLongTermEndDateToMin();
+      });
       longTermStartDateInput.addEventListener('input', markLongTermPeriodTouched);
       longTermEndDateInput.addEventListener('input', markLongTermPeriodTouched);
       longTermStartDateInput.addEventListener('change', markLongTermPeriodTouched);
@@ -1625,24 +1863,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (longTermInitialWeightInput) {
       longTermInitialWeightInput.classList.add('weight-initial');
+      const clampInitWeight = () => {
+        const val = parseFloat(longTermInitialWeightInput.value);
+        if (!Number.isNaN(val)) {
+          longTermInitialWeightInput.value = Math.max(0.1, Math.min(180, val));
+        }
+      };
       syncLongTermWeightSlider(longTermInitialWeightInput, longTermInitialWeightDisplay);
       longTermInitialWeightInput.addEventListener('input', () => {
+        clampInitWeight();
         syncLongTermWeightSlider(longTermInitialWeightInput, longTermInitialWeightDisplay);
       });
+      longTermInitialWeightInput.addEventListener('change', () => {
+        clampInitWeight();
+        validateTargetWeightAgainstGoalType();
+      });
       longTermInitialWeightInput.addEventListener('input', validateTargetWeightAgainstGoalType);
-      longTermInitialWeightInput.addEventListener('change', validateTargetWeightAgainstGoalType);
     }
 
     if (longTermTargetWeightInput) {
       longTermTargetWeightInput.classList.add('weight-target');
+      const clampTargetWeight = () => {
+        const val = parseFloat(longTermTargetWeightInput.value);
+        if (!Number.isNaN(val)) {
+          longTermTargetWeightInput.value = Math.max(0.1, Math.min(180, val));
+        }
+      };
       syncLongTermWeightSlider(longTermTargetWeightInput, longTermTargetWeightDisplay);
       longTermTargetWeightInput.addEventListener('input', () => {
+        clampTargetWeight();
         syncLongTermWeightSlider(longTermTargetWeightInput, longTermTargetWeightDisplay);
+      });
+      longTermTargetWeightInput.addEventListener('change', () => {
+        clampTargetWeight();
+        validateTargetWeightAgainstGoalType();
       });
       validateTargetWeightAgainstGoalType();
       longTermTargetWeightInput.addEventListener('input', validateTargetWeightAgainstGoalType);
-      longTermTargetWeightInput.addEventListener('change', validateTargetWeightAgainstGoalType);
       longTermTargetWeightInput.addEventListener('blur', validateTargetWeightAgainstGoalType);
+    }
+
+    if (longTermMacroLampBtn) {
+      longTermMacroLampBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleMacroLampTooltip();
+      });
+    }
+
+    if (longTermMacroSuggestBtn) {
+      longTermMacroSuggestBtn.addEventListener('click', () => {
+        suggestMacrosWithAI();
+      });
+    }
+
+    if (longTermMacroResultClose) {
+      longTermMacroResultClose.addEventListener('click', () => {
+        if (longTermMacroResultPanel) {
+          longTermMacroResultPanel.classList.remove('visible');
+        }
+      });
     }
 
     if (hasLongTermGoalFlag) {
@@ -1830,6 +2110,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealStorageUserId = <?php echo (int) $current_user_id; ?>;
     const weeklyMacroMaxValue = 9999;
 
+    const showWeeklyGoalRequiredMessage = () => {
+      if (!weeklyGoalRequiredMsg || hasLongTermGoal) {
+        return;
+      }
+
+      weeklyGoalRequiredMsg.classList.add('is-visible');
+      weeklyGoalRequiredMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
     const clampWeeklyMacroInput = (macroInput) => {
       if (!macroInput) {
         return;
@@ -1855,8 +2144,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       return weeklyMealStoragePrefix + '.' + String(weeklyMealStorageUserId) + '.' + safeDate;
     };
 
-    const persistWeeklyMealEntries = () => {
+    const clearWeeklyMealStorageForUser = () => {
       if (!window.localStorage) {
+        return;
+      }
+
+      const keyPrefix = weeklyMealStoragePrefix + '.' + String(weeklyMealStorageUserId) + '.';
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.indexOf(keyPrefix) === 0) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach((key) => {
+        localStorage.removeItem(key);
+      });
+    };
+
+    const persistWeeklyMealEntries = () => {
+      if (!hasLongTermGoal || !window.localStorage) {
         return;
       }
 
@@ -1895,6 +2203,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const restoreWeeklyMealEntries = (dateValue) => {
       weeklyMealEntries = [];
 
+      if (!hasLongTermGoal) {
+        syncWeeklyMacroInputsFromMealEntries();
+        renderWeeklyMealLog();
+        return;
+      }
+
       if (window.localStorage) {
         try {
           const parsedValue = JSON.parse(localStorage.getItem(getWeeklyMealStorageKey(dateValue)) || '[]');
@@ -1928,6 +2242,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       }
       if (weeklyMealFatInput) {
         weeklyMealFatInput.value = '';
+      }
+
+      if (!hasLongTermGoal) {
+        weeklyMealEntries = [];
+        syncWeeklyMacroInputsFromMealEntries();
+        renderWeeklyMealLog();
+        return;
       }
 
       restoreWeeklyMealEntries(dateValue);
@@ -2378,6 +2699,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       const todayValue = String(weeklyToday.getFullYear()) + '-' + String(weeklyToday.getMonth() + 1).padStart(2, '0') + '-' + String(weeklyToday.getDate()).padStart(2, '0');
       weeklySurveyDateInput.value = todayValue;
     }
+    if (!hasLongTermGoal) {
+      clearWeeklyMealStorageForUser();
+    }
     loadWeeklyMealLogState(weeklySurveyDateInput ? weeklySurveyDateInput.value : '');
     if (weeklySurveyDateTitle) {
       const todayLabel = weeklyToday.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -2387,10 +2711,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     if (weeklyCalendarAddBtn && weeklySurveyPanel) {
       weeklyCalendarAddBtn.addEventListener('click', () => {
         if (!hasLongTermGoal) {
-          if (weeklyGoalRequiredMsg) {
-            weeklyGoalRequiredMsg.classList.add('is-visible');
-            weeklyGoalRequiredMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
+          showWeeklyGoalRequiredMessage();
           return;
         }
 
@@ -2505,6 +2826,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       weeklySurveyForm.addEventListener('submit', (e) => {
         e.preventDefault();
         weeklySurveyForm.submit();
+      });
+    }
+
+    if (weeklySwipeLayout && !hasLongTermGoal) {
+      weeklySwipeLayout.addEventListener('click', (event) => {
+        const interactiveTarget = event.target.closest('button, input, select, textarea, label, .weekly-macro-overview, .weekly-weight-card, .weekly-meal-card, .weekly-survey-macro-grid, .weekly-water-field, .weekly-tracker-overview, .weekly-daily-log');
+        if (interactiveTarget) {
+          showWeeklyGoalRequiredMessage();
+        }
+      });
+
+      weeklySwipeLayout.addEventListener('focusin', (event) => {
+        const interactiveTarget = event.target.closest('button, input, select, textarea');
+        if (interactiveTarget) {
+          showWeeklyGoalRequiredMessage();
+        }
       });
     }
 
