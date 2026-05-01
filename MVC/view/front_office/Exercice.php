@@ -81,6 +81,50 @@ $exercises = $stmt->fetchAll();
     color: var(--page-text);
   }
 
+  .exercise-search {
+    max-width: 1080px;
+    margin: 0 auto 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .exercise-search-input {
+    flex: 1;
+    height: 44px;
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--panel-text);
+    background: var(--panel-bg);
+    outline: none;
+  }
+
+  .exercise-search-input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(17, 121, 90, 0.16);
+  }
+
+  .exercise-search-clear {
+    height: 44px;
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--panel-text);
+    background: var(--panel-bg);
+    cursor: pointer;
+  }
+
+  .exercise-search-clear:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
   .exercise-grid {
     display: grid;
     grid-template-columns: repeat(6, 300px);
@@ -266,6 +310,16 @@ $exercises = $stmt->fetchAll();
     <strong>Showing all exercises</strong>
   </div>
 
+  <div class="exercise-search">
+    <input
+      id="exercise-search-input"
+      class="exercise-search-input"
+      type="search"
+      placeholder="Search by exercise, type, or muscle..."
+      aria-label="Search exercises" />
+    <button id="exercise-search-clear" class="exercise-search-clear" type="button">Clear</button>
+  </div>
+
 <script>
   // Theme toggle
   (function() {
@@ -353,10 +407,15 @@ $exercises = $stmt->fetchAll();
       </div>
 
       <script>
-        (function() {
+        function initExerciseSearch() {
           const cards = Array.from(document.querySelectorAll('.exercise-card'));
           const status = document.getElementById('exercise-filter-status');
           const emptyState = document.getElementById('exercise-filter-empty');
+          const searchInput = document.getElementById('exercise-search-input');
+          const clearButton = document.getElementById('exercise-search-clear');
+
+          let selectedMuscles = [];
+          let searchQuery = '';
 
           const normalize = (text) =>
             String(text || '')
@@ -387,50 +446,77 @@ $exercises = $stmt->fetchAll();
             card.dataset.search = normalize(combinedText);
           });
 
-          const applyFilter = (selectedMuscles) => {
-            const muscles = Array.isArray(selectedMuscles) ? selectedMuscles : [];
-            const selected = muscles.filter((m) => muscleKeywordMap[m]);
-
-            if (selected.length === 0) {
-              cards.forEach((card) => card.classList.remove('is-hidden'));
-              if (status) {
-                status.innerHTML = '<strong>Showing all exercises</strong>';
-              }
-              if (emptyState) {
-                emptyState.classList.remove('is-visible');
-              }
-              return;
-            }
+          const applyFilter = () => {
+            const selected = selectedMuscles.filter((m) => muscleKeywordMap[m]);
+            const hasMuscleFilter = selected.length > 0;
+            const hasSearchFilter = searchQuery.length > 0;
 
             let visibleCount = 0;
 
             cards.forEach((card) => {
               const searchText = card.dataset.search || '';
-              const match = selected.some((muscle) => {
+              const muscleMatch = !hasMuscleFilter || selected.some((muscle) => {
                 const keywords = muscleKeywordMap[muscle] || [];
                 return keywords.some((word) => searchText.includes(word));
               });
+              const queryMatch = !hasSearchFilter || searchText.includes(searchQuery);
+              const match = muscleMatch && queryMatch;
 
               card.classList.toggle('is-hidden', !match);
               if (match) visibleCount += 1;
             });
 
             if (status) {
-              status.innerHTML = '<strong>' + visibleCount + '</strong> exercise' + (visibleCount === 1 ? '' : 's') + ' matching: ' + selected.join(', ');
+              if (!hasMuscleFilter && !hasSearchFilter) {
+                status.innerHTML = '<strong>Showing all exercises</strong>';
+              } else {
+                const active = [];
+                if (hasMuscleFilter) {
+                  active.push('muscles: ' + selected.join(', '));
+                }
+                if (hasSearchFilter) {
+                  active.push('search: "' + searchQuery + '"');
+                }
+                status.innerHTML = '<strong>' + visibleCount + '</strong> exercise' + (visibleCount === 1 ? '' : 's') + ' matching ' + active.join(' | ');
+              }
             }
 
             if (emptyState) {
-              emptyState.classList.toggle('is-visible', visibleCount === 0);
+              const noResults = visibleCount === 0 && (hasMuscleFilter || hasSearchFilter);
+              emptyState.classList.toggle('is-visible', noResults);
             }
           };
+
+          if (searchInput) {
+            searchInput.addEventListener('input', (event) => {
+              searchQuery = normalize(event.target.value);
+              applyFilter();
+            });
+          }
+
+          if (clearButton) {
+            clearButton.addEventListener('click', () => {
+              searchQuery = '';
+              if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+              }
+              applyFilter();
+            });
+          }
 
           window.addEventListener('message', (event) => {
             if (!event || !event.data) return;
             if (event.data.type === 'foovia-muscles') {
-              applyFilter(event.data.muscles);
+              selectedMuscles = Array.isArray(event.data.muscles) ? event.data.muscles : [];
+              applyFilter();
             }
           });
-        })();
+
+          applyFilter();
+        }
+
+        initExerciseSearch();
       </script>
 
 </section>

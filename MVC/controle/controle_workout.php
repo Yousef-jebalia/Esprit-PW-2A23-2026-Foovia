@@ -80,118 +80,100 @@ class controle_workout
         }
     }
 
-    function replace_belong_for_workout(int $workoutId, array $selectedExercises)
-    {
-        $db = config::getConnexion();
-        try {
-            $db->beginTransaction();
+function replace_belong_for_workout(int $workoutId, array $selectedExercises)
+{
+    $db = config::getConnexion();
 
-            $delete = $db->prepare("DELETE FROM belong WHERE id_work = :id_work");
-            $delete->execute(['id_work' => $workoutId]);
+    try {
+        $db->beginTransaction();
 
-            if (!empty($selectedExercises)) {
-                $insert = $db->prepare(
-                    "INSERT INTO belong (id_ex, id_work, sets, weight, `time`)
-                     VALUES (:id_ex, :id_work, :sets, :weight, :time)
-                     ON DUPLICATE KEY UPDATE
-                        id_work = VALUES(id_work),
-                        sets = VALUES(sets),
-                        weight = VALUES(weight),
-                        `time` = VALUES(`time`)"
-                );
+        $delete = $db->prepare("DELETE FROM belong WHERE id_work = :id_work");
+        $delete->execute(['id_work' => $workoutId]);
 
-                foreach ($selectedExercises as $item) {
-                    $idEx = (int)($item['id_ex'] ?? 0);
-                    $typeEx = strtolower(trim((string)($item['type_ex'] ?? '')));
-                    $isCardio = ($typeEx === 'cardio');
+        $insert = $db->prepare(
+            "INSERT INTO belong (id_ex, id_work, sets, weight, `time`)
+             VALUES (:id_ex, :id_work, :sets, :weight, :time)"
+        );
 
-                    if ($isCardio) {
-                        $sets = 0;
-                        $weight = 0;
-                        $time = max(1, (int)($item['time'] ?? 0));
-                    } else {
-                        $sets = max(1, (int)($item['sets'] ?? 0));
-                        $weight = max(0, (float)($item['weight'] ?? 0));
-                        // No reps column in DB: store reps in `time` for non-cardio rows.
-                        $time = max(1, (int)($item['reps'] ?? 0));
-                    }
-
-                    if ($idEx <= 0) {
-                        continue;
-                    }
-
-                    $insert->execute([
-                        'id_ex' => $idEx,
-                        'id_work' => $workoutId,
-                        'sets' => $sets,
-                        'weight' => $weight,
-                        'time' => $time,
-                    ]);
-                }
-            }
-
-            $db->commit();
-            return true;
-        } catch (Exception $e) {
-            if ($db->inTransaction()) {
-                $db->rollBack();
-            }
-            return $e->getMessage();
-        }
-    }
-
-    function compute_workout_calories(array $selectedExercises): int
-    {
-        if (empty($selectedExercises)) {
-            return 0;
-        }
-
-        $db = config::getConnexion();
-        $ids = [];
-        foreach ($selectedExercises as $item) {
-            $idEx = (int)($item['id_ex'] ?? 0);
-            if ($idEx > 0) {
-                $ids[$idEx] = true;
-            }
-        }
-
-        $exerciseIds = array_keys($ids);
-        if (empty($exerciseIds)) {
-            return 0;
-        }
-
-        $placeholders = implode(',', array_fill(0, count($exerciseIds), '?'));
-        $stmt = $db->prepare("SELECT id_ex, cal_ex FROM exercice WHERE id_ex IN ($placeholders)");
-        $stmt->execute($exerciseIds);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $caloriesPerRepByExercise = [];
-        foreach ($rows as $row) {
-            $caloriesPerRepByExercise[(int)$row['id_ex']] = (float)$row['cal_ex'];
-        }
-
-        $totalCalories = 0.0;
         foreach ($selectedExercises as $item) {
             $idEx = (int)($item['id_ex'] ?? 0);
             if ($idEx <= 0) {
                 continue;
             }
 
-            $typeEx = strtolower(trim((string)($item['type_ex'] ?? '')));
-            if ($typeEx === 'cardio') {
-                continue;
-            }
+            $isCardio = strtolower(trim((string)($item['type_ex'] ?? ''))) === 'cardio';
 
-            $sets = max(1, (int)($item['sets'] ?? 0));
-            $reps = max(1, (int)($item['reps'] ?? 0));
-            $caloriesPerRep = (float)($caloriesPerRepByExercise[$idEx] ?? 0);
+            $sets = $isCardio ? 0 : max(1, (int)($item['sets'] ?? 0));
+            $weight = $isCardio ? 0 : max(0, (float)($item['weight'] ?? 0));
+            $time = $isCardio
+                ? max(1, (int)($item['time'] ?? 0))
+                : max(1, (int)($item['reps'] ?? 0));
 
-            $totalCalories += $sets * $reps * $caloriesPerRep;
+            $insert->execute([
+                'id_ex' => $idEx,
+                'id_work' => $workoutId,
+                'sets' => $sets,
+                'weight' => $weight,
+                'time' => $time,
+            ]);
         }
 
-        return (int)round($totalCalories);
+        $db->commit();
+        return true;
+    } catch (Exception $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        return $e->getMessage();
     }
 }
+
+
+
+function compute_workout_calories(array $selectedExercises): int
+{
+    $exerciseIds = array_values(array_unique(array_filter(array_map(
+        fn($item) => (int)($item['id_ex'] ?? 0),
+        $selectedExercises
+    ))));
+
+    if (empty($exerciseIds)) {
+        return 0;
+    }
+
+    $db = config::getConnexion();
+    $placeholders = implode(',', array_fill(0, count($exerciseIds), '?'));
+
+    $stmt = $db->prepare("SELECT id_ex, cal_ex FROM exercice WHERE id_ex IN ($placeholders)");
+    $stmt->execute($exerciseIds);
+
+    $caloriesByExercise = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $caloriesByExercise[(int)$row['id_ex']] = (float)$row['cal_ex'];
+    }
+
+    $totalCalories = 0;
+    foreach ($selectedExercises as $item) {
+        if (strtolower(trim((string)($item['type_ex'] ?? ''))) === 'cardio') {
+            continue;
+        }
+
+        $idEx = (int)($item['id_ex'] ?? 0);
+        $sets = max(1, (int)($item['sets'] ?? 0));
+        $reps = max(1, (int)($item['reps'] ?? 0));
+        $calories = (float)($caloriesByExercise[$idEx] ?? 0);
+
+        $totalCalories += $sets * $reps * $calories;
+    }
+
+    return (int) round($totalCalories);
+}
+
+
+}//end of class controle_workout
+
+
+
 
 // ── Handling POST Requests ──────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -281,7 +281,9 @@ function submitNewWorkoutCategory() {
     }
 
     const categoryName = input.value.trim();
-    if (!validateWorkoutCategoryName(categoryName)) {
+    if (!validateWorkoutCategoryName(categoryName)) 
+        
+        {
         input.focus();
         return;
     }
@@ -876,9 +878,9 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                                 <!-- WORKOUT SECTION *****************************************************-->
                                 <div id="workout-section" class="section-content" style="display: none;">
-                                    <div style="display: flex; gap: 20px; min-height: 600px;">
+                                    <div style="display: flex; gap: 20px; min-height: 600px; flex-wrap: nowrap; align-items: flex-start;">
                                         <!-- LEFT SIDE: WORKOUTS LIST -->
-                                        <div style="flex: 1; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
+                                        <div style="flex: 1 1 auto; min-width: 0; max-width: calc(100% - 520px); background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
                                             <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                                                 <i class="ti-list"></i>
                                                 Available Workouts
@@ -953,7 +955,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                         </div>
 
                         <!-- RIGHT SIDE: WORKOUT FORM -->
-                        <div style="flex: 1; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
+                        <div style="flex: 0 0 480px; max-width: 480px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
                             
                             <form onsubmit="return validateWorkoutForm()" class="workout-form" id="workout-form" action="../../controle/controle_workout.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
 
@@ -1099,139 +1101,14 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                 <!-- WORKOUT SECTION *****************************************************-->
                                 <!-- EXERCISES SECTION -->
                                 <div id="exercise-section" class="section-content" style="display: block;">
-                                    <div style="display: flex; gap: 20px; min-height: 600px;">
-                                        <!-- LEFT SIDE: EXERCISES LIST -->
-                                        <div style="flex: 1; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
-                                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                                                <i class="ti-pulse"></i>
-                                                Available Exercises
-                                            </div>
+                                    <div style="display: flex; gap: 20px; min-height: 600px; flex-wrap: nowrap; align-items: flex-start;">
 
-                                            <!-- FILTER BY MUSCLES -->
-                                            <div style="margin-bottom: 20px;">
-                                                <label style="font-weight: 600; margin-bottom: 10px; display: block; font-size: 14px;">Filter by Muscle:</label>
-                                                <select id="muscle-filter" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                                                    <option value="">All Muscles</option>
-                                                    <option value="calves">Calves</option>
-                                                    <option value="hamstrings">Hamstrings</option>
-                                                    <option value="quadriceps">Quadriceps</option>
-                                                    <option value="adductors">Adductors</option>
-                                                    <option value="glutes">Glutes</option>
-                                                    <option value="abs">Abs</option>
-                                                    <option value="obliques">Obliques</option>
-                                                    <option value="lower_back">Lower Back</option>
-                                                    <option value="lats">Lats</option>
-                                                    <option value="traps">Traps</option>
-                                                    <option value="chest">Chest</option>
-                                                    <option value="delts">Delts</option>
-                                                    <option value="biceps">Biceps</option>
-                                                    <option value="triceps">Triceps</option>
-                                                    <option value="forearms">Forearms</option>
-                                                    <option value="neck">Neck</option>
-                                                </select>
-                                            </div>
-
-                                            <div id="exercises-list-container" style="display: flex; flex-direction: column; gap: 12px;">
-
-    <?php if (empty($exercises)): ?>
-        <div style="text-align: center; padding: 40px 20px; color: #999;">
-            <div style="font-size: 48px; margin-bottom: 10px;">
-                <i class="ti-package"></i>
-            </div>
-            <div style="font-weight: 600; margin-bottom: 5px;">No Exercises Yet</div>
-            <div style="font-size: 14px;">Add your first exercise using the form on the right ==> </div>
-        </div>
-    <?php else: ?>
-        <?php foreach ($exercises as $ex): ?>
-            <div id="card-<?= $ex['id_ex'] ?>" class="exercise-card"  style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
-                
-                <!-- GIF/Image -->
-               <?php if (!empty($ex['gif_ex'])): ?>
-                    <img src="data:image/gif;base64,<?= base64_encode($ex['gif_ex']) ?>" 
-                        style="width: 10%; height: 10%; object-fit: cover;">
-                <?php else: ?>
-                    <i class="ti-image" style="color: #aaa; font-size: 24px;"></i>
-                <?php endif; ?>
-
-                <!-- Info -->
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">
-                        <?= htmlspecialchars($ex['name_ex'] . ' (id=' . $ex['id_ex'] . ')') ?>
-                    </div>
-                    <div style="font-size: 12px; color: #666; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="background: #e8f0fe; color: #4099ff; padding: 2px 8px; border-radius: 20px;">
-                            <?= htmlspecialchars($ex['type_ex']) ?>
-                        </span>
-                        <div style="font-size: 12px; color: #666; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="background: #e8f0fe; color: #4099ff; padding: 2px 8px; border-radius: 20px;">
-                            <?= htmlspecialchars($ex['type_ex']) ?>
-                        </span>
-                        <?php foreach(explode(',', $ex['muscle_ex']) as $m): ?>
-                            <span style="background: #e8f7ee; color: #28a745; padding: 2px 8px; border-radius: 20px;">
-                                <?= htmlspecialchars(trim($m)) ?>
-                            </span>
-                        <?php endforeach; ?>
-                        
-                    </div>
-                        <span style="color: #999;">🔥 <?= (int)$ex['cal_ex'] ?> cal</span>
-                        <span style="background: #e8f7ee; color: red ; padding: 2px 8px; border-radius: 20px;">
-                            <?= htmlspecialchars($ex['fatigue_ex']/10) ?>
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Delete button & edit button -->
-                <form method="POST" action="../../controle/controle_exercice.php" style="margin: 0; display: flex; gap: 5px;">
-    <input type="hidden" name="delete_id" value="<?= (int)$ex['id_ex'] ?>">
-    
-    <!-- Delete button -->
-    <button type="submit" name="action" value="delete"
-        style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"
-        onclick="return confirm('Delete this exercise?')">
-        <i class="ti-trash"></i>
-    </button>
-
-    <!-- Edit button -->
-    <button type="button"
-        onclick="fillEditForm(<?= $ex['id_ex'] ?>, '<?= addslashes($ex['name_ex']) ?>', '<?= addslashes($ex['type_ex']) ?>', '<?= addslashes($ex['muscle_ex']) ?>', <?= (int)$ex['cal_ex'] ?>, <?= (float)$ex['fatigue_ex'] ?>, '<?= addslashes($ex['description_ex']) ?>')"
-        style="background: none; border: none; color: #4099ff; cursor: pointer; font-size: 16px; padding: 5px;">
-        <i class="ti-pencil"></i>
-    </button>
-</form>
-
-            </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
-
-</div>
-                                        </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                        <!-- RIGHT SIDE: EXERCISE FORM -->
-                                        <div style="flex: 1; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
-                                            
-                                            
-                                                    
+                                        <!-- LEFT SIDE: EXERCISE FORM -->
+                                        <div style="flex: 0 0 480px; max-width: 480px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
                                             <form onsubmit="return validateForm()" class="exercise-form" id="exercise-form" action="../../controle/controle_exercice.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
 
-
-                                                    <input type="hidden" name="action" id="form-action" value="add">
-                                                    <input type="hidden" name="edit_id" id="edit-id" value="">
-
+                                                <input type="hidden" name="action" id="form-action" value="add">
+                                                <input type="hidden" name="edit_id" id="edit-id" value="">
 
                                                 <div style="font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                                                     <i class="ti-pencil-alt"></i>
@@ -1245,7 +1122,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Type</label>
-                                                    <select name="ex_type" id="ex_type" class="form-select"  style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <select name="ex_type" id="ex_type" class="form-select" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                         <option value="">Select Type</option>
                                                         <option value="compound">Compound</option>
                                                         <option value="isolation">Isolation</option>
@@ -1276,12 +1153,12 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Calories Per Rep</label>
-                                                    <input name="ex_calories" id="ex_calories" type="text" class="form-input" placeholder="5"  step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_calories" id="ex_calories" type="text" class="form-input" placeholder="5" step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; flex-direction: column;">
                                                     <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Fatigue Ratio</label>
-                                                    <input name="ex_fatigue" id="ex_fatigue" type="text" class="form-input" placeholder=" 0.8"   step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <input name="ex_fatigue" id="ex_fatigue" type="text" class="form-input" placeholder="0.8" step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                                                 </div>
 
                                                 <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -1293,27 +1170,104 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                                     </button>
                                                 </div>
                                             </form>
-
-
-
                                         </div>
 
+                                        <!-- RIGHT SIDE: EXERCISES LIST -->
+                                        <div style="flex: 1 1 auto; min-width: 0; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
+                                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                                <i class="ti-pulse"></i>
+                                                Available Exercises
+                                            </div>
 
+                                            <!-- FILTER BY MUSCLES -->
+                                            <div style="margin-bottom: 20px;">
+                                                <label style="font-weight: 600; margin-bottom: 10px; display: block; font-size: 14px;">Filter by Muscle:</label>
+                                                <select id="muscle-filter" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                                    <option value="">All Muscles</option>
+                                                    <option value="calves">Calves</option>
+                                                    <option value="hamstrings">Hamstrings</option>
+                                                    <option value="quadriceps">Quadriceps</option>
+                                                    <option value="adductors">Adductors</option>
+                                                    <option value="glutes">Glutes</option>
+                                                    <option value="abs">Abs</option>
+                                                    <option value="obliques">Obliques</option>
+                                                    <option value="lower_back">Lower Back</option>
+                                                    <option value="lats">Lats</option>
+                                                    <option value="traps">Traps</option>
+                                                    <option value="chest">Chest</option>
+                                                    <option value="delts">Delts</option>
+                                                    <option value="biceps">Biceps</option>
+                                                    <option value="triceps">Triceps</option>
+                                                    <option value="forearms">Forearms</option>
+                                                    <option value="neck">Neck</option>
+                                                </select>
+                                            </div>
 
+                                            <!-- SEARCH -->
+                                            <div style="margin-bottom: 14px; display:flex; gap:8px; align-items:center;">
+                                                <input id="backoffice-exercise-search" type="search" placeholder="Search exercises by name, type, or muscle" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" />
+                                                <button id="backoffice-exercise-clear" type="button" style="padding:8px 12px; border:1px solid #ddd; background:#f5f5f5; border-radius:4px; cursor:pointer;">Clear</button>
+                                            </div>
 
+                                            <div id="exercises-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+    <?php if (empty($exercises)): ?>
+        <div style="text-align: center; padding: 40px 20px; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 10px;"><i class="ti-package"></i></div>
+            <div style="font-weight: 600; margin-bottom: 5px;">No Exercises Yet</div>
+            <div style="font-size: 14px;">Add your first exercise using the form on the left.</div>
+        </div>
+    <?php else: ?>
+        <?php foreach ($exercises as $ex): ?>
+            <div id="card-<?= $ex['id_ex'] ?>" class="exercise-card" style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
+                <?php if (!empty($ex['gif_ex'])): ?>
+                    <img src="data:image/gif;base64,<?= base64_encode($ex['gif_ex']) ?>" style="width: 10%; height: 10%; object-fit: cover;">
+                <?php else: ?>
+                    <i class="ti-image" style="color: #aaa; font-size: 24px;"></i>
+                <?php endif; ?>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">
+                        <?= htmlspecialchars($ex['name_ex'] . ' (id=' . $ex['id_ex'] . ')') ?>
+                    </div>
+                    <div style="font-size: 12px; color: #666; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span style="background: #e8f0fe; color: #4099ff; padding: 2px 8px; border-radius: 20px;">
+                            <?= htmlspecialchars($ex['type_ex']) ?>
+                        </span>
+                        <div style="font-size: 12px; color: #666; display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span style="background: #e8f0fe; color: #4099ff; padding: 2px 8px; border-radius: 20px;">
+                                <?= htmlspecialchars($ex['type_ex']) ?>
+                            </span>
+                            <?php foreach(explode(',', $ex['muscle_ex']) as $m): ?>
+                                <span style="background: #e8f7ee; color: #28a745; padding: 2px 8px; border-radius: 20px;">
+                                    <?= htmlspecialchars(trim($m)) ?>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
+                        <span style="color: #999;">&#128293; <?= (int)$ex['cal_ex'] ?> cal</span>
+                        <span style="background: #e8f7ee; color: red; padding: 2px 8px; border-radius: 20px;">
+                            <?= htmlspecialchars($ex['fatigue_ex']/10) ?>
+                        </span>
+                    </div>
+                </div>
+                <form method="POST" action="../../controle/controle_exercice.php" style="margin: 0; display: flex; gap: 5px;">
+                    <input type="hidden" name="delete_id" value="<?= (int)$ex['id_ex'] ?>">
+                    <button type="submit" name="action" value="delete"
+                        style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"
+                        onclick="return confirm('Delete this exercise?')">
+                        <i class="ti-trash"></i>
+                    </button>
+                    <button type="button"
+                        onclick="fillEditForm(<?= $ex['id_ex'] ?>, '<?= addslashes($ex['name_ex']) ?>', '<?= addslashes($ex['type_ex']) ?>', '<?= addslashes($ex['muscle_ex']) ?>', <?= (int)$ex['cal_ex'] ?>, <?= (float)$ex['fatigue_ex'] ?>, '<?= addslashes($ex['description_ex']) ?>')"
+                        style="background: none; border: none; color: #4099ff; cursor: pointer; font-size: 16px; padding: 5px;">
+                        <i class="ti-pencil"></i>
+                    </button>
+                </form>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+                                            </div>
+                                            <div id="backoffice-exercise-empty" style="display:none; text-align:center; padding:18px; color:#999;">No exercises match your search.</div>
+                                        </div>
 
-
-
-
-
-
-
-
-
-
-
-
-                                        
                                     </div>
                                 </div>
                             </div>
@@ -1486,6 +1440,51 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                     }
                 });
             }
+
+            // Backoffice exercise search filter
+            (function() {
+                const searchInput = document.getElementById('backoffice-exercise-search');
+                const clearBtn = document.getElementById('backoffice-exercise-clear');
+                const listContainer = document.getElementById('exercises-list-container');
+                if (!listContainer) return;
+
+                const rows = Array.from(listContainer.querySelectorAll('.exercise-card'));
+
+                const normalize = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+                rows.forEach((r) => {
+                    const name = r.querySelector('div[style*="font-weight: 600"]')?.textContent || '';
+                    const meta = r.querySelector('div[style*="font-size: 12px"]')?.textContent || '';
+                    r.dataset.search = normalize([name, meta].join(' '));
+                });
+
+                const applyFilter = () => {
+                    const q = normalize(searchInput?.value || '');
+                    let anyVisible = false;
+                    rows.forEach((r) => {
+                        const match = q === '' || (r.dataset.search || '').includes(q);
+                        r.style.display = match ? 'flex' : 'none';
+                        if (match) anyVisible = true;
+                    });
+                    // show empty placeholder if none
+                    const emptyPlaceholder = document.getElementById('backoffice-exercise-empty');
+                    if (emptyPlaceholder) {
+                        emptyPlaceholder.style.display = anyVisible ? 'none' : '';
+                    }
+                };
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', applyFilter);
+                }
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', function() {
+                        if (searchInput) searchInput.value = '';
+                        applyFilter();
+                        searchInput?.focus();
+                    });
+                }
+            })();
         });
     </script>
 </body>

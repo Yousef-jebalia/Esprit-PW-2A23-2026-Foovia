@@ -32,6 +32,45 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
   .meta-item { display: flex; align-items: center; gap: 4px; }
   .meta-label { color: var(--green); font-weight: 600; }
   .empty-cat { color: var(--page-muted); font-family: 'DM Sans', sans-serif; padding: 20px; text-align: center; }
+  .workout-search {
+    max-width: 1200px;
+    margin: 0 auto 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 12px;
+  }
+
+  .workout-search-input {
+    flex: 1;
+    height: 44px;
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--page-text);
+    background: var(--panel-bg);
+    outline: none;
+  }
+
+  .workout-search-input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(17, 121, 90, 0.12);
+  }
+
+  .workout-search-clear {
+    height: 44px;
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--page-text);
+    background: var(--panel-bg);
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -70,6 +109,11 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
     <h1>Workouts by Category</h1>
   </div>
 
+  <div class="workout-search">
+    <input id="workout-search-input" class="workout-search-input" type="search" placeholder="Search workouts by name, time, or calories..." aria-label="Search workouts" />
+    <button id="workout-search-clear" class="workout-search-clear" type="button">Clear</button>
+  </div>
+
   <?php foreach ($categories as $category): ?>
     <?php $catWorkouts = array_filter($workouts, fn($w) => (int)$w['id_cat'] === (int)$category['id_cat']); ?>
     <div class="category-section">
@@ -105,6 +149,7 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
       <?php endif; ?>
     </div>
   <?php endforeach; ?>
+  <div id="workout-filter-empty" class="empty-cat" style="display:none;">No workouts match your search.</div>
 </section>
 
 <script>
@@ -132,6 +177,78 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
       setTheme(nextTheme);
     });
   })();
+</script>
+
+<script>
+  function initWorkoutSearch() {
+    const sections = Array.from(document.querySelectorAll('.category-section'));
+    const items = Array.from(document.querySelectorAll('.workout-item'));
+    const searchInput = document.getElementById('workout-search-input');
+    const clearButton = document.getElementById('workout-search-clear');
+    const emptyState = document.getElementById('workout-filter-empty');
+
+    let searchQuery = '';
+
+    const normalize = (text) =>
+      String(text || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    items.forEach((item) => {
+      const name = item.querySelector('.workout-name')?.textContent || '';
+      const meta = item.querySelector('.workout-meta')?.textContent || '';
+      const category = item.closest('.category-section')?.querySelector('.category-title')?.textContent || '';
+      item.dataset.search = normalize([name, meta, category].join(' '));
+    });
+
+    const applyFilter = () => {
+      const hasSearch = searchQuery.length > 0;
+      let totalVisible = 0;
+
+      sections.forEach((section) => {
+        const listItems = Array.from(section.querySelectorAll('.workout-item'));
+        let visibleInSection = 0;
+
+        listItems.forEach((it) => {
+          const text = it.dataset.search || '';
+          const match = !hasSearch || text.includes(searchQuery);
+          it.style.display = match ? '' : 'none';
+          if (match) visibleInSection += 1;
+        });
+
+        section.style.display = visibleInSection > 0 ? '' : 'none';
+        totalVisible += visibleInSection;
+      });
+
+      if (emptyState) {
+        emptyState.style.display = totalVisible === 0 && hasSearch ? '' : 'none';
+      }
+    };
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = normalize(e.target.value);
+        applyFilter();
+      });
+    }
+
+    if (clearButton) {
+      clearButton.addEventListener('click', () => {
+        searchQuery = '';
+        if (searchInput) {
+          searchInput.value = '';
+          searchInput.focus();
+        }
+        applyFilter();
+      });
+    }
+
+    applyFilter();
+  }
+
+  initWorkoutSearch();
 </script>
 
 </body>
