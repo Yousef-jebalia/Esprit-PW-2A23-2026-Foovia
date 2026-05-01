@@ -2,16 +2,9 @@
 session_start();
 require_once '../../controller/ObjectifLongTerme_Controller.php';
 require_once '../../controller/ObjectifHebdomadaire_Controller.php';
-require_once '../../controller/controle_Menu.php';
 
 $controller = new ObjectifLongTerme_Controller();
 $hebdo_controller = new ObjectifHebdomadaire_Controller();
-$menu_controller = new Controller_menu();
-$all_recipes = $menu_controller->list_recipe();
-$all_recipes_json = json_encode($all_recipes, JSON_UNESCAPED_SLASHES);
-if ($all_recipes_json === false) {
-  $all_recipes_json = '[]';
-}
 
 function goal_type_label(string $type): string {
   $labels = [
@@ -139,6 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['long_term_save_goal']
 
   if (!empty($missing_fields)) {
     $errors[] = 'Please complete all required fields: ' . implode(', ', $missing_fields) . '.';
+  }
+
+  $frequency_rappel_raw = trim((string) $long_term_form['frequency_rappel_obj']);
+  if (!in_array('Reminder frequency', $missing_fields, true) && !preg_match('/^[1-9]$/', $frequency_rappel_raw)) {
+    $errors[] = 'Reminder frequency must be a single digit between 1 and 9.';
   }
 
   if (empty($missing_fields) && ($data['val_init_obj'] <= 0 || $data['val_cible_obj'] <= 0 || $data['obj_cal_obj'] <= 0 || $data['obj_fat_obj'] <= 0 || $data['obj_prot_obj'] <= 0 || $data['obj_carb_obj'] <= 0 || $data['frequency_rappel_obj'] <= 0)) {
@@ -377,13 +375,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_save_objective
         'id_user' => $current_user_id,
       ];
 
-      $saved = $hebdo_controller->save_objectif_hebdo($weekly_form_objectif, $weekly_has_record ? (int) $weekly_today_objectif['id_suiv'] : null);
-      if ($saved) {
-        header('Location: tracking.php#weekly-tracking');
-        exit;
-      }
+      $sleep_hours_raw = trim((string) $weekly_form_objectif['nb_h_sommeil_suiv']);
+      $sleep_hours = (float) $sleep_hours_raw;
 
-      $weekly_error_message = 'The daily tracking could not be saved.';
+      if ($sleep_hours_raw === '' || !is_numeric($sleep_hours_raw) || $sleep_hours <= 0 || $sleep_hours >= 24) {
+        $weekly_error_message = 'Sleep hours must be greater than 0 and less than 24.';
+      } else {
+        $weekly_form_objectif['nb_h_sommeil_suiv'] = $sleep_hours_raw;
+
+        $saved = $hebdo_controller->save_objectif_hebdo($weekly_form_objectif, $weekly_has_record ? (int) $weekly_today_objectif['id_suiv'] : null);
+        if ($saved) {
+          header('Location: tracking.php#weekly-tracking');
+          exit;
+        }
+
+        $weekly_error_message = 'The daily tracking could not be saved.';
+      }
     }
   }
 }
@@ -637,7 +644,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       <div class="lt-grid">
         <div class="lt-field">
           <label class="accent-green" for="lt-goal-type">Goal type</label>
-          <select class="lt-select" id="lt-goal-type" name="type_obj" required <?php echo $user_has_goal ? 'disabled' : ''; ?>>
+          <select class="lt-select" id="lt-goal-type" name="type_obj" <?php echo $user_has_goal ? 'disabled' : ''; ?>>
             <option value="">Select a goal</option>
             <option value="prise_de_poids" <?php echo $long_term_form['type_obj'] === 'prise_de_poids' ? 'selected' : ''; ?>>Weight gain</option>
             <option value="perte_de_poids" <?php echo $long_term_form['type_obj'] === 'perte_de_poids' ? 'selected' : ''; ?>>Weight loss</option>
@@ -649,8 +656,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         </div>
         <div class="lt-field">
           <label class="accent-green" for="lt-reminder">Reminder frequency (days)</label>
-          <input class="lt-input" type="number" id="lt-reminder" name="frequency_rappel_obj" min="1" required value="<?php echo htmlspecialchars((string) $long_term_form['frequency_rappel_obj']); ?>" <?php echo $user_has_goal ? 'readonly' : ''; ?>>
-          <p class="lt-field-warning" id="lt-reminder-warning" aria-live="polite">Reminder frequency must be a positive value.</p>
+          <input class="lt-input" type="text" id="lt-reminder" name="frequency_rappel_obj" value="<?php echo htmlspecialchars((string) $long_term_form['frequency_rappel_obj']); ?>" <?php echo $user_has_goal ? 'readonly' : ''; ?>>
+          <p class="lt-field-warning" id="lt-reminder-warning" aria-live="polite">Reminder frequency must be one digit between 1 and 9.</p>
         </div>
       </div>
 
@@ -660,7 +667,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
             <label class="accent-yellow" for="val_init_obj">Initial weight (kg)</label>
             <span class="lt-range-value lt-range-value-initial" id="val-init-display"><?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?> kg</span>
           </div>
-          <input class="lt-input" type="range" id="val_init_obj" name="val_init_obj" min="0.1" max="180" step="0.1" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?>">
+          <input class="lt-input" type="range" id="val_init_obj" name="val_init_obj" min="0.1" max="180" step="0.1" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_init_obj']); ?>">
           <p class="lt-field-warning" id="val-init-warning" aria-live="polite">Initial weight must be a positive value.</p>
         </div>
         <div class="lt-field">
@@ -668,7 +675,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
             <label class="accent-yellow" for="val_cible_obj">Target weight (kg)</label>
             <span class="lt-range-value lt-range-value-target" id="val-cible-display"><?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?> kg</span>
           </div>
-          <input class="lt-input" type="range" id="val_cible_obj" name="val_cible_obj" min="0.1" max="180" step="0.1" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?>">
+          <input class="lt-input" type="range" id="val_cible_obj" name="val_cible_obj" min="0.1" max="180" step="0.1" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['val_cible_obj']); ?>">
           <p class="lt-field-warning" id="val-cible-warning" aria-live="polite">Target weight must be a positive value.</p>
           <p class="lt-field-warning" id="val-cible-goal-warning" aria-live="polite">Target weight is not valid for the selected goal type.</p>
         </div>
@@ -677,11 +684,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       <div class="lt-grid">
         <div class="lt-field">
           <label for="date_deb_obj">Start date</label>
-          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" min="<?php echo htmlspecialchars($system_date); ?>" required <?php echo $user_has_goal ? 'readonly' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
+          <input class="lt-input" type="date" id="date_deb_obj" name="date_deb_obj" <?php echo $user_has_goal ? 'readonly' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_deb_obj']); ?>">
         </div>
         <div class="lt-field">
           <label for="date_fin_obj">End date</label>
-          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" min="<?php echo htmlspecialchars($system_date); ?>" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
+          <input class="lt-input" type="date" id="date_fin_obj" name="date_fin_obj" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['date_fin_obj']); ?>">
           <p class="lt-field-warning" id="lt-goal-period-warning" aria-live="polite">The goal period must be at least 30 days.</p>
         </div>
       </div>
@@ -704,22 +711,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       <div class="lt-macros-grid">
         <div class="lt-macro-pill m-kcal">
           <label for="obj_cal_obj">Calories</label>
-          <input type="number" id="obj_cal_obj" name="obj_cal_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_cal_obj']); ?>">
+          <input type="text" id="obj_cal_obj" name="obj_cal_obj" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_cal_obj']); ?>">
           <p class="lt-field-warning" id="obj-cal-warning" aria-live="polite">Calories must be a positive value.</p>
         </div>
         <div class="lt-macro-pill m-prot">
           <label for="obj_prot_obj">Protein</label>
-          <input type="number" id="obj_prot_obj" name="obj_prot_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_prot_obj']); ?>">
+          <input type="text" id="obj_prot_obj" name="obj_prot_obj" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_prot_obj']); ?>">
           <p class="lt-field-warning" id="obj-prot-warning" aria-live="polite">Protein must be a positive value.</p>
         </div>
         <div class="lt-macro-pill m-carb">
           <label for="obj_carb_obj">Carbs</label>
-          <input type="number" id="obj_carb_obj" name="obj_carb_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_carb_obj']); ?>">
+          <input type="text" id="obj_carb_obj" name="obj_carb_obj" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_carb_obj']); ?>">
           <p class="lt-field-warning" id="obj-carb-warning" aria-live="polite">Carbs must be a positive value.</p>
         </div>
         <div class="lt-macro-pill m-fat">
           <label for="obj_fat_obj">Fat</label>
-          <input type="number" id="obj_fat_obj" name="obj_fat_obj" min="0.01" step="0.01" required data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_fat_obj']); ?>">
+          <input type="text" id="obj_fat_obj" name="obj_fat_obj" data-lt-editable="1" <?php echo $user_has_goal ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars((string) $long_term_form['obj_fat_obj']); ?>">
           <p class="lt-field-warning" id="obj-fat-warning" aria-live="polite">Fat must be a positive value.</p>
         </div>
       </div>
@@ -909,11 +916,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
           <div class="weekly-meal-grid">
             <div class="weekly-meal-field wide">
-              <label for="weekly-meal-name">Meal name</label>
               <div style="display: flex; gap: 8px; align-items: stretch; position: relative;">
-                <input type="text" id="weekly-meal-name" placeholder="e.g. Grilled Chicken Bowl" style="flex: 1; min-width: 0;" autocomplete="off">
-                <button type="button" id="weekly-meal-search-btn" style="background-color: var(--green); color: #fff; border: none; border-radius: 12px; padding: 0 12px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(75, 174, 82, 0.2); transition: transform 0.15s, background-color 0.2s;" title="Search meal">&#128269;</button>
-                <div class="weekly-upload-wrap">
+                <!-- <div style="flex: 1;"></div> -->
+                <div class="weekly-upload-wrap" style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
                   <input type="file" id="weekly-meal-img-input" accept="image/*" style="display: none;">
                   <div class="lamp-ai-wrap" id="weekly-lamp-wrap">
                     <button type="button" class="btn-lamp-ai" id="weekly-btn-lamp-ai" title="AI food analysis" aria-label="AI food analysis">&#128161;</button>
@@ -924,26 +929,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
                       <button type="button" class="tip-cta" id="weekly-lamp-upload-cta">&#128247; Upload and Analyse</button>
                     </div>
                   </div>
+                  <input type="text" id="weekly-meal-name-input" readonly value="Meal" aria-label="Meal name" style="height: auto; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 12px; background: #f6f6f6; color: #222; font-family: 'DM Sans', sans-serif; font-weight:500; border: 1px solid #e6e6e6; white-space:nowrap; margin-right:6px;" />
                   <button type="button" id="weekly-meal-upload-btn" style="background-color: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(217, 79, 0, 0.2); transition: transform 0.15s, background-color 0.2s;">&#128247; Upload</button>
+                  <button type="button" id="weekly-meal-camera-btn" onclick="openCameraModal()" style="background-color: #2a2c2e; color: #fff; border: none; border-radius: 12px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(42, 44, 46, 0.2); transition: transform 0.15s, background-color 0.2s;">📸 Camera</button>
                 </div>
-                <div id="meal-search-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px;"></div>
               </div>
             </div>
             <div class="weekly-meal-field kcal">
               <label for="weekly-meal-cal">Calories (kcal)</label>
-              <input type="number" id="weekly-meal-cal" placeholder="0" min="0" step="0.01">
+              <input type="text" id="weekly-meal-cal" placeholder="0">
             </div>
             <div class="weekly-meal-field prot">
               <label for="weekly-meal-prot">Protein (g)</label>
-              <input type="number" id="weekly-meal-prot" placeholder="0" min="0" step="0.01">
+              <input type="text" id="weekly-meal-prot" placeholder="0">
             </div>
             <div class="weekly-meal-field carb">
               <label for="weekly-meal-carb">Carbs (g)</label>
-              <input type="number" id="weekly-meal-carb" placeholder="0" min="0" step="0.01">
+              <input type="text" id="weekly-meal-carb" placeholder="0">
             </div>
             <div class="weekly-meal-field fat">
               <label for="weekly-meal-fat">Fat (g)</label>
-              <input type="number" id="weekly-meal-fat" placeholder="0" min="0" step="0.01">
+              <input type="text" id="weekly-meal-fat" placeholder="0">
             </div>
           </div>
 
@@ -959,19 +965,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         <div class="weekly-survey-macro-grid">
           <div class="weekly-survey-field weekly-macro-field kcal">
             <label for="survey-cal">Calories (kcal)</label>
-            <input type="number" id="survey-cal" name="val_cal_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
+            <input type="text" id="survey-cal" name="val_cal_suiv" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_cal_suiv'] ?? '')); ?>">
           </div>
           <div class="weekly-survey-field weekly-macro-field prot">
             <label for="survey-prot">Protein (g)</label>
-            <input type="number" id="survey-prot" name="val_prot_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_prot_suiv'] ?? '')); ?>">
+            <input type="text" id="survey-prot" name="val_prot_suiv" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_prot_suiv'] ?? '')); ?>">
           </div>
           <div class="weekly-survey-field weekly-macro-field fat">
             <label for="survey-fat">Fat (g)</label>
-            <input type="number" id="survey-fat" name="val_fat_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
+            <input type="text" id="survey-fat" name="val_fat_suiv" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_fat_suiv'] ?? '')); ?>">
           </div>
           <div class="weekly-survey-field weekly-macro-field carb">
             <label for="survey-carb">Carbs (g)</label>
-            <input type="number" id="survey-carb" name="val_carb_suiv" step="0.01" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_carb_suiv'] ?? '')); ?>">
+            <input type="text" id="survey-carb" name="val_carb_suiv" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['val_carb_suiv'] ?? '')); ?>">
           </div>
         </div>
         <div class="weekly-survey-field weekly-water-field">
@@ -984,11 +990,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           <div class="weekly-tracker-row">
             <div class="weekly-tracker-field sleep">
               <label for="survey-sleep">Hours of sleep</label>
-              <input type="number" id="survey-sleep" name="nb_h_sommeil_suiv" placeholder="0" min="0" max="24" step="0.5" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_h_sommeil_suiv'] ?? '')); ?>">
+              <input type="text" id="survey-sleep" name="nb_h_sommeil_suiv" placeholder="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_h_sommeil_suiv'] ?? '')); ?>">
             </div>
             <div class="weekly-tracker-field tracker-steps">
               <label for="survey-steps">Steps taken</label>
-              <input type="number" id="survey-steps" name="nb_pas_suiv" placeholder="0" min="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_pas_suiv'] ?? '')); ?>">
+              <input type="text" id="survey-steps" name="nb_pas_suiv" placeholder="0" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_pas_suiv'] ?? '')); ?>">
             </div>
           </div>
 
@@ -1263,7 +1269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     let longTermPeriodTouched = false;
     const positiveLongTermFields = [
       { inputId: 'val_init_obj', warningId: 'val-init-warning', message: 'Initial weight must be a positive value.' },
-      { inputId: 'lt-reminder', warningId: 'lt-reminder-warning', message: 'Reminder frequency must be a positive value.' },
+      { inputId: 'lt-reminder', warningId: 'lt-reminder-warning', message: 'Reminder frequency must be one digit between 1 and 9.' },
       { inputId: 'obj_cal_obj', warningId: 'obj-cal-warning', message: 'Calories must be a positive value.' },
       { inputId: 'obj_prot_obj', warningId: 'obj-prot-warning', message: 'Protein must be a positive value.' },
       { inputId: 'obj_fat_obj', warningId: 'obj-fat-warning', message: 'Fat must be a positive value.' },
@@ -1804,7 +1810,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyWeightCount = document.getElementById('weekly-weight-count');
     const weeklyWeightLog = document.getElementById('weekly-weight-log');
     const weeklyWeightLogEmpty = document.getElementById('weekly-weight-log-empty');
-    const weeklyMealNameInput = document.getElementById('weekly-meal-name');
     const weeklyMealCalInput = document.getElementById('weekly-meal-cal');
     const weeklyMealProtInput = document.getElementById('weekly-meal-prot');
     const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
@@ -1822,6 +1827,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealDotColors = ['#D94F00', '#4BAE52', '#F5C842', '#F2A98A', '#2E4A28', '#C0381A'];
     const weeklyMealStoragePrefix = 'foovia.weekly-meals';
     const weeklyMealStorageUserId = <?php echo (int) $current_user_id; ?>;
+    const weeklyMacroMaxValue = 9999;
+
+    const clampWeeklyMacroInput = (macroInput) => {
+      if (!macroInput) {
+        return;
+      }
+
+      const parsedValue = parseFloat(macroInput.value);
+      if (Number.isNaN(parsedValue)) {
+        return;
+      }
+
+      if (parsedValue < 0) {
+        macroInput.value = '0';
+        return;
+      }
+
+      if (parsedValue > weeklyMacroMaxValue) {
+        macroInput.value = String(weeklyMacroMaxValue);
+      }
+    };
 
     const getWeeklyMealStorageKey = (dateValue) => {
       const safeDate = String(dateValue || (weeklySurveyDateInput ? weeklySurveyDateInput.value : '') || 'today').trim() || 'today';
@@ -1890,9 +1916,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     };
 
     const loadWeeklyMealLogState = (dateValue) => {
-      if (weeklyMealNameInput) {
-        weeklyMealNameInput.value = '';
-      }
       if (weeklyMealCalInput) {
         weeklyMealCalInput.value = '';
       }
@@ -2060,7 +2083,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       }
 
       const entry = {
-        name: (weeklyMealNameInput && weeklyMealNameInput.value.trim()) ? weeklyMealNameInput.value.trim() : 'Unnamed meal',
+        name: 'Meal',
         cal: parseFloat(weeklyMealCalInput.value || '0') || 0,
         prot: parseFloat(weeklyMealProtInput.value || '0') || 0,
         carb: parseFloat(weeklyMealCarbInput.value || '0') || 0,
@@ -2075,9 +2098,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       persistWeeklyMealEntries();
       syncWeeklyMacroInputsFromMealEntries();
 
-      if (weeklyMealNameInput) {
-        weeklyMealNameInput.value = '';
-      }
       weeklyMealCalInput.value = '';
       weeklyMealProtInput.value = '';
       weeklyMealCarbInput.value = '';
@@ -2293,6 +2313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     [weeklyMacroInputCal, weeklyMacroInputProt, weeklyMacroInputCarb, weeklyMacroInputFat].forEach((macroInput) => {
       if (macroInput) {
         macroInput.addEventListener('input', renderWeeklyMacroOverview);
+        macroInput.addEventListener('input', () => clampWeeklyMacroInput(macroInput));
       }
     });
 
@@ -2792,96 +2813,357 @@ function exportHistoryPDF() {
 
 <script>
   (function() {
-    const recipes = <?php echo $all_recipes_json; ?>;
-    const searchBtn = document.getElementById('weekly-meal-search-btn');
-    const nameInput = document.getElementById('weekly-meal-name');
-    const dropdown = document.getElementById('meal-search-dropdown');
-    
-    const calInput = document.getElementById('weekly-meal-cal');
-    const protInput = document.getElementById('weekly-meal-prot');
-    const carbInput = document.getElementById('weekly-meal-carb');
-    const fatInput = document.getElementById('weekly-meal-fat');
-    
-    function renderDropdown(list) {
-      dropdown.innerHTML = '';
-      if (list.length === 0) {
-        const noRes = document.createElement('div');
-        noRes.style.padding = '10px';
-        noRes.style.color = '#777';
-        noRes.style.fontSize = '0.85rem';
-        noRes.style.textAlign = 'center';
-        noRes.textContent = 'No meals found';
-        dropdown.appendChild(noRes);
-      } else {
-        list.forEach(recipe => {
-          const item = document.createElement('div');
-          item.style.padding = '8px 12px';
-          item.style.cursor = 'pointer';
-          item.style.borderRadius = '8px';
-          item.style.fontSize = '0.85rem';
-          item.style.fontFamily = "'DM Sans', sans-serif";
-          item.style.color = 'var(--panel-text)';
-          item.style.display = 'flex';
-          item.style.justifyContent = 'space-between';
-          
-          const nameSpan = document.createElement('span');
-          nameSpan.textContent = recipe.name_rec;
-          nameSpan.style.fontWeight = '600';
-          
-          const infoSpan = document.createElement('span');
-          infoSpan.textContent = `${recipe.cal_rec || 0} kcal`;
-          infoSpan.style.color = 'var(--panel-muted)';
-          infoSpan.style.fontSize = '0.75rem';
-          
-          item.appendChild(nameSpan);
-          item.appendChild(infoSpan);
-          
-          item.addEventListener('mouseover', () => item.style.backgroundColor = 'rgba(75, 174, 82, 0.1)');
-          item.addEventListener('mouseout', () => item.style.backgroundColor = 'transparent');
-          
-          item.addEventListener('click', () => {
-            nameInput.value = recipe.name_rec || '';
-            calInput.value = recipe.cal_rec || '';
-            protInput.value = recipe.prot_rec || '';
-            carbInput.value = recipe.carb_rec || '';
-            fatInput.value = recipe.fat_rec || '';
-            dropdown.style.display = 'none';
-          });
-          
-          dropdown.appendChild(item);
-        });
-      }
-      dropdown.style.display = 'block';
+    // Reminder frequency validation (1-9 single digit)
+    const ltReminder = document.getElementById('lt-reminder');
+    if (ltReminder) {
+      ltReminder.addEventListener('input', () => {
+        ltReminder.value = ltReminder.value.replace(/[^0-9]/g, '').slice(0, 1);
+      });
     }
-    
-    if (searchBtn && nameInput && dropdown) {
-      searchBtn.addEventListener('click', () => {
-        const query = nameInput.value.toLowerCase().trim();
-        let filtered = recipes;
-        if (query) {
-          filtered = recipes.filter(r => (r.name_rec || '').toLowerCase().includes(query));
+
+    // Numeric input validation helper
+    const validateNumericInput = (input) => {
+      input.addEventListener('input', () => {
+        let value = input.value.replace(/[^0-9.]/g, '');
+        const dotIndex = value.indexOf('.');
+        if (dotIndex !== -1) {
+          value = value.substring(0, dotIndex) + '.' + value.substring(dotIndex + 1).replace(/\./g, '');
         }
-        renderDropdown(filtered);
+        input.value = value;
       });
-      
-      document.addEventListener('click', (e) => {
-        if (!searchBtn.contains(e.target) && !nameInput.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.style.display = 'none';
-        }
-      });
-      
-      nameInput.addEventListener('input', () => {
-        if (dropdown.style.display === 'block') {
-          const query = nameInput.value.toLowerCase().trim();
-          let filtered = recipes;
-          if (query) {
-            filtered = recipes.filter(r => (r.name_rec || '').toLowerCase().includes(query));
-          }
-          renderDropdown(filtered);
-        }
+    };
+
+    // Apply numeric validation to macro fields
+    const macroFields = [
+      'obj_cal_obj', 'obj_prot_obj', 'obj_carb_obj', 'obj_fat_obj',
+      'weekly-meal-cal', 'weekly-meal-prot', 'weekly-meal-carb', 'weekly-meal-fat',
+      'survey-cal', 'survey-prot', 'survey-fat', 'survey-carb'
+    ];
+    macroFields.forEach(fieldId => {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        validateNumericInput(field);
+      }
+    });
+
+    // Sleep hours validation
+    const sleepField = document.getElementById('survey-sleep');
+    if (sleepField) {
+      validateNumericInput(sleepField);
+    }
+
+    // Steps validation
+    const stepsField = document.getElementById('survey-steps');
+    if (stepsField) {
+      stepsField.addEventListener('input', () => {
+        stepsField.value = stepsField.value.replace(/[^0-9]/g, '');
       });
     }
   })();
+</script>
+
+<!-- ═══ CAMERA MODAL ═══ -->
+<div id="camera-modal-backdrop" class="camera-modal-backdrop">
+  <div class="camera-modal">
+    <button class="camera-modal-close" onclick="closeCameraModal()">✕</button>
+    <div class="camera-modal-title">📸 Snap your meal</div>
+    <p style="font-size:.82rem;color:#999;margin:-4px 0 8px;line-height:1.4;">AI will estimate the calories & macros from your photo.</p>
+    <video id="camera-video" autoplay playsinline muted></video>
+    <canvas id="camera-canvas"></canvas>
+    <img id="camera-snapshot-preview" class="camera-snapshot-preview" alt="snapshot"/>
+    <div class="camera-error-msg" id="camera-error-msg"></div>
+    <div class="camera-modal-actions">
+      <button type="button" class="btn-capture" id="btn-capture" onclick="capturePhoto()">📷 Capture</button>
+      <button type="button" class="btn-retake" id="btn-retake" onclick="retakePhoto()">🔄 Retake</button>
+      <button type="button" class="btn-use-photo" id="btn-use-photo" onclick="usePhoto()">✨ Analyse with AI</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ── CAMERA BUTTON ── */
+  .btn-camera-open {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #2a2c2e; color: #fff;
+    border: none; border-radius: 12px;
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, transform .15s;
+    flex-shrink: 0;
+  }
+  .btn-camera-open:hover { background: #4BAE52; transform: scale(1.02); }
+
+  /* ── CAMERA MODAL ── */
+  .camera-modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.72);
+    z-index: 9999;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .camera-modal-backdrop.open { display: flex; }
+  .camera-modal {
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.3);
+    position: relative;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .camera-modal-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .camera-modal-close {
+    position: absolute; top: 16px; right: 18px;
+    background: none; border: none; cursor: pointer;
+    font-size: 1.2rem; color: #bbb;
+    transition: color .2s;
+  }
+  .camera-modal-close:hover { color: #D94F00; }
+  #camera-video {
+    width: 100%; border-radius: 14px;
+    background: #111;
+    max-height: 320px;
+    object-fit: cover;
+    display: block;
+  }
+  #camera-canvas { display: none; }
+  .camera-modal-actions {
+    display: flex; gap: 10px;
+  }
+  .btn-capture {
+    flex: 1;
+    background: #4BAE52; color: #fff;
+    border: none; border-radius: 14px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-capture:hover { background: #2E4A28; }
+  .btn-retake {
+    background: #f0f0f0; color: #2a2c2e;
+    border: 1.5px solid rgba(0,0,0,.12); border-radius: 14px;
+    padding: 13px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .2s;
+    display: none;
+  }
+  .btn-retake:hover { border-color: #4BAE52; }
+  .btn-use-photo {
+    flex: 1;
+    background: #7C6FCD; color: #fff;
+    border: none; border-radius: 14px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+    display: none;
+  }
+  .btn-use-photo:hover { background: #5a4faa; }
+  .camera-snapshot-preview {
+    display: none;
+    width: 100%; border-radius: 14px;
+    object-fit: cover; max-height: 320px;
+  }
+  .camera-error-msg {
+    font-size: .82rem; color: #D94F00;
+    text-align: center; line-height: 1.5;
+    display: none;
+  }
+</style>
+
+<script>
+  let cameraStream = null;
+
+  function openCameraModal() {
+    const modal = document.getElementById('camera-modal-backdrop');
+    modal.classList.add('open');
+    document.getElementById('camera-video').style.display = 'block';
+    document.getElementById('camera-snapshot-preview').style.display = 'none';
+    document.getElementById('btn-capture').style.display = 'block';
+    document.getElementById('btn-retake').style.display = 'none';
+    document.getElementById('btn-use-photo').style.display = 'none';
+    document.getElementById('camera-error-msg').style.display = 'none';
+    startCamera();
+  }
+
+  function closeCameraModal() {
+    stopCamera();
+    document.getElementById('camera-modal-backdrop').classList.remove('open');
+  }
+
+  function startCamera() {
+    const video = document.getElementById('camera-video');
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+          cameraStream = stream;
+          video.srcObject = stream;
+          video.play();
+          document.getElementById('camera-error-msg').style.display = 'none';
+        })
+        .catch(err => {
+          document.getElementById('camera-error-msg').style.display = 'block';
+          document.getElementById('camera-error-msg').textContent = '📵 Camera access denied or unavailable. Please check your browser permissions.';
+          console.error('Camera error:', err);
+        });
+    } else {
+      document.getElementById('camera-error-msg').style.display = 'block';
+      document.getElementById('camera-error-msg').textContent = '📵 Your browser does not support camera access.';
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    const video = document.getElementById('camera-video');
+    video.srcObject = null;
+  }
+
+  function capturePhoto() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const preview = document.getElementById('camera-snapshot-preview');
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const dataURL = canvas.toDataURL('image/jpeg', 0.88);
+    preview.src = dataURL;
+    preview.style.display = 'block';
+    video.style.display = 'none';
+
+    document.getElementById('btn-capture').style.display = 'none';
+    document.getElementById('btn-retake').style.display = 'block';
+    document.getElementById('btn-use-photo').style.display = 'block';
+
+    stopCamera();
+  }
+
+  function retakePhoto() {
+    const video = document.getElementById('camera-video');
+    const preview = document.getElementById('camera-snapshot-preview');
+    preview.style.display = 'none';
+    video.style.display = 'block';
+    document.getElementById('btn-capture').style.display = 'block';
+    document.getElementById('btn-retake').style.display = 'none';
+    document.getElementById('btn-use-photo').style.display = 'none';
+    startCamera();
+  }
+
+  function usePhoto() {
+    const canvas = document.getElementById('camera-canvas');
+    const dataURL = canvas.toDataURL('image/jpeg', 0.88);
+
+    const weeklyMealCalInput = document.getElementById('weekly-meal-cal');
+    const weeklyMealProtInput = document.getElementById('weekly-meal-prot');
+    const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
+    const weeklyMealFatInput = document.getElementById('weekly-meal-fat');
+
+    closeCameraModal();
+    analyzePhotoWithAI(dataURL, weeklyMealCalInput, weeklyMealProtInput, weeklyMealCarbInput, weeklyMealFatInput);
+  }
+
+  async function analyzePhotoWithAI(imageDataURL, calInput, protInput, carbInput, fatInput) {
+    const [meta, b64] = imageDataURL.split(',');
+    const mediaType = meta.match(/:(.*?);/)[1];
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+              { type: 'text', text: `Analyse this food photo and estimate its nutritional content. Respond ONLY with a JSON object, no markdown, no extra text:
+{
+  "kcal": number,
+  "prot": number,
+  "carb": number,
+  "fat": number
+}
+All values should be numbers representing grams (or kcal for calories). Be realistic.` }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content.map(b => b.text || '').join('').replace(/\`\`\`json|\`\`\`/g, '').trim();
+      const result = JSON.parse(text);
+
+      if (calInput) calInput.value = result.kcal || '';
+      if (protInput) protInput.value = result.prot || '';
+      if (carbInput) carbInput.value = result.carb || '';
+      if (fatInput) fatInput.value = result.fat || '';
+    } catch (err) {
+      console.error('AI analysis error:', err);
+      alert('Could not analyze the photo. Please enter values manually.');
+    }
+  }
+
+  // Ensure Upload/Camera buttons match the height of weekly-meal inputs
+  function matchWeeklyMealButtonSizes() {
+    try {
+      const input = document.querySelector('.weekly-meal-field input');
+      const uploadBtn = document.getElementById('weekly-meal-upload-btn');
+      const cameraBtn = document.getElementById('weekly-meal-camera-btn');
+      const nameInput = document.getElementById('weekly-meal-name-input');
+      if (!input || !uploadBtn || !cameraBtn) return;
+      const inputStyle = window.getComputedStyle(input);
+      const height = input.offsetHeight || parseInt(inputStyle.height, 10) || 40;
+      uploadBtn.style.height = height + 'px';
+      cameraBtn.style.height = height + 'px';
+      if (nameInput) {
+        nameInput.style.height = height + 'px';
+        nameInput.style.lineHeight = height + 'px';
+        nameInput.style.display = 'inline-flex';
+        nameInput.style.alignItems = 'center';
+      }
+      uploadBtn.style.display = 'inline-flex';
+      cameraBtn.style.display = 'inline-flex';
+      uploadBtn.style.alignItems = 'center';
+      cameraBtn.style.alignItems = 'center';
+      // match vertical padding if needed
+      if (!uploadBtn.style.paddingTop) uploadBtn.style.padding = '0 14px';
+      if (!cameraBtn.style.paddingTop) cameraBtn.style.padding = '0 14px';
+    } catch (e) {
+      console.error('matchWeeklyMealButtonSizes error', e);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    matchWeeklyMealButtonSizes();
+  });
+  window.addEventListener('resize', () => {
+    // slight debounce
+    clearTimeout(window._matchWeeklyMealBtnTimeout);
+    window._matchWeeklyMealBtnTimeout = setTimeout(matchWeeklyMealButtonSizes, 120);
+  });
 </script>
 
 </body>

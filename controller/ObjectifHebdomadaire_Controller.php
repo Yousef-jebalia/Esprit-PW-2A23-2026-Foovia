@@ -4,7 +4,21 @@ require_once(__DIR__ . '/../model/ObjectifHebdomadaire.php');
 
 class ObjectifHebdomadaire_Controller {
 
+    private const MAX_MACRO_VALUE = 9999;
+
+    private function areMacronutrientsPositive(float $fat, float $protein, float $carbs): bool {
+        return $fat > 0 && $protein > 0 && $carbs > 0;
+    }
+
+    private function areMacronutrientsWithinLimit(float $fat, float $protein, float $carbs): bool {
+        return $fat <= self::MAX_MACRO_VALUE && $protein <= self::MAX_MACRO_VALUE && $carbs <= self::MAX_MACRO_VALUE;
+    }
+
     public function add_objHebdo(ObjectifHebdomadaire $objHebdo) {
+        if (!$this->areMacronutrientsPositive($objHebdo->getValFatSuiv(), $objHebdo->getValProtSuiv(), $objHebdo->getValCarbSuiv()) || !$this->areMacronutrientsWithinLimit($objHebdo->getValFatSuiv(), $objHebdo->getValProtSuiv(), $objHebdo->getValCarbSuiv())) {
+            throw new InvalidArgumentException('Macronutrients must be strictly positive and no greater than 9999.');
+        }
+
         $sql = "INSERT INTO objectifhebdomadaire (id_suiv, id_obj, date_suiv, val_cal_suiv, poids_suiv, val_fat_suiv, val_prot_suiv, val_carb_suiv, note_suiv, status_obj_quot_suiv, nb_verre_eau_suiv, nb_h_sommeil_suiv, nb_pas_suiv, id_user) 
             VALUES (:id_suiv, :id_obj, :date_suiv, :val_cal_suiv, :poids_suiv, :val_fat_suiv, :val_prot_suiv, :val_carb_suiv, :note_suiv, :status_obj_quot_suiv, :nb_verre_eau_suiv, :nb_h_sommeil_suiv, :nb_pas_suiv, :id_user)";
         $db = config::getConnexion();
@@ -112,6 +126,14 @@ class ObjectifHebdomadaire_Controller {
     public function save_objectif_hebdo(array $data, ?int $id_suiv = null): bool {
         $db = config::getConnexion();
 
+        $valFatSuiv = (float) ($data['val_fat_suiv'] ?? 0);
+        $valProtSuiv = (float) ($data['val_prot_suiv'] ?? 0);
+        $valCarbSuiv = (float) ($data['val_carb_suiv'] ?? 0);
+
+        if (!$this->areMacronutrientsPositive($valFatSuiv, $valProtSuiv, $valCarbSuiv) || !$this->areMacronutrientsWithinLimit($valFatSuiv, $valProtSuiv, $valCarbSuiv)) {
+            return false;
+        }
+
         try {
             if ($id_suiv !== null) {
                 $sql = "UPDATE objectifhebdomadaire
@@ -136,9 +158,9 @@ class ObjectifHebdomadaire_Controller {
                     'date_suiv' => $data['date_suiv'],
                     'val_cal_suiv' => $data['val_cal_suiv'],
                     'poids_suiv' => $data['poids_suiv'],
-                    'val_fat_suiv' => $data['val_fat_suiv'],
-                    'val_prot_suiv' => $data['val_prot_suiv'],
-                    'val_carb_suiv' => $data['val_carb_suiv'],
+                    'val_fat_suiv' => $valFatSuiv,
+                    'val_prot_suiv' => $valProtSuiv,
+                    'val_carb_suiv' => $valCarbSuiv,
                     'note_suiv' => $data['note_suiv'],
                     'status_obj_quot_suiv' => $data['status_obj_quot_suiv'],
                     'nb_verre_eau_suiv' => $data['nb_verre_eau_suiv'],
@@ -188,9 +210,9 @@ class ObjectifHebdomadaire_Controller {
                 'date_suiv' => $data['date_suiv'],
                 'val_cal_suiv' => $data['val_cal_suiv'],
                 'poids_suiv' => $data['poids_suiv'],
-                'val_fat_suiv' => $data['val_fat_suiv'],
-                'val_prot_suiv' => $data['val_prot_suiv'],
-                'val_carb_suiv' => $data['val_carb_suiv'],
+                'val_fat_suiv' => $valFatSuiv,
+                'val_prot_suiv' => $valProtSuiv,
+                'val_carb_suiv' => $valCarbSuiv,
                 'note_suiv' => $data['note_suiv'],
                 'status_obj_quot_suiv' => $data['status_obj_quot_suiv'],
                 'nb_verre_eau_suiv' => $data['nb_verre_eau_suiv'],
