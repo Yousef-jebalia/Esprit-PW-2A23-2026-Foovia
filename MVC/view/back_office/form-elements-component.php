@@ -1285,73 +1285,10 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                             <div id="backoffice-exercise-empty" style="display:none; text-align:center; padding:18px; color:#999;">No exercises match your search.</div>
                                         </div>
 
-                                            <div id="workouts-list-container" style="display: flex; flex-direction: column; gap: 12px;">
-
-    <?php if (empty($workouts)): ?>
-        <div style="text-align: center; padding: 40px 20px; color: #999;">
-            <div style="font-size: 48px; margin-bottom: 10px;">
-                <i class="ti-package"></i>
-            </div>
-            <div style="font-weight: 600; margin-bottom: 5px;">No Workouts Yet</div>
-            <div style="font-size: 14px;">Add your first workout using the form on the right ==> </div>
-        </div>
-    <?php else: ?>
-        <?php foreach ($workouts as $wk): ?>
-            <div id="card-<?= $wk['id_work'] ?>" class="workout-card" style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
-                
-                <!-- Image -->
-                <?php if (!empty($wk['pic_work'])): ?>
-                    <img src="data:image/jpeg;base64,<?= base64_encode($wk['pic_work']) ?>" 
-                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
-                <?php else: ?>
-                    <i class="ti-image" style="color: #aaa; font-size: 24px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;"></i>
-                <?php endif; ?>
-
-                <!-- Info -->
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">
-                        <?= htmlspecialchars($wk['name_work'] . ' (id=' . $wk['id_work'] . ')') ?>
-                    </div>
-                    <div style="font-size: 12px; color: #666; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="background: #e8f0fe; color: #4099ff; padding: 2px 8px; border-radius: 20px;">
-                            ⏱️ <?= (int)$wk['duree_work'] ?> min
-                        </span>
-                        <span style="background: #fff3cd; color: #d97706; padding: 2px 8px; border-radius: 20px;">
-                            🔥 <?= (int)$wk['cal_work'] ?> cal
-                        </span>
-                        <?php if (!empty($wk['name_cat'])): ?>
-                            <span style="background: #e8f7ee; color: #218838; padding: 2px 8px; border-radius: 20px;">
-                                🗂️ <?= htmlspecialchars($wk['name_cat']) ?>
-                            </span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Delete button & edit button -->
-                <form method="POST" action="../../controle/controle_workout.php" style="margin: 0; display: flex; gap: 5px;">
-                    <input type="hidden" name="delete_id" value="<?= (int)$wk['id_work'] ?>">
-                    
-                    <!-- Delete button -->
-                    <button type="submit" name="action" value="delete"
-                        style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"
-                        onclick="return confirm('Delete this workout?')">
-                        <i class="ti-trash"></i>
-                    </button>
-
-                    <!-- Edit button -->
-                    <button type="button"
-                        onclick="fillEditWorkoutForm(<?= (int)$wk['id_work'] ?>, '<?= addslashes($wk['name_work']) ?>', <?= (int)$wk['duree_work'] ?>, <?= isset($wk['id_cat']) ? (int)$wk['id_cat'] : 0 ?>, '<?= htmlspecialchars(json_encode($workoutExercisesByWorkout[(int)$wk['id_work']] ?? []), ENT_QUOTES, 'UTF-8') ?>')"
-                        style="background: none; border: none; color: #4099ff; cursor: pointer; font-size: 16px; padding: 5px;">
-                        <i class="ti-pencil"></i>
-                    </button>
-                </form>
-
-            </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</div>
-<div id="backoffice-workout-empty" style="display:none; text-align:center; padding:18px; color:#999;">No workouts match your search.</div>
-</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Main-body end -->
                             <div id="styleSelector">
 
                             </div>
