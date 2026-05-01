@@ -2527,6 +2527,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       });
     }
 
+    if (weeklyMealImageInput) {
+      weeklyMealImageInput.addEventListener('change', (event) => {
+        const file = event.target.files ? event.target.files[0] : null;
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target?.result || '';
+          if (typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
+            analyzePhotoWithAI(
+              dataUrl,
+              weeklyMealNameInput,
+              weeklyMealCalInput,
+              weeklyMealProtInput,
+              weeklyMealCarbInput,
+              weeklyMealFatInput
+            );
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     if (weeklyMealLampBtn) {
       weeklyMealLampBtn.addEventListener('click', (event) => {
         event.preventDefault();
@@ -3093,8 +3115,12 @@ function exportHistoryPDF() {
   }
 
   async function analyzePhotoWithAI(imageDataURL, nameInput, calInput, protInput, carbInput, fatInput) {
-    const [meta, b64] = imageDataURL.split(',');
-    const mediaType = meta.match(/:(.*?);/)[1];
+    const lampBtn = document.getElementById('weekly-btn-lamp-ai');
+    if (lampBtn) {
+      lampBtn.style.pointerEvents = 'none';
+      lampBtn.style.opacity = '0.5';
+      lampBtn.textContent = '⏳';
+    }
 
     try {
       const response = await fetch('../../controller/analyze_meal_ai.php', {
@@ -3119,6 +3145,12 @@ function exportHistoryPDF() {
     } catch (err) {
       console.error('AI analysis error:', err);
       alert((err && err.message ? err.message + '\n\n' : '') + 'Could not analyze the photo. Please enter values manually.');
+    } finally {
+      if (lampBtn) {
+        lampBtn.style.pointerEvents = '';
+        lampBtn.style.opacity = '';
+        lampBtn.textContent = '💡';
+      }
     }
   }
 
