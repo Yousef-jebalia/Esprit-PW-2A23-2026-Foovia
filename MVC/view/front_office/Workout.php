@@ -3,7 +3,70 @@ require_once __DIR__ . '/../../model/config.php';
 
 $db = config::getConnexion();
 $categories = $db->query('SELECT id_cat, name_cat FROM work_categorie ORDER BY name_cat ASC')->fetchAll();
-$workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat, pic_work FROM workout ORDER BY id_work DESC')->fetchAll();
+$workouts = $db->query(
+  'SELECT w.id_work, w.name_work, w.cal_work, w.duree_work, w.id_cat, w.pic_work, wc.name_cat
+   FROM workout w
+   LEFT JOIN work_categorie wc ON wc.id_cat = w.id_cat
+   ORDER BY w.id_work DESC'
+)->fetchAll();
+
+$workoutExerciseRows = $db->query(
+  'SELECT b.id_work, e.id_ex, e.name_ex, e.type_ex, e.muscle_ex, e.cal_ex, e.fatigue_ex, e.description_ex, e.gif_ex
+   FROM belong b
+   INNER JOIN exercice e ON e.id_ex = b.id_ex
+   ORDER BY b.id_work DESC, e.name_ex ASC'
+)->fetchAll(PDO::FETCH_ASSOC);
+
+$workoutDetailsById = [];
+foreach ($workouts as $workout) {
+  $workoutId = (int)$workout['id_work'];
+  $exerciseItems = [];
+  $muscleTags = [];
+  $fatigueValues = [];
+
+  foreach ($workoutExerciseRows as $row) {
+    if ((int)$row['id_work'] !== $workoutId) {
+      continue;
+    }
+
+    $type = strtolower(trim((string)$row['type_ex']));
+    $muscles = array_values(array_filter(array_map('trim', explode(',', (string)$row['muscle_ex']))));
+
+    foreach ($muscles as $muscle) {
+      if (!in_array($muscle, $muscleTags, true)) {
+        $muscleTags[] = $muscle;
+      }
+    }
+
+    $fatigueValues[] = (float)$row['fatigue_ex'];
+    $exerciseItems[] = [
+      'id_ex' => (int)$row['id_ex'],
+      'name' => (string)$row['name_ex'],
+      'type_ex' => $type,
+      'muscle_ex' => (string)$row['muscle_ex'],
+      'description_ex' => (string)$row['description_ex'],
+      'gif_ex' => !empty($row['gif_ex']) ? base64_encode($row['gif_ex']) : null,
+    ];
+  }
+
+  $avgFatigue = count($fatigueValues) > 0 ? array_sum($fatigueValues) / count($fatigueValues) : null;
+  $exerciseNames = array_map(fn($item) => $item['name'], $exerciseItems);
+
+  $workoutDetailsById[$workoutId] = [
+    'id_work' => $workoutId,
+    'name_work' => (string)$workout['name_work'],
+    'category' => (string)($workout['name_cat'] ?? ''),
+    'cal_work' => (int)$workout['cal_work'],
+    'duree_work' => (int)$workout['duree_work'],
+    'pic_work' => !empty($workout['pic_work']) ? base64_encode($workout['pic_work']) : null,
+    'muscles' => $muscleTags,
+    'fatigue_avg' => $avgFatigue,
+    'description' => count($exerciseNames) > 0
+      ? 'Exercises: ' . implode(', ', $exerciseNames)
+      : 'No exercises linked to this workout yet.',
+    'exercises' => $exerciseItems,
+  ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -24,6 +87,7 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
   .workout-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
   .workout-item { display: flex; flex-direction: column; background: var(--panel-bg); border: 1px solid var(--surface-border); border-radius: 12px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
   .workout-item:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
+  .workout-item { position: relative; }
   .workout-image { width: 100%; height: 180px; object-fit: cover; background: var(--surface-2); }
   .workout-image-empty { width: 100%; height: 180px; background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface-2) 100%); display: flex; align-items: center; justify-content: center; color: var(--page-muted); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; }
   .workout-info { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
@@ -31,6 +95,20 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
   .workout-meta { display: flex; gap: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--page-muted); }
   .meta-item { display: flex; align-items: center; gap: 4px; }
   .meta-label { color: var(--green); font-weight: 600; }
+  .workout-info-btn {
+    align-self: flex-start;
+    margin-top: 2px;
+    border: 1px solid var(--green);
+    background: transparent;
+    color: var(--green);
+    border-radius: 999px;
+    width: 30px;
+    height: 30px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .workout-info-btn:hover { background: var(--green); color: #fff; }
   .empty-cat { color: var(--page-muted); font-family: 'DM Sans', sans-serif; padding: 20px; text-align: center; }
   .workout-search {
     max-width: 1200px;
@@ -70,6 +148,175 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
     color: var(--page-text);
     background: var(--panel-bg);
     cursor: pointer;
+  }
+
+  .workout-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(9, 16, 25, 0.62);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1200;
+  }
+
+  .workout-modal {
+    width: min(760px, 94vw);
+    max-height: 86vh;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--panel-bg);
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .workout-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .workout-modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--page-text);
+  }
+
+  .workout-modal-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--surface-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--page-text);
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .workout-modal-body {
+    padding: 14px;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: 14px;
+  }
+
+  .workout-modal-media {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .workout-modal-image,
+  .workout-modal-image-empty {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-2);
+    object-fit: cover;
+  }
+
+  .workout-modal-image-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--page-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+  }
+
+  .workout-modal-anatomy {
+    width: 100%;
+    height: 210px;
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+
+  .workout-modal-anatomy iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .workout-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .workout-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .workout-modal-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .workout-modal-card h3 {
+    margin: 0 0 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    color: var(--page-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .workout-modal-card p,
+  .workout-modal-card div {
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--page-text);
+  }
+
+  .workout-muscle-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .workout-muscle-tag {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(17, 121, 90, 0.1);
+    color: var(--forest);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .workout-exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .workout-exercise-list li {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  @media (max-width: 760px) {
+    .workout-modal-body { grid-template-columns: 1fr; }
+    .workout-modal-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -142,6 +389,7 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
                     <span><?php echo (int)$workout['duree_work']; ?> min</span>
                   </div>
                 </div>
+                <button type="button" class="workout-info-btn" data-workout-id="<?php echo (int)$workout['id_work']; ?>" aria-label="Open workout details">i</button>
               </div>
             </li>
           <?php endforeach; ?>
@@ -151,6 +399,59 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
   <?php endforeach; ?>
   <div id="workout-filter-empty" class="empty-cat" style="display:none;">No workouts match your search.</div>
 </section>
+
+<div id="workout-info-overlay" class="workout-modal-overlay" aria-hidden="true">
+  <div class="workout-modal" role="dialog" aria-modal="true" aria-labelledby="workout-modal-title">
+    <div class="workout-modal-header">
+      <div id="workout-modal-title" class="workout-modal-title">Workout details</div>
+      <button type="button" class="workout-modal-close" id="workout-info-close" aria-label="Close workout details">&times;</button>
+    </div>
+    <div class="workout-modal-body">
+      <div class="workout-modal-media">
+        <div id="workout-modal-image-empty" class="workout-modal-image-empty">No Image</div>
+        <img id="workout-modal-image" class="workout-modal-image" alt="Workout image" style="display:none;" />
+        <div class="workout-modal-anatomy">
+          <iframe id="workout-modal-anatomy-frame" src="anatomy_man.html" title="Workout muscles anatomy" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="workout-modal-content">
+        <div class="workout-modal-grid">
+          <div class="workout-modal-card">
+            <h3>Name</h3>
+            <p id="workout-modal-name"></p>
+          </div>
+          <div class="workout-modal-card">
+            <h3>Category / Type</h3>
+            <p id="workout-modal-type"></p>
+          </div>
+          <div class="workout-modal-card">
+            <h3>Calories</h3>
+            <p id="workout-modal-calories"></p>
+          </div>
+          <div class="workout-modal-card">
+            <h3>Fatigue Ratio</h3>
+            <p id="workout-modal-fatigue"></p>
+          </div>
+        </div>
+
+        <div class="workout-modal-card">
+          <h3>Working Muscles</h3>
+          <div id="workout-modal-muscles" class="workout-muscle-tags"></div>
+        </div>
+
+        <div class="workout-modal-card">
+          <h3>Description</h3>
+          <p id="workout-modal-description"></p>
+        </div>
+
+        <div class="workout-modal-card">
+          <h3>Exercises</h3>
+          <ul id="workout-modal-exercises" class="workout-exercise-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   (function() {
@@ -177,6 +478,123 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
       setTheme(nextTheme);
     });
   })();
+</script>
+
+<script>
+  const workoutDetailsMap = <?php echo json_encode($workoutDetailsById, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+</script>
+
+<script>
+  function initWorkoutInfoModal() {
+    const overlay = document.getElementById('workout-info-overlay');
+    const closeButton = document.getElementById('workout-info-close');
+    const modalTitle = document.getElementById('workout-modal-title');
+    const modalImage = document.getElementById('workout-modal-image');
+    const modalImageEmpty = document.getElementById('workout-modal-image-empty');
+    const modalName = document.getElementById('workout-modal-name');
+    const modalType = document.getElementById('workout-modal-type');
+    const modalCalories = document.getElementById('workout-modal-calories');
+    const modalFatigue = document.getElementById('workout-modal-fatigue');
+    const modalMuscles = document.getElementById('workout-modal-muscles');
+    const modalDescription = document.getElementById('workout-modal-description');
+    const modalExercises = document.getElementById('workout-modal-exercises');
+    const anatomyFrame = document.getElementById('workout-modal-anatomy-frame');
+    const buttons = Array.from(document.querySelectorAll('.workout-info-btn'));
+
+    if (!overlay || !closeButton) {
+      return;
+    }
+
+    const normalizeMusclesForAnatomy = (muscles) => {
+      return Array.from(new Set((muscles || []).map((muscle) => String(muscle || '').trim()).filter(Boolean)));
+    };
+
+    const sendMusclesToAnatomy = (muscles) => {
+      if (anatomyFrame && anatomyFrame.contentWindow) {
+        anatomyFrame.contentWindow.postMessage({ type: 'foovia-muscles', muscles: muscles }, '*');
+      }
+    };
+
+    const openModal = (workoutId) => {
+      const workout = workoutDetailsMap[String(workoutId)] || workoutDetailsMap[Number(workoutId)];
+      if (!workout) {
+        return;
+      }
+
+      const muscles = normalizeMusclesForAnatomy(workout.muscles || []);
+
+      modalTitle.textContent = workout.name_work + ' details';
+      modalName.textContent = workout.name_work;
+      modalType.textContent = workout.category || 'Uncategorized';
+      modalCalories.textContent = workout.cal_work + ' cal';
+      modalFatigue.textContent = workout.fatigue_avg === null ? 'N/A' : workout.fatigue_avg.toFixed(1) + ' / 10';
+      modalDescription.textContent = workout.description || 'No description available.';
+
+      if (workout.pic_work) {
+        modalImage.src = 'data:image/jpeg;base64,' + workout.pic_work;
+        modalImage.style.display = 'block';
+        modalImageEmpty.style.display = 'none';
+      } else {
+        modalImage.removeAttribute('src');
+        modalImage.style.display = 'none';
+        modalImageEmpty.style.display = 'flex';
+      }
+
+      modalMuscles.innerHTML = '';
+      if (muscles.length === 0) {
+        modalMuscles.innerHTML = '<span class="workout-muscle-tag">No muscles detected</span>';
+      } else {
+        muscles.forEach((muscle) => {
+          const tag = document.createElement('span');
+          tag.className = 'workout-muscle-tag';
+          tag.textContent = muscle;
+          modalMuscles.appendChild(tag);
+        });
+      }
+
+      modalExercises.innerHTML = '';
+      (workout.exercises || []).forEach((exercise) => {
+        const li = document.createElement('li');
+        li.textContent = exercise.name + ' (' + exercise.type_ex + ')';
+        modalExercises.appendChild(li);
+      });
+
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden', 'false');
+
+      if (anatomyFrame && anatomyFrame.contentWindow) {
+        sendMusclesToAnatomy(muscles);
+      } else if (anatomyFrame) {
+        anatomyFrame.addEventListener('load', function() {
+          sendMusclesToAnatomy(muscles);
+        }, { once: true });
+      }
+    };
+
+    const closeModal = () => {
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        openModal(button.dataset.workoutId);
+      });
+    });
+
+    closeButton.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && overlay.style.display === 'flex') {
+        closeModal();
+      }
+    });
+  }
 </script>
 
 <script>
@@ -248,6 +666,7 @@ $workouts = $db->query('SELECT id_work, name_work, cal_work, duree_work, id_cat,
     applyFilter();
   }
 
+  initWorkoutInfoModal();
   initWorkoutSearch();
 </script>
 
