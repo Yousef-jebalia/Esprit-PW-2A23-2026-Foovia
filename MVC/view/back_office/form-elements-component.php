@@ -204,6 +204,14 @@ function validateForm() {//exercise form validation
         alert('Fatigue ratio must be a number between 0 and 10.');
         return false;
     }
+    if (document.getElementById('ex_description').value.trim() === '') {
+        alert('Please provide a description for the exercise.');
+        return false;
+    }
+    if (document.getElementById('ex_gif').value.trim() === '') {
+        alert('Please provide a GIF URL for the exercise.');
+        return false;
+    }
 
     return true;
 }
@@ -263,7 +271,7 @@ function validateWorkoutForm() {
 function validateWorkoutCategoryName(categoryName) {
     const name = String(categoryName || '').trim();
 
-    if (name && (name.length <= 3 || name.length >= 30)) {
+    if (name && (name.length <= 2 || name.length >= 30)) {
         alert('Category name length must be greater than 3 and less than 30.');
         return false;
     }

@@ -80,6 +80,7 @@ class controle_workout
         }
     }
 
+    
 function replace_belong_for_workout(int $workoutId, array $selectedExercises)
 {
     $db = config::getConnexion();
@@ -91,8 +92,8 @@ function replace_belong_for_workout(int $workoutId, array $selectedExercises)
         $delete->execute(['id_work' => $workoutId]);
 
         $insert = $db->prepare(
-            "INSERT INTO belong (id_ex, id_work, sets, weight, `time`)
-             VALUES (:id_ex, :id_work, :sets, :weight, :time)"
+            "INSERT INTO belong (id_ex, id_work, sets, weight, `time`, reps)
+             VALUES (:id_ex, :id_work, :sets, :weight, :time, :reps)"
         );
 
         foreach ($selectedExercises as $item) {
@@ -108,6 +109,7 @@ function replace_belong_for_workout(int $workoutId, array $selectedExercises)
             $time = $isCardio
                 ? max(1, (int)($item['time'] ?? 0))
                 : max(1, (int)($item['reps'] ?? 0));
+            $reps = $isCardio ? 0 : max(1, (int)($item['reps'] ?? $time));
 
             $insert->execute([
                 'id_ex' => $idEx,
@@ -115,6 +117,7 @@ function replace_belong_for_workout(int $workoutId, array $selectedExercises)
                 'sets' => $sets,
                 'weight' => $weight,
                 'time' => $time,
+                'reps' => $reps,
             ]);
         }
 
