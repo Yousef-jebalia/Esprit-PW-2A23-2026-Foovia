@@ -1115,6 +1115,21 @@ $reclamations = $controller->get_reclamations();
         border-bottom-left-radius: 4px;
       }
 
+      .bot-message .message-bubble a.chat-claim-link {
+        color: #2d8a35;
+        font-weight: 600;
+        text-decoration: underline;
+      }
+
+      .bot-message .message-bubble a.chat-claim-link:hover {
+        color: #256f2c;
+      }
+
+      .message-claim-nudge .message-bubble {
+        border: 1px solid #c5dcc7;
+        background: #f0faf1;
+      }
+
       .user-message .message-bubble {
         background: linear-gradient(135deg, #4BAE52 0%, #3d9a45 100%);
         color: white;
@@ -1371,58 +1386,38 @@ $reclamations = $controller->get_reclamations();
         const sendBtn = document.getElementById('sendBtn');
         const typingIndicator = document.getElementById('typingIndicator');
 
-        // Bot responses database
-        const botResponses = {
-          greeting: [
-            "Hello! How can I assist you today?",
-            "Hi there! What can I help you with?",
-            "Hey! I'm here to help. What's your question?"
-          ],
-          help: [
-            "I'd be happy to help! Could you please provide more details about your issue?",
-            "Of course! Let me guide you through this. What specifically do you need help with?",
-            "Sure thing! Please tell me more about what you're looking for."
-          ],
-          thanks: [
-            "You're welcome! Is there anything else I can help you with?",
-            "No problem! Feel free to ask if you have more questions.",
-            "Glad I could help! Let me know if you need anything else."
-          ],
-          apologize:[
-            "its okay , i forgive you"
-          ],
-          default: [
-            "I understand. Could you please elaborate on that?",
-            "That's interesting! Tell me more about it.",
-            "I see. How can I assist you further with this?"
-          ]
-        };
+        const CHATBOT_ENDPOINT = '../../Controller/chatbot-handler.php';
+        const CLAIM_PAGE_URL = 'add_rec_page.php';
+        /** Successful Wilson replies in this page load (assignment: no cross-tab persistence). */
+        let successfulBotReplies = 0;
+        /** After 4 replies, show claim link once on the next user message. */
+        let claimLinkNudgeShown = false;
+        let chatbotSending = false;
 
-        // Simple keyword matching for bot responses
-        function getBotResponse(userMessage) {
-          const message = userMessage.toLowerCase();
-          // ysf amlha for fun remember to maybe delete it 
-           if (message.match(/^(sorry|excuse|hey|aplogize)/)) {
-            return botResponses.apologize[Math.floor(Math.random() * botResponses.apologize.length)];
+        async function fetchBotReply(userMessage) {
+          const res = await fetch(CHATBOT_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userMessage }),
+            credentials: 'same-origin'
+          });
+          const raw = await res.text();
+          let data;
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            throw new Error('Unexpected response from the server. Please try again.');
           }
-          
-          // Greeting keywords
-          if (message.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/)) {
-            return botResponses.greeting[Math.floor(Math.random() * botResponses.greeting.length)];
+          if (data.debug) {
+            console.error('[Chatbot debug]', data.debug);
           }
-          
-          // Help keywords
-          if (message.match(/help|assist|support|guide|how to|what is|explain/)) {
-            return botResponses.help[Math.floor(Math.random() * botResponses.help.length)];
+          if (data.error) {
+            throw new Error(data.error);
           }
-          
-          // Thanks keywords
-          if (message.match(/thank|thanks|appreciate|grateful/)) {
-            return botResponses.thanks[Math.floor(Math.random() * botResponses.thanks.length)];
+          if (typeof data.reply !== 'string' || !data.reply.trim()) {
+            throw new Error('No reply from assistant.');
           }
-          
-          // Default response
-          return botResponses.default[Math.floor(Math.random() * botResponses.default.length)];
+          return data.reply.trim();
         }
 
         // Get current time formatted
@@ -1481,6 +1476,37 @@ $reclamations = $controller->get_reclamations();
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        /**
+         * Trusted bot bubble with a link (static HTML only — not user input).
+         * Shown after successfulBotReplies >= 4 when the user sends another message.
+         */
+        function addClaimCreationNudge() {
+          const welcomeMsg = chatMessages.querySelector('.welcome-message');
+          if (welcomeMsg) {
+            welcomeMsg.remove();
+          }
+          typingIndicator.classList.remove('active');
+
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'message bot-message message-claim-nudge';
+          const avatarSvg = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
+          messageDiv.innerHTML = `
+            <div class="message-avatar bot-avatar">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${avatarSvg}</svg>
+            </div>
+            <div class="message-content">
+              <div class="message-bubble">
+                You have already had several replies from Wilson. For a formal follow-up, please
+                <a href="${CLAIM_PAGE_URL}" class="chat-claim-link">create a claim</a>
+                (opens the claim form).
+              </div>
+              <div class="message-time">${getCurrentTime()}</div>
+            </div>
+          `;
+          chatMessages.insertBefore(messageDiv, typingIndicator);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
         // Show typing indicator
         function showTyping() {
           typingIndicator.classList.add('active');
@@ -1492,29 +1518,37 @@ $reclamations = $controller->get_reclamations();
           typingIndicator.classList.remove('active');
         }
 
-        // Handle user message send
-        function handleSendMessage() {
+        async function handleSendMessage() {
           const message = chatInput.value.trim();
-          
-          if (!message) return;
+          if (!message || chatbotSending) return;
 
-          // Add user message
+          chatbotSending = true;
+          sendBtn.disabled = true;
+
           addMessage(message, true);
-
-          // Clear input
           chatInput.value = '';
 
-          // Show typing indicator after delay
-          setTimeout(() => {
-            showTyping();
-          }, 300);
+          if (successfulBotReplies >= 4 && !claimLinkNudgeShown) {
+            claimLinkNudgeShown = true;
+            addClaimCreationNudge();
+          }
 
-          // Get bot response after delay
-          setTimeout(() => {
+          setTimeout(function () {
+            showTyping();
+          }, 200);
+
+          try {
+            const reply = await fetchBotReply(message);
             hideTyping();
-            const botResponse = getBotResponse(message);
-            addMessage(botResponse, false);
-          }, 1000 + Math.random() * 500);
+            addMessage(reply, false);
+            successfulBotReplies += 1;
+          } catch (err) {
+            hideTyping();
+            addMessage(err.message || 'Something went wrong. Please try again.', false);
+          } finally {
+            chatbotSending = false;
+            sendBtn.disabled = false;
+          }
         }
 
         // Toggle chat window
