@@ -370,6 +370,35 @@ $exercises = $stmt->fetchAll();
     color: var(--page-text);
   }
 
+  .exercise-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+  }
+
+  .exercise-info-window-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .exercise-info-window-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+  }
+
+  .exercise-info-window-btn:active {
+    transform: translateY(0);
+  }
+
   .info-window-overlay {
     position: fixed;
     inset: 0;
@@ -682,6 +711,10 @@ $exercises = $stmt->fetchAll();
                 <h3>Description</h3>
                 <p id="exercise-modal-description"></p>
               </div>
+
+              <div class="exercise-modal-actions">
+                <button type="button" id="exercise-info-window-btn" class="exercise-info-window-btn">Open in Info Window</button>
+              </div>
             </div>
           </div>
         </div>
@@ -708,6 +741,7 @@ $exercises = $stmt->fetchAll();
           const clearButton = document.getElementById('exercise-search-clear');
           const overlay = document.getElementById('exercise-modal-overlay');
           const closeButton = document.getElementById('exercise-modal-close');
+          const infoWindowBtn = document.getElementById('exercise-info-window-btn');
           const modalTitle = document.getElementById('exercise-modal-title');
           const modalImage = document.getElementById('exercise-modal-image');
           const modalImageEmpty = document.getElementById('exercise-modal-image-empty');
@@ -721,6 +755,7 @@ $exercises = $stmt->fetchAll();
 
           let selectedMuscles = [];
           let searchQuery = '';
+          let currentExerciseMuscles = [];
 
           const normalize = (text) =>
             String(text || '')
@@ -802,6 +837,9 @@ $exercises = $stmt->fetchAll();
               .map((item) => item.trim())
               .filter(Boolean);
             const uniqueMuscles = Array.from(new Set(muscles));
+            
+            // Store muscles for info window
+            currentExerciseMuscles = uniqueMuscles;
 
             modalTitle.textContent = (card.dataset.name || 'Exercise') + ' details';
             modalName.textContent = card.dataset.name || 'Unknown';
@@ -869,6 +907,14 @@ $exercises = $stmt->fetchAll();
 
           if (closeButton) {
             closeButton.addEventListener('click', closeExerciseModal);
+          }
+
+          if (infoWindowBtn) {
+            infoWindowBtn.addEventListener('click', () => {
+              if (currentExerciseMuscles && currentExerciseMuscles.length > 0) {
+                window.showInfoWindow(currentExerciseMuscles);
+              }
+            });
           }
 
           if (overlay) {
