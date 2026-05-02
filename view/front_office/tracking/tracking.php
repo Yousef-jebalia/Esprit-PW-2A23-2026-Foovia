@@ -1013,8 +1013,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
                     <div class="lamp-shadow"></div>
                     <div class="lamp-tooltip" id="weekly-lamp-tooltip">
                       <strong>AI Food Analyser</strong>
-                      Upload a photo of your meal and I will estimate calories, protein, carbs and fat for you.
-                      <button type="button" class="tip-cta" id="weekly-lamp-upload-cta">&#128247; Upload and Analyse</button>
+                      Upload or Snap a photo of your meal and I will estimate calories, protein, carbs and fat for you.
                     </div>
                   </div>
                   <input type="text" id="weekly-meal-name-input" readonly value="Meal" aria-label="Meal name" style="height: auto; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 12px; background: #f6f6f6; color: #222; font-family: 'DM Sans', sans-serif; font-weight:500; border: 1px solid #e6e6e6; white-space:nowrap; margin-right:6px; width: 260px; min-width: 260px; flex: 0 0 260px;" />
@@ -2147,7 +2146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealLampWrap = document.getElementById('weekly-lamp-wrap');
     const weeklyMealLampBtn = document.getElementById('weekly-btn-lamp-ai');
     const weeklyMealLampTooltip = document.getElementById('weekly-lamp-tooltip');
-    const weeklyMealLampUploadCta = document.getElementById('weekly-lamp-upload-cta');
     const weeklyMealLogEntries = document.getElementById('weekly-meal-log-entries');
     let weeklyWeightEntries = [];
     let weeklyMealEntries = [];
@@ -2937,13 +2935,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
         event.preventDefault();
         event.stopPropagation();
         toggleWeeklyMealLampTooltip();
-      });
-    }
-
-    if (weeklyMealLampUploadCta && weeklyMealUploadBtn) {
-      weeklyMealLampUploadCta.addEventListener('click', () => {
-        closeWeeklyMealLampTooltip();
-        weeklyMealUploadBtn.click();
       });
     }
 
