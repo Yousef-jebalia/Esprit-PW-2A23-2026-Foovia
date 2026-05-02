@@ -150,6 +150,29 @@ code {
 	padding: 0;
 }
 
+/* Small utility nav button to return to Front Office */
+.nav-btn {
+	border-radius: 999px;
+	padding: 7px 14px;
+	font-weight: 700;
+	font-size: .85rem;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	border: 1.5px solid transparent;
+	transition: background-color .2s ease, color .2s ease, transform .15s ease;
+}
+.nav-frontoffice {
+	background: #2f6df6;
+	color: #fff;
+}
+.nav-frontoffice:hover {
+	background: #1f56cd;
+	transform: translateY(-1px);
+	color: #fff;
+}
+
 
 /*====== Ready to use Css End ======*/
 
