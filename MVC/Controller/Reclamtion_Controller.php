@@ -52,7 +52,22 @@ class Controller_reclamation {
             return [];
         }
     }
-    
+
+    /**
+     * Fetch one claim by primary key. Accepts int or string (e.g. from $_GET['id']).
+     */
+    public function get_reclamation_by_id(int|string $id): ?array {
+        $db = config::getConnexion();
+        try {
+            $stmt = $db->prepare('SELECT * FROM reclamation WHERE id_reclam = :id LIMIT 1');
+            $stmt->execute(['id' => $id]);
+            $row = $stmt->fetch();
+            return $row !== false ? $row : null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
     //Chnagement reclamation
     public function update_reclamation(Reclamations $reclamation): bool {
         $sql = "update reclamation set  
@@ -89,19 +104,6 @@ class Controller_reclamation {
         }
     }
 
-    public function get_reclamation_by_id(string $id_reclamation): ?array {
-        $sql = "SELECT * FROM reclamation WHERE id_reclam = :id_reclamation";
-        $db = config::getConnexion();
-        try {
-            $query = $db->prepare($sql);
-            $query->execute(['id_reclamation' => $id_reclamation]);
-            $result = $query->fetch();
-            return $result ? $result : null;
-        } catch (Exception $e) {
-            echo 'Error: ' . $e->getMessage();
-            return null;
-        }
-    }
     //Suppression reclamation
     public function suppression_reclamation(Reclamations $reclamation) {
         $sql = "DELETE FROM reclamation WHERE id_reclam = :id_reclamation";

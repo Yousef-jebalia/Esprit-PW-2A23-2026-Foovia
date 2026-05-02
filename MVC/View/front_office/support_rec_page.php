@@ -49,6 +49,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 $reclamations = $controller->get_reclamations();
+
+// Sort claims by opening date (newest first). Rows without a parseable date go last.
+if (!empty($reclamations)) {
+    usort($reclamations, static function (array $a, array $b): int {
+        $tsA = isset($a['dateouvert_reclam']) && $a['dateouvert_reclam'] !== '' && $a['dateouvert_reclam'] !== null
+            ? strtotime((string) $a['dateouvert_reclam']) : false;
+        $tsB = isset($b['dateouvert_reclam']) && $b['dateouvert_reclam'] !== '' && $b['dateouvert_reclam'] !== null
+            ? strtotime((string) $b['dateouvert_reclam']) : false;
+        if ($tsA === false && $tsB === false) {
+            return 0;
+        }
+        if ($tsA === false) {
+            return 1;
+        }
+        if ($tsB === false) {
+            return -1;
+        }
+        return $tsB <=> $tsA;
+    });
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -508,9 +528,12 @@ $reclamations = $controller->get_reclamations();
             <?php endif; ?>
         </div>
         <div class="container mt-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
                 <h2 class="mb-0 support-claims-title">List of Claims</h2>
-                <a href="add_rec_page.php" class="btn btn-primary">Create Claim</a>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="threads_page.php" class="btn btn-outline-success">Community Threads</a>
+                    <a href="add_rec_page.php" class="btn btn-primary">Create Claim</a>
+                </div>
             </div>
             <div class="mb-3">
                 <input id="reclamation-search" type="text" class="form-control" style="border: 2px solid #ddd; border-radius: 8px;" placeholder="Search in the list of claims...">
@@ -1374,6 +1397,13 @@ $reclamations = $controller->get_reclamations();
       </div>
     </div>
 
+    <!--
+      Hybrid Wilson + claim flow:
+      1) successfulBotReplies increments after each successful Wilson reply (chatbot-handler.php).
+      2) Right after the 4th Wilson reply is shown: two static bot bubbles (link, then yes/no) and wilsonDisabled=true.
+      3) awaiting_yesno / awaiting_description: no general Wilson. Claim: chatbot-claim-handler.php (AI classifies type only).
+      4) If wilsonDisabled and claimAssistState is null (e.g. after "no"), only static hints — no Wilson API.
+    -->
     <!-- Chatbot JavaScript -->
     <script>
       (function() {
@@ -1387,11 +1417,18 @@ $reclamations = $controller->get_reclamations();
         const typingIndicator = document.getElementById('typingIndicator');
 
         const CHATBOT_ENDPOINT = '../../Controller/chatbot-handler.php';
+        const CHATBOT_CLAIM_ENDPOINT = '../../Controller/chatbot-claim-handler.php';
         const CLAIM_PAGE_URL = 'add_rec_page.php';
+        /** After this many successful Wilson replies, show claim UI and disable general Wilson. */
+        const WILSON_REPLIES_BEFORE_CLAIM_FLOW = 4;
         /** Successful Wilson replies in this page load (assignment: no cross-tab persistence). */
         let successfulBotReplies = 0;
-        /** After 4 replies, show claim link once on the next user message. */
+        /** True once the claim link + yes/no UI has been shown. */
         let claimLinkNudgeShown = false;
+        /** After escalation, general Wilson chat is turned off for this page load. */
+        let wilsonDisabled = false;
+        /** null | 'awaiting_yesno' | 'awaiting_description' */
+        let claimAssistState = null;
         let chatbotSending = false;
 
         async function fetchBotReply(userMessage) {
@@ -1418,6 +1455,39 @@ $reclamations = $controller->get_reclamations();
             throw new Error('No reply from assistant.');
           }
           return data.reply.trim();
+        }
+
+        function parseYesNo(text) {
+          const t = String(text).trim().toLowerCase().replace(/\.*$/, '');
+          if (t === 'yes' || t === 'y' || t === 'oui') return 'yes';
+          if (t === 'no' || t === 'n' || t === 'non') return 'no';
+          return 'unknown';
+        }
+
+        async function fetchClaimCreation(description) {
+          const res = await fetch(CHATBOT_CLAIM_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: description }),
+            credentials: 'same-origin'
+          });
+          const raw = await res.text();
+          let data;
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            throw new Error('Unexpected response while creating the claim.');
+          }
+          if (data.debug) {
+            console.error('[Claim debug]', data.debug);
+          }
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          if (!data.success) {
+            throw new Error('The claim could not be created.');
+          }
+          return data;
         }
 
         // Get current time formatted
@@ -1477,10 +1547,9 @@ $reclamations = $controller->get_reclamations();
         }
 
         /**
-         * Trusted bot bubble with a link (static HTML only — not user input).
-         * Shown after successfulBotReplies >= 4 when the user sends another message.
+         * Insert one trusted bot row (static HTML bubble only).
          */
-        function addClaimCreationNudge() {
+        function insertBotHtmlBubble(extraClass, bubbleInnerHtml) {
           const welcomeMsg = chatMessages.querySelector('.welcome-message');
           if (welcomeMsg) {
             welcomeMsg.remove();
@@ -1488,23 +1557,32 @@ $reclamations = $controller->get_reclamations();
           typingIndicator.classList.remove('active');
 
           const messageDiv = document.createElement('div');
-          messageDiv.className = 'message bot-message message-claim-nudge';
+          messageDiv.className = 'message bot-message message-claim-nudge' + (extraClass ? ' ' + extraClass : '');
           const avatarSvg = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
           messageDiv.innerHTML = `
             <div class="message-avatar bot-avatar">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${avatarSvg}</svg>
             </div>
             <div class="message-content">
-              <div class="message-bubble">
-                You have already had several replies from Wilson. For a formal follow-up, please
-                <a href="${CLAIM_PAGE_URL}" class="chat-claim-link">create a claim</a>
-                (opens the claim form).
-              </div>
+              <div class="message-bubble">${bubbleInnerHtml}</div>
               <div class="message-time">${getCurrentTime()}</div>
             </div>
           `;
           chatMessages.insertBefore(messageDiv, typingIndicator);
           chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        /**
+         * Two bot rows: (1) claim link, (2) offer to create claim in chat. Second row deferred one tick for reliable DOM layout.
+         */
+        function addPostWilsonClaimFlow() {
+          var linkPart = '<p style="margin:0">You have had several exchanges with Wilson. For a formal follow-up, please <a href="' + CLAIM_PAGE_URL + '" class="chat-claim-link">create a claim</a> (opens the claim form).</p>';
+          var askPart = '<p style="margin:0">Would you like Wilson to <strong>create a claim for you here</strong> in this chat? Please reply with <strong>yes</strong> or <strong>no</strong>.</p>';
+          insertBotHtmlBubble('', linkPart);
+          window.setTimeout(function () {
+            insertBotHtmlBubble('message-claim-offer', askPart);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          }, 0);
         }
 
         // Show typing indicator
@@ -1522,15 +1600,76 @@ $reclamations = $controller->get_reclamations();
           const message = chatInput.value.trim();
           if (!message || chatbotSending) return;
 
+          if (wilsonDisabled && claimAssistState === null) {
+            chatbotSending = true;
+            sendBtn.disabled = true;
+            addMessage(message, true);
+            chatInput.value = '';
+            addMessage('Wilson is not available for further chat in this session. Please use the claim link above, open the claim form, or contact the Foovia team through the website.', false);
+            chatbotSending = false;
+            sendBtn.disabled = false;
+            return;
+          }
+
+          if (claimAssistState === 'awaiting_yesno') {
+            chatbotSending = true;
+            sendBtn.disabled = true;
+            addMessage(message, true);
+            chatInput.value = '';
+            const yn = parseYesNo(message);
+            if (yn === 'yes') {
+              addMessage('Please describe your problem in a short message (one or two sentences). We will use it to create your claim and pick the closest type (Authentication, Subscription, or Other).', false);
+              claimAssistState = 'awaiting_description';
+            } else if (yn === 'no') {
+              addMessage('Thank you for letting us know. If the issue persists, please contact the Foovia team through the website. Have a great day!', false);
+              claimAssistState = null;
+            } else {
+              addMessage('Please reply with yes if you want Wilson to create a claim for you here in the chat, or no if you prefer not to.', false);
+            }
+            chatbotSending = false;
+            sendBtn.disabled = false;
+            return;
+          }
+
+          if (claimAssistState === 'awaiting_description') {
+            chatbotSending = true;
+            sendBtn.disabled = true;
+            addMessage(message, true);
+            chatInput.value = '';
+            setTimeout(function () {
+              showTyping();
+            }, 150);
+            try {
+              const data = await fetchClaimCreation(message);
+              hideTyping();
+              const typePart = data.type ? ' Type: ' + data.type + '.' : '';
+              addMessage((data.message || 'Your claim was created.') + typePart + ' Refreshing the page…', false);
+              claimAssistState = null;
+              setTimeout(function () {
+                window.location.reload();
+              }, 900);
+            } catch (err) {
+              hideTyping();
+              addMessage(err.message || 'Could not create the claim. You can still use the claim form on the site.', false);
+            } finally {
+              chatbotSending = false;
+              sendBtn.disabled = false;
+            }
+            return;
+          }
+
           chatbotSending = true;
           sendBtn.disabled = true;
 
           addMessage(message, true);
           chatInput.value = '';
 
-          if (successfulBotReplies >= 4 && !claimLinkNudgeShown) {
-            claimLinkNudgeShown = true;
-            addClaimCreationNudge();
+          if (wilsonDisabled) {
+            hideTyping();
+            addMessage('Wilson is not available for general chat anymore. Please use the claim options in the chat above or the claim form.', false);
+            chatbotSending = false;
+            sendBtn.disabled = false;
+            return;
           }
 
           setTimeout(function () {
@@ -1542,6 +1681,13 @@ $reclamations = $controller->get_reclamations();
             hideTyping();
             addMessage(reply, false);
             successfulBotReplies += 1;
+
+            if (successfulBotReplies >= WILSON_REPLIES_BEFORE_CLAIM_FLOW && !claimLinkNudgeShown) {
+              claimLinkNudgeShown = true;
+              wilsonDisabled = true;
+              addPostWilsonClaimFlow();
+              claimAssistState = 'awaiting_yesno';
+            }
           } catch (err) {
             hideTyping();
             addMessage(err.message || 'Something went wrong. Please try again.', false);

@@ -260,9 +260,14 @@ $reclamations = $reclamationController->get_reclamations();
                             <div class="page-block">
                                 <div class="row align-items-center">
                                     <div class="col-md-8">
-                                        <div class="page-header-title">
-                                            <h5 class="m-b-10">Support page</h5>
-                                            <p class="m-b-0"></p>
+                                        <div class="page-header-title d-flex flex-wrap align-items-center gap-2 justify-content-between">
+                                            <div>
+                                                <h5 class="m-b-10">Support page</h5>
+                                                <p class="m-b-0"></p>
+                                            </div>
+                                            <a href="thread_admin_page.php" class="btn btn-success btn-sm waves-effect waves-light m-b-10">
+                                                <i class="ti-comments m-r-5"></i>Thread Management
+                                            </a>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -386,6 +391,10 @@ $reclamations = $reclamationController->get_reclamations();
                                                                             <td>
                                                                                 <a href="update_reclamation_page.php?id=<?php echo urlencode($reclamation['id_reclam']); ?>" class="btn btn-warning btn-sm">Edit</a>
                                                                                 <button type="button" class="btn btn-info btn-sm handle-treatment-btn" style="margin-left:8px;">Handle</button>
+                                                                                <a href="thread_admin_page.php?id_reclam=<?php echo urlencode($reclamation['id_reclam']); ?>"
+                                                                                   class="btn btn-success btn-sm" style="margin-left:8px;" title="Publish this claim as a community thread">
+                                                                                   Publish Thread
+                                                                                </a>
                                                                                 <form method="post" style="display:inline-block; margin-left:8px;" onsubmit="return confirm('Delete this claim?');">
                                                                                     <input type="hidden" name="action" value="delete_reclamation">
                                                                                     <input type="hidden" name="id_reclamation" value="<?php echo htmlspecialchars($reclamation['id_reclam']); ?>">
