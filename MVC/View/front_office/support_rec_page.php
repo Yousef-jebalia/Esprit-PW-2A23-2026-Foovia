@@ -1419,8 +1419,9 @@ if (!empty($reclamations)) {
         const CHATBOT_ENDPOINT = '../../Controller/chatbot-handler.php';
         const CHATBOT_CLAIM_ENDPOINT = '../../Controller/chatbot-claim-handler.php';
         const CLAIM_PAGE_URL = 'add_rec_page.php';
+
         /** After this many successful Wilson replies, show claim UI and disable general Wilson. */
-        const WILSON_REPLIES_BEFORE_CLAIM_FLOW = 4;
+        const WILSON_REPLIES_BEFORE_CLAIM_FLOW = 2;
         /** Successful Wilson replies in this page load (assignment: no cross-tab persistence). */
         let successfulBotReplies = 0;
         /** True once the claim link + yes/no UI has been shown. */
