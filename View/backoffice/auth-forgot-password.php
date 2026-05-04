@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                         </div>
                     <?php endif; ?>
                     
-                    <form class="md-float-material form-material" method="POST" action="">
+                    <form class="md-float-material form-material" method="POST" action="" id="forgotForm" novalidate>
                         <div class="text-center">
                             <img src="assets/images/logo.png" alt="logo.png">
                         </div>
@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                                 </div>
                                 <p class="text-muted text-center p-b-5">Enter your email address and we'll send you a link to reset your password.</p>
                                 <div class="form-group form-primary">
-                                    <input type="email" name="email" class="form-control" required>
+                                    <input type="text" name="email" id="forgot-email" class="form-control" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                                     <span class="form-bar"></span>
                                     <label class="float-label">Your Email Address</label>
                                 </div>
@@ -153,5 +153,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
     <script type="text/javascript" src="assets/js/bootstrap/js/bootstrap.min.js "></script>
     <script src="assets/pages/waves/js/waves.min.js"></script>
     <script type="text/javascript" src="assets/js/common-pages.js"></script>
+    <script>
+    document.getElementById('forgotForm')?.addEventListener('submit', function (e) {
+        const email = (document.getElementById('forgot-email')?.value || '').trim();
+        const validEmail = /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(email);
+        if (!validEmail) {
+            e.preventDefault();
+            alert('Please enter a valid email address (format: example@gmail.com).');
+        }
+    });
+    </script>
 </body>
 </html>

@@ -92,7 +92,7 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_
                     <?php endif; ?>
                     
                     <?php if ($token_valid): ?>
-                    <form class="md-float-material form-material" method="POST" action="">
+                    <form class="md-float-material form-material" method="POST" action="" id="resetForm" novalidate>
                         <div class="text-center">
                             <img src="assets/images/logo.png" alt="logo.png">
                         </div>
@@ -104,12 +104,12 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_
                                     </div>
                                 </div>
                                 <div class="form-group form-primary">
-                                    <input type="password" name="password" class="form-control" required minlength="8">
+                                    <input type="password" name="password" id="reset-password" class="form-control" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>">
                                     <span class="form-bar"></span>
                                     <label class="float-label">New Password (min 8 characters)</label>
                                 </div>
                                 <div class="form-group form-primary">
-                                    <input type="password" name="confirm_password" class="form-control" required minlength="8">
+                                    <input type="password" name="confirm_password" id="reset-confirm-password" class="form-control" value="<?php echo htmlspecialchars($_POST['confirm_password'] ?? ''); ?>">
                                     <span class="form-bar"></span>
                                     <label class="float-label">Confirm New Password</label>
                                 </div>
@@ -137,5 +137,18 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_
     <script type="text/javascript" src="assets/js/bootstrap/js/bootstrap.min.js "></script>
     <script src="assets/pages/waves/js/waves.min.js"></script>
     <script type="text/javascript" src="assets/js/common-pages.js"></script>
+    <script>
+    document.getElementById('resetForm')?.addEventListener('submit', function (e) {
+        const password = document.getElementById('reset-password')?.value || '';
+        const confirmPassword = document.getElementById('reset-confirm-password')?.value || '';
+        const validPassword = password.length >= 8;
+        const validConfirm = confirmPassword.length >= 8 && password === confirmPassword;
+
+        if (!validPassword || !validConfirm) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters and both fields must match.');
+        }
+    });
+    </script>
 </body>
 </html>

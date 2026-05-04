@@ -6,14 +6,10 @@ include_once(__DIR__ . '/../../controller/Controller_user.php');
 $error_message = '';
 $warning_message = '';
 
-/*
-if (!isset($_SESSION['backoffice_tries_left'])) {
-  $_SESSION['backoffice_tries_left'] = 3;
-}
-*/
+$controller = new Controller_user();
+$controller->release_expired_bans();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signin_submit'])) {
-  // $tries_left = (int) $_SESSION['backoffice_tries_left']; // tries system paused for now
   $email = strtolower(trim($_POST['email'] ?? ''));
   $password = $_POST['password'] ?? '';
 
@@ -21,38 +17,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signin_submit'])) {
     $error_message = 'Email and password are required.';
   } else {
     try {
-      $controller = new Controller_user();
       $user = $controller->get_user_by_email($email);
 
-      if ($user && $password === $user['password_user']) {
-        $role = strtolower(trim($user['role_user'] ?? ''));
-
-        if ($role === 'admin') {
-          $_SESSION['user_id'] = $user['id_user'];
-          $_SESSION['user_name'] = $user['name_user'];
-          $_SESSION['user_email'] = $user['email_user'];
-          $_SESSION['user_role'] = $user['role_user'];
-          // $_SESSION['backoffice_tries_left'] = 3; // tries system paused for now
-
-          header('Location: ../backoffice/backoffice_work.php');
-          exit;
-        }
-
-        $error_message = 'Access denied. This area is for admin users only.';
-      } else {
+      if (!$user) {
         $error_message = 'Username or password is false.';
-      }
-
-      /*
-      $_SESSION['backoffice_tries_left'] = max(0, $tries_left - 1);
-      $tries_left = (int) $_SESSION['backoffice_tries_left'];
-
-      if ($tries_left > 0) {
-        $warning_message = 'Username or password is false. You only have ' . $tries_left . ' ' . ($tries_left === 1 ? 'try' : 'tries') . ' left.';
       } else {
-        $error_message = 'Username or password is false. You have no tries left in this session.';
+        $banState = $controller->process_ban_countdown((int) $user['id_user']);
+
+        if ($banState['is_banned']) {
+          $error_message = 'Your account is banned. Try again in ' . $banState['remaining'] . '.';
+        } else {
+          $role = strtolower(trim($user['role_user'] ?? ''));
+
+          if ($password === $user['password_user'] && $role === 'admin') {
+            $controller->reset_failed_login_attempts((int) $user['id_user']);
+            
+            $_SESSION['user_id'] = $user['id_user'];
+            $_SESSION['user_name'] = $user['name_user'];
+            $_SESSION['user_email'] = $user['email_user'];
+            $_SESSION['user_role'] = $user['role_user'];
+
+            header('Location: ../backoffice/backoffice_work.php');
+            exit;
+          } else {
+            if ($role !== 'admin') {
+              $error_message = 'Access denied. This area is for admin users only.';
+            } else {
+              $attemptState = $controller->register_failed_login_attempt((int) $user['id_user']);
+
+              if ($attemptState['is_banned']) {
+                $error_message = 'Your account is now banned for 5 minutes. Try again in ' . $attemptState['remaining'] . '.';
+              } else {
+                $error_message = 'Username or password is false. Remaining attempts: ' . $attemptState['remaining_attempts'];
+              }
+            }
+          }
+        }
       }
-      */
     } catch (Exception $e) {
       $error_message = 'An error occurred while signing in.';
     }
@@ -61,8 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signin_submit'])) {
 
 $tries_left = 3;
 $is_locked = false;
-// $tries_left = (int) $_SESSION['backoffice_tries_left']; // tries system paused for now
-// $is_locked = $tries_left <= 0; // tries system paused for now
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -120,7 +119,7 @@ $is_locked = false;
       <div class="field">
         <label for="email">Email address</label>
         <div class="field-wrap">
-          <input type="email" id="email" name="email" placeholder="admin@example.com" autocomplete="email" required <?php echo $is_locked ? 'disabled' : ''; ?>/>
+          <input type="text" id="email" name="email" placeholder="admin@example.com" autocomplete="email" <?php echo $is_locked ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"/>
           <span class="field-icon">@</span>
         </div>
         <span class="field-error" id="err-email">Please enter a valid email address.</span>
@@ -129,7 +128,7 @@ $is_locked = false;
       <div class="field">
         <label for="password">Password</label>
         <div class="field-wrap">
-          <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required <?php echo $is_locked ? 'disabled' : ''; ?>/>
+          <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" <?php echo $is_locked ? 'disabled' : ''; ?> value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>"/>
           <button class="toggle-pw" type="button" onclick="togglePw('password', this)" <?php echo $is_locked ? 'disabled' : ''; ?>>Show</button>
         </div>
         <span class="field-error" id="err-password">Password cannot be empty.</span>

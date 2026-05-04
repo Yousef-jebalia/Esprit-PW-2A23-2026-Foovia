@@ -391,11 +391,11 @@ class Controller_user {
             $attempts = (int) ($current['failed_attempts_user'] ?? 0) + 1;
 
             if ($attempts >= 3) {
-                $banUntil = date('Y-m-d H:i:s', strtotime('+1 hour'));
+                $banUntil = date('Y-m-d H:i:s', strtotime('+5 minutes'));
                 $banSql = "UPDATE user
                            SET failed_attempts_user = 0,
                                account_state_user = 'banned',
-                               duration_user = '01:00:00',
+                               duration_user = '00:05:00',
                                ban_until_user = :ban_until
                            WHERE id_user = :id";
                 $banQuery = $db->prepare($banSql);
@@ -407,7 +407,7 @@ class Controller_user {
                 return [
                     'is_banned' => true,
                     'remaining_attempts' => 0,
-                    'remaining' => '01:00:00'
+                    'remaining' => '00:05:00'
                 ];
             }
 

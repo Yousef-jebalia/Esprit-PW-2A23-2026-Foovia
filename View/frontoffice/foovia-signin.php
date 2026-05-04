@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                   $attemptState = $controller->register_failed_login_attempt((int) $user['id_user']);
 
                   if ($attemptState['is_banned']) {
-                    $error_message = 'Your account is now banned for 1 hour. Try again in ' . $attemptState['remaining'] . '.';
+                    $error_message = 'Your account is now banned for 5 minutes. Try again in ' . $attemptState['remaining'] . '.';
                   } else {
                     $error_message = 'Username or password is false. Remaining attempts: ' . $attemptState['remaining_attempts'];
                   }
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
 
     <div id="wa-step-2" style="display:none;">
       <p style="margin-bottom:20px; color:var(--page-muted, #666);">We've sent a 4-digit code to your WhatsApp. Please enter it below.</p>
-      <input type="text" id="wa-code" placeholder="0000" maxlength="4" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:20px; font-size:24px; text-align:center; letter-spacing:4px;">
+      <input type="text" id="wa-code" placeholder="0000" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:20px; font-size:24px; text-align:center; letter-spacing:4px;">
       <button onclick="verifyWaCode()" style="width:100%; padding:12px; background:#25D366; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Verify Code</button>
     </div>
 
@@ -153,17 +153,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
     <div class="field">
       <label for="email">Email address</label>
       <div class="field-wrap">
-        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required/>
+        <input type="text" id="email" name="email" placeholder="you@example.com" autocomplete="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"/>
         <span class="field-icon">✉</span>
       </div>
-      <span class="field-error" id="err-email">Please enter a valid email address.</span>
+      <span class="field-error" id="err-email">Please enter a valid email address (format: example@gmail.com).</span>
     </div>
 
     <!-- PASSWORD -->
     <div class="field">
       <label for="password">Password</label>
       <div class="field-wrap">
-        <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required/>
+        <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>"/>
         <button class="toggle-pw" type="button" onclick="togglePw('password', this)">Show</button>
       </div>
       <span class="field-error" id="err-password">Password cannot be empty.</span>

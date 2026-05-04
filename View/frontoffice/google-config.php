@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-// Load credentials from .env
 $env = parse_ini_file(__DIR__ . '/../../.env');
 
 $clientID = $env['GOOGLE_CLIENT_ID'];

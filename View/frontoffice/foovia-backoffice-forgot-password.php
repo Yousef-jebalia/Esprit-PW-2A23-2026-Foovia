@@ -127,10 +127,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_submit'])) {
       <div class="field">
         <label for="email">Admin Email Address</label>
         <div class="field-wrap">
-          <input type="email" id="email" name="email" placeholder="admin@example.com" autocomplete="email" required />
+          <input type="text" id="email" name="email" placeholder="admin@example.com" autocomplete="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" />
           <span class="field-icon">@</span>
         </div>
-        <span class="field-error" id="err-email">Please enter a valid email address.</span>
+        <span class="field-error" id="err-email">Email must be in format: example@gmail.com</span>
       </div>
     </div>
 
@@ -159,7 +159,7 @@ function validate(id, check, errId) {
 }
 
 document.getElementById('backofficeRecoverForm').addEventListener('submit', function(e) {
-  const validEmail = validate('email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'err-email');
+  const validEmail = validate('email', v => /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(v), 'err-email');
   if (!validEmail) {
     e.preventDefault();
   }

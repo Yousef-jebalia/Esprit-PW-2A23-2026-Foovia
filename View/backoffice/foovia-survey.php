@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       <div class="field-row">
         <div class="field">
           <label>Day</label>
-          <input type="number" id="dob-day" placeholder="DD" min="1" max="31"/>
+          <input type="number" id="dob-day" placeholder="DD"/>
         </div>
         <div class="field">
           <label>Month</label>
@@ -180,10 +180,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
         </div>
         <div class="field field-span-2">
           <label>Year</label>
-          <input type="number" id="dob-year" placeholder="YYYY" min="1920" max="2010"/>
+          <input type="number" id="dob-year" placeholder="YYYY"/>
         </div>
       </div>
-      <div class="step-error" id="err-dob">Please enter your complete date of birth.</div>
+      <div class="step-error" id="err-dob">You must be at least 15 years old.</div>
     </div>
 
     <div class="nav-btns">
@@ -210,18 +210,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       <div id="height-cm-wrap">
         <div class="field">
           <label>Height (cm)</label>
-          <input type="number" id="height-cm" placeholder="e.g. 175" min="100" max="250" oninput="recalcBMI()"/>
+          <input type="number" id="height-cm" placeholder="e.g. 175" oninput="recalcBMI()"/>
         </div>
       </div>
       <div id="height-ft-wrap" class="hidden">
         <div class="field-row">
           <div class="field">
             <label>Feet</label>
-            <input type="number" id="height-ft" placeholder="5" min="3" max="8" oninput="recalcBMI()"/>
+            <input type="number" id="height-ft" placeholder="5" oninput="recalcBMI()"/>
           </div>
           <div class="field">
             <label>Inches</label>
-            <input type="number" id="height-in" placeholder="9" min="0" max="11" oninput="recalcBMI()"/>
+            <input type="number" id="height-in" placeholder="9" oninput="recalcBMI()"/>
           </div>
         </div>
       </div>
@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
       </div>
       <div class="field">
         <label id="weight-label">Weight (kg)</label>
-        <input type="number" id="weight" placeholder="e.g. 70" min="30" max="300" oninput="recalcBMI()"/>
+        <input type="number" id="weight" placeholder="e.g. 70" oninput="recalcBMI()"/>
       </div>
       <div class="step-error" id="err-weight">Please enter your weight.</div>
     </div>
@@ -602,10 +602,16 @@ function validateStep(step) {
       document.getElementById('err-gender').classList.add('visible');
       ok = false;
     }
-    const day  = document.getElementById('dob-day').value;
+    const day  = parseInt(document.getElementById('dob-day').value, 10);
     const mon  = document.getElementById('dob-month').value;
-    const year = document.getElementById('dob-year').value;
-    if (!day || !mon || !year || year < 1920 || year > 2010) {
+    const year = parseInt(document.getElementById('dob-year').value, 10);
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthIndex = monthNames.indexOf(mon);
+    const selected = (day && monthIndex >= 0 && year) ? new Date(year, monthIndex, day) : null;
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    cutoff.setFullYear(cutoff.getFullYear() - 15);
+    if (!selected || day < 1 || day > 31 || year < 1920 || selected > cutoff) {
       document.getElementById('err-dob').classList.add('visible');
       ok = false;
     } else {
@@ -616,12 +622,22 @@ function validateStep(step) {
   if (step === 2) {
     let ok = true;
     const hasHeight = state.heightUnit === 'cm'
-      ? !!document.getElementById('height-cm').value
-      : !!document.getElementById('height-ft').value;
+      ? (() => {
+          const cm = parseFloat(document.getElementById('height-cm').value);
+          return !isNaN(cm) && cm >= 100 && cm <= 250;
+        })()
+      : (() => {
+          const ft = parseFloat(document.getElementById('height-ft').value);
+          const inches = parseFloat(document.getElementById('height-in').value || '0');
+          return !isNaN(ft) && ft >= 3 && ft <= 8 && !isNaN(inches) && inches >= 0 && inches <= 11;
+        })();
     if (!hasHeight) {
       document.getElementById('err-height').classList.add('visible'); ok = false;
     } else { document.getElementById('err-height').classList.remove('visible'); }
-    if (!document.getElementById('weight').value) {
+
+    const weight = parseFloat(document.getElementById('weight').value);
+    const weightOk = !isNaN(weight) && weight >= 30 && weight <= 300;
+    if (!weightOk) {
       document.getElementById('err-weight').classList.add('visible'); ok = false;
     } else { document.getElementById('err-weight').classList.remove('visible'); }
     return ok;

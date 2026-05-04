@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                     <?php endif; ?>
                     <!-- Authentication card start -->
 
-                        <form class="md-float-material form-material" method="POST" action="">
+                        <form class="md-float-material form-material" method="POST" action="" id="signinForm" novalidate>
                             <div class="text-center">
                                 <img src="assets/images/logo.png" alt="logo.png">
                             </div>
@@ -170,12 +170,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                                         </div>
                                     </div>
                                     <div class="form-group form-primary">
-                                        <input type="email" name="email" class="form-control" required>
+                                        <input type="text" name="email" id="signin-email" class="form-control" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                                         <span class="form-bar"></span>
                                         <label class="float-label">Your Email Address</label>
                                     </div>
                                     <div class="form-group form-primary">
-                                        <input type="password" name="password" class="form-control" required>
+                                        <input type="password" name="password" id="signin-password" class="form-control" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>">
                                         <span class="form-bar"></span>
                                         <label class="float-label">Password</label>
                                     </div>
@@ -269,6 +269,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
 <!-- jquery slimscroll js -->
 <script type="text/javascript" src="assets/js/jquery-slimscroll/jquery.slimscroll.js"></script>
 <script type="text/javascript" src="assets/js/common-pages.js"></script>
+<script>
+    document.getElementById('signinForm')?.addEventListener('submit', function (e) {
+        const email = document.getElementById('signin-email');
+        const password = document.getElementById('signin-password');
+        const validEmail = /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test((email?.value || '').trim());
+        const validPassword = (password?.value || '').trim().length > 0;
+
+        if (!validEmail || !validPassword) {
+            e.preventDefault();
+            alert('Please enter a valid email (format: example@gmail.com) and password.');
+        }
+    });
+</script>
 </body>
 
 </html>

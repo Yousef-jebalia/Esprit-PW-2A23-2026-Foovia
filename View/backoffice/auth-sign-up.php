@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
 
                             <!-- Username -->
                             <div class="form-group form-primary">
-                                <input type="text" name="name" id="name" class="form-control">
+                                <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
                                 <span class="form-bar"></span>
                                 <label class="float-label">Choose Username</label>
                                 <span class="field-error" id="name-error">Username is required.</span>
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
 
                             <!-- Email -->
                             <div class="form-group form-primary">
-                                <input type="text" name="email" id="email" class="form-control">
+                                <input type="text" name="email" id="email" class="form-control" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                                 <span class="form-bar"></span>
                                 <label class="float-label">Your Email Address</label>
                                 <span class="field-error" id="email-error">Email must end with @gmail.com</span>
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
 
                             <!-- Phone -->
                             <div class="form-group form-primary">
-                                <input type="text" name="phone" id="phone" class="form-control" maxlength="8">
+                                <input type="text" name="phone" id="phone" class="form-control" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>">
                                 <span class="form-bar"></span>
                                 <label class="float-label">Phone Number</label>
                                 <span class="field-error" id="phone-error">Phone must be exactly 8 digits.</span>
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
                             <div class="row">
                                 <div class="col-sm-6">
                                     <div class="form-group form-primary">
-                                        <input type="password" name="password" id="password" class="form-control">
+                                        <input type="password" name="password" id="password" class="form-control" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>">
                                         <span class="form-bar"></span>
                                         <label class="float-label">Password</label>
                                         <span class="field-error" id="password-error">Password must be at least 8 characters.</span>
@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group form-primary">
-                                        <input type="password" name="confirm-password" id="confirm-password" class="form-control">
+                                        <input type="password" name="confirm-password" id="confirm-password" class="form-control" value="<?php echo htmlspecialchars($_POST['confirm-password'] ?? ''); ?>">
                                         <span class="form-bar"></span>
                                         <label class="float-label">Confirm Password</label>
                                         <span class="field-error" id="confirm-password-error">Passwords do not match.</span>

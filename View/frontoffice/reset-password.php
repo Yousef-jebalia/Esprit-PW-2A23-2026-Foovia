@@ -96,7 +96,7 @@ try {
     </div>
   <?php else: ?>
     <?php if (empty($error_message) || isset($_POST['reset_submit'])): ?>
-    <form method="POST" action="">
+    <form method="POST" action="" id="resetForm" novalidate>
       <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
       <?php if ($first_login): ?>
         <input type="hidden" name="first_login" value="1">
@@ -105,14 +105,16 @@ try {
         <div class="field">
           <label for="password">New Password</label>
           <div class="field-wrap">
-            <input type="password" id="password" name="password" placeholder="New password" required/>
+            <input type="password" id="password" name="password" placeholder="New password" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>"/>
           </div>
+          <span class="field-error" id="err-password">Password must be at least 6 characters.</span>
         </div>
         <div class="field">
           <label for="confirm_password">Confirm New Password</label>
           <div class="field-wrap">
-            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password" required/>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password" value="<?php echo htmlspecialchars($_POST['confirm_password'] ?? ''); ?>"/>
           </div>
+          <span class="field-error" id="err-confirm-password">Passwords do not match.</span>
         </div>
       </div>
       
@@ -125,6 +127,28 @@ try {
     <a href="foovia-signin.php">← Back to Sign In</a>
   </div>
 </div>
+
+<script>
+function validate(id, check, errId) {
+  const input = document.getElementById(id);
+  const err = document.getElementById(errId);
+  const ok = check(input.value);
+  input.classList.toggle('error', !ok);
+  err.classList.toggle('visible', !ok);
+  return ok;
+}
+
+document.getElementById('resetForm')?.addEventListener('submit', function (e) {
+  const p1 = document.getElementById('password').value;
+  const p2 = document.getElementById('confirm_password').value;
+  const validPassword = validate('password', v => v.length >= 6, 'err-password');
+  const validConfirm = validate('confirm_password', v => v === p1 && v.length > 0, 'err-confirm-password');
+
+  if (!validPassword || !validConfirm) {
+    e.preventDefault();
+  }
+});
+</script>
 
 </body>
 </html>

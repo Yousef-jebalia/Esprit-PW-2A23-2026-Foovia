@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                                             <input type="date" name="birthday" id="birthday" class="form-control">
                                             <span class="form-bar"></span>
                                             <label class="float-label">Birthday</label>
-                                            <span class="field-error" id="birthday-error">Birthday must be before today.</span>
+                                            <span class="field-error" id="birthday-error">You must be at least 15 years old.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -144,14 +144,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
                                 <div class="row">
                                     <div class="col-sm-4">
                                         <div class="form-group form-primary">
-                                            <input type="number" name="height" id="height" class="form-control" placeholder="cm" min="50" max="250">
+                                            <input type="number" name="height" id="height" class="form-control" placeholder="cm">
                                             <span class="form-bar"></span>
                                             <label class="float-label">Height (cm)</label>
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
                                         <div class="form-group form-primary">
-                                            <input type="number" name="weight" id="weight" class="form-control" placeholder="kg" min="10" max="300">
+                                            <input type="number" name="weight" id="weight" class="form-control" placeholder="kg">
                                             <span class="form-bar"></span>
                                             <label class="float-label">Weight (kg)</label>
                                         </div>
@@ -245,8 +245,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
 
    
     (function () {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('birthday').setAttribute('max', today);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        today.setFullYear(today.getFullYear() - 15);
+        document.getElementById('birthday').setAttribute('max', today.toISOString().split('T')[0]);
     })();
 
    
@@ -265,10 +267,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
         if (!val) return showError('birthday', 'birthday-error');
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        today.setFullYear(today.getFullYear() - 15);
         const chosen = new Date(val);
         return chosen < today
             ? showValid('birthday', 'birthday-error')
             : showError('birthday', 'birthday-error');
+    }
+
+    function validateHeight() {
+        const value = parseFloat(document.getElementById('height').value);
+        if (!value) {
+            return true;
+        }
+        return value >= 50 && value <= 250;
+    }
+
+    function validateWeight() {
+        const value = parseFloat(document.getElementById('weight').value);
+        if (!value) {
+            return true;
+        }
+        return value >= 10 && value <= 300;
     }
 
    
@@ -307,8 +326,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
     document.getElementById('surveyForm').addEventListener('submit', function (e) {
         const lastnameOk = validateLastname();
         const birthdayOk = validateBirthday();
-        if (!lastnameOk || !birthdayOk) {
+        const heightOk = validateHeight();
+        const weightOk = validateWeight();
+        if (!lastnameOk || !birthdayOk || !heightOk || !weightOk) {
             e.preventDefault();
+            if (!heightOk || !weightOk) {
+                alert('Height must be between 50 and 250 cm and weight between 10 and 300 kg.');
+            }
         }
     });
     </script>

@@ -103,7 +103,7 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset
       <div class="field">
         <label for="password">New Password</label>
         <div class="field-wrap">
-          <input type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" required minlength="8"/>
+          <input type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>"/>
           <button class="toggle-pw" type="button" onclick="togglePw('password', this)">Show</button>
         </div>
         <span class="field-error" id="err-password">Password must be at least 8 characters.</span>
@@ -112,7 +112,7 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset
       <div class="field">
         <label for="confirm_password">Confirm Password</label>
         <div class="field-wrap">
-          <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-type your password" autocomplete="new-password" required minlength="8"/>
+          <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-type your password" autocomplete="new-password" value="<?php echo htmlspecialchars($_POST['confirm_password'] ?? ''); ?>"/>
           <button class="toggle-pw" type="button" onclick="togglePw('confirm_password', this)">Show</button>
         </div>
         <span class="field-error" id="err-confirm-password">Passwords do not match.</span>

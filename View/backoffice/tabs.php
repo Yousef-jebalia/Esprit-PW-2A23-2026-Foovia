@@ -64,34 +64,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $currentUser = $controller->get_user($editId);
 
         if ($currentUser) {
-          $height = (int) ($currentUser['height_user'] ?? 0);
-          $weight = (int) ($currentUser['weight_user'] ?? 0);
+          $name = trim($_POST['name_user'] ?? $currentUser['name_user']);
+          $lastname = trim($_POST['lastname_user'] ?? $currentUser['lastname_user']);
+          $email = trim($_POST['email_user'] ?? $currentUser['email_user']);
+          $phone = trim($_POST['phone_user'] ?? $currentUser['phone_user']);
+          
+          if (strlen($name) < 3 || strlen($lastname) < 3) {
+            $errorMessage = 'Name and lastname must be at least 3 characters long.';
+          } elseif (strpos($email, '@gmail.com') === false) {
+            $errorMessage = 'Email must be in the format: example@gmail.com';
+          } elseif (!preg_match('/^\d{8}$/', $phone)) {
+            $errorMessage = 'Phone number must contain exactly 8 digits.';
+          } else {
+            $height = (int) ($currentUser['height_user'] ?? 0);
+            $weight = (int) ($currentUser['weight_user'] ?? 0);
 
-          $updatedUser = new User(
-            $editId,
-            trim($_POST['name_user'] ?? $currentUser['name_user']),
-            trim($_POST['lastname_user'] ?? $currentUser['lastname_user']),
-            trim($_POST['email_user'] ?? $currentUser['email_user']),
-            $currentUser['password_user'] ?? '',
-            trim($_POST['phone_user'] ?? $currentUser['phone_user']),
-            $currentUser['gender_user'] ?? '',
-            $currentUser['birthday_user'] ?? '',
-            $height,
-            $weight,
-            (int) ($currentUser['bmi_user'] ?? 0),
-            $currentUser['activitylvl_user'] ?? '',
-            $currentUser['illness_user'] ?? '',
-            $currentUser['allergie_user'] ?? '',
-            $currentUser['medicament_user'] ?? '',
-            $currentUser['inscriptiondate_user'] ?? date('Y-m-d H:i:s'),
-            trim($_POST['role_user'] ?? $currentUser['role_user']),
-            trim($_POST['subscription_user'] ?? ($currentUser['subscription_user'] ?? 'normal')),
-            trim($_POST['account_state_user'] ?? ($currentUser['account_state_user'] ?? 'active')),
-            trim($_POST['duration_user'] ?? ($currentUser['duration_user'] ?? '00:00:00'))
-          );
+            $updatedUser = new User(
+              $editId,
+              $name,
+              $lastname,
+              $email,
+              $currentUser['password_user'] ?? '',
+              $phone,
+              $currentUser['gender_user'] ?? '',
+              $currentUser['birthday_user'] ?? '',
+              $height,
+              $weight,
+              (int) ($currentUser['bmi_user'] ?? 0),
+              $currentUser['activitylvl_user'] ?? '',
+              $currentUser['illness_user'] ?? '',
+              $currentUser['allergie_user'] ?? '',
+              $currentUser['medicament_user'] ?? '',
+              $currentUser['inscriptiondate_user'] ?? date('Y-m-d H:i:s'),
+              trim($_POST['role_user'] ?? $currentUser['role_user']),
+              trim($_POST['subscription_user'] ?? ($currentUser['subscription_user'] ?? 'normal')),
+              trim($_POST['account_state_user'] ?? ($currentUser['account_state_user'] ?? 'active')),
+              trim($_POST['duration_user'] ?? ($currentUser['duration_user'] ?? '00:00:00'))
+            );
 
-          $controller->update_user($updatedUser, $editId);
-          $successMessage = 'User updated successfully.';
+            $controller->update_user($updatedUser, $editId);
+            $successMessage = 'User updated successfully.';
+          }
         } else {
           $errorMessage = 'User not found for update.';
         }
@@ -653,46 +666,47 @@ if (!empty($users)) {
         <?php if (!empty($editUser)): ?>
           <div class="edit-box">
             <h2>Edit user #<?php echo htmlspecialchars((string) ($editUser['id_user'] ?? '')); ?></h2>
-            <form method="POST">
+            <form method="POST" id="editUserForm" novalidate>
               <input type="hidden" name="action" value="edit_save">
               <input type="hidden" name="id_user" value="<?php echo htmlspecialchars((string) ($editUser['id_user'] ?? '')); ?>">
 
               <div class="edit-grid">
                 <div>
                   <label for="name_user">Name</label>
-                  <input id="name_user" name="name_user" type="text" value="<?php echo htmlspecialchars((string) ($editUser['name_user'] ?? '')); ?>" required>
+                  <input id="name_user" name="name_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['name_user'] ?? $editUser['name_user'] ?? '')); ?>">
                 </div>
                 <div>
                   <label for="lastname_user">Lastname</label>
-                  <input id="lastname_user" name="lastname_user" type="text" value="<?php echo htmlspecialchars((string) ($editUser['lastname_user'] ?? '')); ?>" required>
+                  <input id="lastname_user" name="lastname_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['lastname_user'] ?? $editUser['lastname_user'] ?? '')); ?>">
                 </div>
                 <div>
                   <label for="email_user">Email</label>
-                  <input id="email_user" name="email_user" type="email" value="<?php echo htmlspecialchars((string) ($editUser['email_user'] ?? '')); ?>" required>
+                  <input id="email_user" name="email_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['email_user'] ?? $editUser['email_user'] ?? '')); ?>">
                 </div>
                 <div>
                   <label for="phone_user">Phone</label>
-                  <input id="phone_user" name="phone_user" type="text" value="<?php echo htmlspecialchars((string) ($editUser['phone_user'] ?? '')); ?>">
+                  <input id="phone_user" name="phone_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['phone_user'] ?? $editUser['phone_user'] ?? '')); ?>">
+                  <small style="display:block; margin-top:6px; color:#666;">Phone number must be exactly 8 digits.</small>
                 </div>
                 <div>
                   <label for="role_user">Role</label>
                   <select id="role_user" name="role_user">
-                    <?php $roleVal = (string) ($editUser['role_user'] ?? 'user'); ?>
+                    <?php $roleVal = (string) ($_POST['role_user'] ?? $editUser['role_user'] ?? 'user'); ?>
                     <option value="user" <?php echo $roleVal === 'user' ? 'selected' : ''; ?>>user</option>
                     <option value="admin" <?php echo $roleVal === 'admin' ? 'selected' : ''; ?>>admin</option>
                   </select>
                 </div>
                 <div>
                   <label for="subscription_user">Subscription</label>
-                  <input id="subscription_user" name="subscription_user" type="text" value="<?php echo htmlspecialchars((string) ($editUser['subscription_user'] ?? 'normal')); ?>">
+                  <input id="subscription_user" name="subscription_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['subscription_user'] ?? $editUser['subscription_user'] ?? 'normal')); ?>">
                 </div>
                 <div>
                   <label for="account_state_user">Account state</label>
-                  <input id="account_state_user" name="account_state_user" type="text" value="<?php echo htmlspecialchars((string) ($editUser['account_state_user'] ?? 'active')); ?>">
+                  <input id="account_state_user" name="account_state_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['account_state_user'] ?? $editUser['account_state_user'] ?? 'active')); ?>">
                 </div>
                 <div>
                   <label for="duration_user">Duration (HH:MM:SS)</label>
-                  <input id="duration_user" name="duration_user" type="text" pattern="^([0-1]?\\d|2[0-3]):[0-5]\\d:[0-5]\\d$" value="<?php echo htmlspecialchars((string) ($editUser['duration_user'] ?? '00:00:00')); ?>">
+                  <input id="duration_user" name="duration_user" type="text" value="<?php echo htmlspecialchars((string) ($_POST['duration_user'] ?? ($editUser['duration_user'] ?? '00:00:00'))); ?>">
                 </div>
               </div>
 
@@ -980,5 +994,41 @@ if (!empty($users)) {
       })();
     </script>
   <?php endif; ?>
+
+  <script>
+    (function () {
+      const editForm = document.getElementById('editUserForm');
+      if (!editForm) {
+        return;
+      }
+
+      editForm.addEventListener('submit', function (e) {
+        const name = (document.getElementById('name_user')?.value || '').trim();
+        const lastname = (document.getElementById('lastname_user')?.value || '').trim();
+        const email = (document.getElementById('email_user')?.value || '').trim();
+        const phone = (document.getElementById('phone_user')?.value || '').trim();
+        const duration = (document.getElementById('duration_user')?.value || '').trim();
+
+        const emailOk = /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(email);
+        const phoneOk = /^\d{8}$/.test(phone);
+        const durationOk = duration === '' || /^([0-1]?\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(duration);
+        const nameOk = name.length >= 3;
+        const lastnameOk = lastname.length >= 3;
+
+        if (!nameOk || !lastnameOk || !emailOk || !phoneOk || !durationOk) {
+          e.preventDefault();
+          if (!phoneOk) {
+            alert('Phone number must contain exactly 8 digits.');
+          } else {
+            alert('Name and lastname must be at least 3 characters, email must be in format: example@gmail.com, and use HH:MM:SS for duration.');
+          }
+        }
+      });
+
+      document.getElementById('phone_user')?.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 8);
+      });
+    })();
+  </script>
 </body>
 </html>

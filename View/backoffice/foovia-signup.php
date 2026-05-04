@@ -26,6 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
 
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
         $error_message = 'Please fill in all required fields.';
+    } elseif (strlen($name) < 3) {
+        $error_message = 'Full name must be at least 3 characters long.';
     } elseif ($password !== $confirm_password) {
         $error_message = 'Passwords do not match.';
     } elseif (!isset($_POST['terms_accepted'])) {
@@ -140,20 +142,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
     <div class="field">
       <label for="name">Full name</label>
       <div class="field-wrap">
-        <input type="text" id="name" name="name" placeholder="Amine Trabelsi" autocomplete="name"/>
+        <input type="text" id="name" name="name" placeholder="Amine Trabelsi" autocomplete="name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>"/>
         <span class="field-icon">👤</span>
       </div>
-      <span class="field-error" id="err-name">Please enter your full name.</span>
+      <span class="field-error" id="err-name">Full name must be at least 3 characters long.</span>
     </div>
 
     <!-- EMAIL -->
     <div class="field">
       <label for="email">Email address</label>
       <div class="field-wrap">
-        <input type="email" id="email" name="email" placeholder="you@gmail.com" autocomplete="email"/>
+        <input type="text" id="email" name="email" placeholder="you@gmail.com" autocomplete="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"/>
         <span class="field-icon">✉</span>
       </div>
-      <span class="field-error" id="err-email">Email must end with @gmail.com</span>
+      <span class="field-error" id="err-email">Email must be in format: example@gmail.com</span>
     </div>
 
     <!-- PHONE -->
@@ -172,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
           <option value="+966">🇸🇦 +966</option>
           <option value="+971">🇦🇪 +971</option>
         </select>
-        <input type="tel" id="phone" name="phone" placeholder="XX XXX XXX" autocomplete="tel" style="padding-left:0; border-left:none; border-radius:0 14px 14px 0;"/>
+        <input type="text" id="phone" name="phone" placeholder="XX XXX XXX" autocomplete="tel" style="padding-left:0; border-left:none; border-radius:0 14px 14px 0;" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>"/>
       </div>
       <span class="field-error" id="err-phone">Phone must be exactly 8 digits.</span>
     </div>
@@ -181,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
     <div class="field">
       <label for="password">Password</label>
       <div class="field-wrap">
-        <input type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)"/>
+        <input type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>"/>
         <button class="toggle-pw" type="button" onclick="togglePw('password', this)">Show</button>
       </div>
       <div class="pw-strength" id="pw-strength" style="display:none">
@@ -200,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup_submit'])) {
     <div class="field">
       <label for="confirm">Confirm password</label>
       <div class="field-wrap">
-        <input type="password" id="confirm" name="confirm-password" placeholder="Repeat your password" autocomplete="new-password"/>
+        <input type="password" id="confirm" name="confirm-password" placeholder="Repeat your password" autocomplete="new-password" value="<?php echo htmlspecialchars($_POST['confirm-password'] ?? ''); ?>"/>
         <button class="toggle-pw" type="button" onclick="togglePw('confirm', this)">Show</button>
       </div>
       <span class="field-error" id="err-confirm">Passwords do not match.</span>
@@ -309,11 +311,11 @@ function validate(id, check, errId) {
 }
 
 function validateName() {
-  return validate('name', v => v.trim().length >= 2, 'name-error');
+  return validate('name', v => v.trim().length >= 3, 'err-name');
 }
 
 function validateEmail() {
-  return validate('email', v => /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(v), 'email-error');
+  return validate('email', v => /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(v), 'err-email');
 }
 
 function validatePhone() {
@@ -361,58 +363,11 @@ function handleSignUp() {
 </script>
 
 <script>
-// Add input restrictions
-document.getElementById('phone').addEventListener('input', function () {
-    this.value = this.value.replace(/\D/g, '').slice(0, 8);
+// Keep only digits and stop typing after 8 numbers.
+document.getElementById('phone')?.addEventListener('input', function () {
+  this.value = this.value.replace(/\D/g, '').slice(0, 8);
 });
-
-// Add name input restriction
-document.getElementById('name').addEventListener('input', function () {
-// Add an eye icon to toggle password visibility
-function togglePasswordVisibility(inputId, iconId) {
-    const input = document.getElementById(inputId);
-    const icon = document.getElementById(iconId);
-
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-
-// Add event listeners for password toggle
-const passwordToggle = document.createElement('i');
-passwordToggle.className = 'fa fa-eye';
-passwordToggle.id = 'password-toggle';
-passwordToggle.style.cursor = 'pointer';
-passwordToggle.style.position = 'absolute';
-passwordToggle.style.right = '10px';
-passwordToggle.style.top = '50%';
-passwordToggle.style.transform = 'translateY(-50%)';
-
-document.getElementById('password').parentNode.style.position = 'relative';
-document.getElementById('password').parentNode.appendChild(passwordToggle);
-
-passwordToggle.addEventListener('click', () => togglePasswordVisibility('password', 'password-toggle'));
-
-const confirmPasswordToggle = document.createElement('i');
-confirmPasswordToggle.className = 'fa fa-eye';
-confirmPasswordToggle.id = 'confirm-password-toggle';
-confirmPasswordToggle.style.cursor = 'pointer';
-confirmPasswordToggle.style.position = 'absolute';
-confirmPasswordToggle.style.right = '10px';
-confirmPasswordToggle.style.top = '50%';
-confirmPasswordToggle.style.transform = 'translateY(-50%)';
-
-document.getElementById('confirm-password').parentNode.style.position = 'relative';
-document.getElementById('confirm-password').parentNode.appendChild(confirmPasswordToggle);
-
-confirmPasswordToggle.addEventListener('click', () => togglePasswordVisibility('confirm-password', 'confirm-password-toggle'));
-
+</script>
 
 </body>
 </html>

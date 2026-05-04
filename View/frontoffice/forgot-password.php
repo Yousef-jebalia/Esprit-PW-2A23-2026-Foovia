@@ -1,4 +1,4 @@
-<?php
+                                <?php
 session_start();
 include_once(__DIR__ . '/../../model/config.php');
 include_once(__DIR__ . '/../../controller/Controller_user.php');
@@ -113,14 +113,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
     </div>
   <?php endif; ?>
 
-  <form method="POST" action="">
+  <form method="POST" action="" id="forgotForm" novalidate>
     <div class="field-group">
       <div class="field">
         <label for="email">Email address</label>
         <div class="field-wrap">
-          <input type="email" id="email" name="email" placeholder="you@example.com" required/>
+          <input type="text" id="email" name="email" placeholder="you@example.com" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"/>
           <span class="field-icon">✉</span>
         </div>
+          <span class="field-error" id="err-email">Email must be in format: example@gmail.com</span>
       </div>
     </div>
     
@@ -131,6 +132,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
     <a href="foovia-signin.php">← Back to Sign In</a>
   </div>
 </div>
+
+<script>
+function validate(id, check, errId) {
+  const input = document.getElementById(id);
+  const err = document.getElementById(errId);
+  const ok = check(input.value.trim());
+  input.classList.toggle('error', !ok);
+  err.classList.toggle('visible', !ok);
+  return ok;
+}
+
+document.getElementById('forgotForm').addEventListener('submit', function (e) {
+  const validEmail = validate('email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'err-email');
+  if (!validEmail) {
+    e.preventDefault();
+  }
+});
+</script>
 
 </body>
 </html>

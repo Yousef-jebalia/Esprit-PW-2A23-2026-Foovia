@@ -135,6 +135,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
             text-decoration: none;
             font-size: 14px;
         }
+        .field-error {
+            color: #dc3545;
+            font-size: 13px;
+            display: none;
+            margin-top: 6px;
+        }
+        .input-invalid {
+            border-color: #dc3545 !important;
+        }
     </style>
 </head>
 <body>
@@ -160,15 +169,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
 
             <h2>Sign In</h2>
 
-            <form method="POST" action="">
+            <form method="POST" action="" id="signinForm" novalidate>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email">
+                    <div class="field-error" id="err-email">Please enter a valid email address.</div>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password">
+                    <div class="field-error" id="err-password">Password is required.</div>
                 </div>
 
                 <button type="submit" name="signin_submit" class="btn-signin">Sign In</button>
@@ -181,5 +192,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function validateField(id, check, errorId) {
+            const input = document.getElementById(id);
+            const error = document.getElementById(errorId);
+            const ok = check(input.value.trim());
+            input.classList.toggle('input-invalid', !ok);
+            error.style.display = ok ? 'none' : 'block';
+            return ok;
+        }
+
+        document.getElementById('signinForm').addEventListener('submit', function (e) {
+            const emailOk = validateField('email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'err-email');
+            const passwordOk = validateField('password', v => v.length > 0, 'err-password');
+            if (!emailOk || !passwordOk) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

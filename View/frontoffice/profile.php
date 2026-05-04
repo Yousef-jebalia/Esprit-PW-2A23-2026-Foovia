@@ -46,7 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
     $current = $controller->get_user($_SESSION['user_id']);
-
+    $email = $_POST['email_user'] ?? $current['email_user'];
+    
+    if (strpos($email, '@gmail.com') === false) {
+        $error_message = 'Email must be in the format: example@gmail.com';
+    } else {
     $height = (int)($_POST['height_user'] ?? $current['height_user']);
     $weight = (int)($_POST['weight_user'] ?? $current['weight_user']);
     $bmi    = ($height > 0) ? (int)round($weight / (($height / 100) ** 2)) : (int)$current['bmi_user'];
@@ -55,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
         (int)$_SESSION['user_id'],
         $_POST['name_user']         ?? $current['name_user'],
         $_POST['lastname_user']     ?? $current['lastname_user'],
-        $_POST['email_user']        ?? $current['email_user'],
+        $email,
         $current['password_user'],
         (int)($_POST['phone_user']  ?? $current['phone_user']),
         $_POST['gender_user']       ?? $current['gender_user'],
@@ -76,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
 
     $controller->update_user($user, $_SESSION['user_id']);
     $saved = true;
+    }
     
     // Update session names if they changed
     $_SESSION['user_name'] = $_POST['name_user'] ?? $current['name_user'];
@@ -193,6 +198,13 @@ $user_name = $_SESSION['user_name'] ?? '';
 <div class="profile-container">
     <h2 class="mb-4" style="font-family: 'Syne', sans-serif;">My Account</h2>
 
+    <?php if (!empty($error_message) ?? false): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #fee; color: var(--red); border-color: var(--red);">
+            <?php echo htmlspecialchars($error_message); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
     <?php if (!empty($pwd_error)): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #fee; color: var(--red); border-color: var(--red);">
             <?php echo htmlspecialchars($pwd_error); ?>
@@ -225,13 +237,13 @@ $user_name = $_SESSION['user_name'] ?? '';
                     <p class="mb-1"><strong>First Name:</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['name_user'] ?? 'N/A'); ?></span>
                     <input class="form-control field-input" type="text" name="name_user" id="name_user" value="<?php echo htmlspecialchars($user_data['name_user'] ?? ''); ?>">
-                    <span class="field-error" id="name_user-error">First name is required.</span>
+                    <span class="field-error" id="name_user-error">First name must be at least 3 characters.</span>
                 </div>
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Last Name:</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['lastname_user'] ?? 'N/A'); ?></span>
                     <input class="form-control field-input" type="text" name="lastname_user" id="lastname_user" value="<?php echo htmlspecialchars($user_data['lastname_user'] ?? ''); ?>">
-                    <span class="field-error" id="lastname_user-error">Last name is required.</span>
+                    <span class="field-error" id="lastname_user-error">Last name must be at least 3 characters.</span>
                 </div>
             </div>
 
@@ -240,13 +252,13 @@ $user_name = $_SESSION['user_name'] ?? '';
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Email:</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['email_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="email" name="email_user" id="email_user" value="<?php echo htmlspecialchars($user_data['email_user'] ?? ''); ?>">
+                    <input class="form-control field-input" type="text" name="email_user" id="email_user" value="<?php echo htmlspecialchars($user_data['email_user'] ?? ''); ?>">
                     <span class="field-error" id="email_user-error">Email must end with @gmail.com</span>
                 </div>
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Phone:</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['phone_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="text" name="phone_user" id="phone_user" maxlength="8" value="<?php echo htmlspecialchars($user_data['phone_user'] ?? ''); ?>">
+                    <input class="form-control field-input" type="text" name="phone_user" id="phone_user" value="<?php echo htmlspecialchars($user_data['phone_user'] ?? ''); ?>">
                     <span class="field-error" id="phone_user-error">Phone must be exactly 8 digits.</span>
                 </div>
             </div>
@@ -266,7 +278,7 @@ $user_name = $_SESSION['user_name'] ?? '';
                     <p class="mb-1"><strong>Birthday:</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['birthday_user'] ?? 'N/A'); ?></span>
                     <input class="form-control field-input" type="date" name="birthday_user" id="birthday_user" value="<?php echo htmlspecialchars($user_data['birthday_user'] ?? ''); ?>">
-                    <span class="field-error" id="birthday_user-error">Birthday must be before today.</span>
+                    <span class="field-error" id="birthday_user-error">You must be at least 15 years old.</span>
                 </div>
             </div>
 
@@ -275,14 +287,14 @@ $user_name = $_SESSION['user_name'] ?? '';
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Height (cm):</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['height_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="number" name="height_user" id="height_user" min="50" max="250" value="<?php echo htmlspecialchars($user_data['height_user'] ?? ''); ?>">
-                    <span class="field-error" id="height_user-error">Height must be between 50 and 250 cm.</span>
+                    <input class="form-control field-input" type="number" name="height_user" id="height_user" value="<?php echo htmlspecialchars($user_data['height_user'] ?? ''); ?>">
+                    <span class="field-error" id="height_user-error">Height must be between 100 and 250 cm.</span>
                 </div>
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Weight (kg):</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['weight_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="number" name="weight_user" id="weight_user" min="20" max="300" value="<?php echo htmlspecialchars($user_data['weight_user'] ?? ''); ?>">
-                    <span class="field-error" id="weight_user-error">Weight must be between 20 and 300 kg.</span>
+                    <input class="form-control field-input" type="number" name="weight_user" id="weight_user" value="<?php echo htmlspecialchars($user_data['weight_user'] ?? ''); ?>">
+                    <span class="field-error" id="weight_user-error">Weight must be between 30 and 300 kg.</span>
                 </div>
             </div>
 
@@ -295,11 +307,12 @@ $user_name = $_SESSION['user_name'] ?? '';
                 <div class="col-md-6">
                     <p class="mb-1"><strong>Activity Level:</strong></p>
                     <span class="field-value"><?php echo htmlspecialchars($user_data['activitylvl_user'] ?? 'N/A'); ?></span>
-                    <select class="form-select field-input" name="activitylvl_user">
+                    <select class="form-select field-input" name="activitylvl_user" id="activitylvl_user">
                         <?php foreach (['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active'] as $lvl): ?>
                             <option value="<?php echo $lvl; ?>" <?php echo ($user_data['activitylvl_user'] ?? '') === $lvl ? 'selected' : ''; ?>><?php echo $lvl; ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <span class="field-error" id="activitylvl_user-error">Please select your activity level.</span>
                 </div>
             </div>
 
@@ -358,7 +371,7 @@ $user_name = $_SESSION['user_name'] ?? '';
 <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <form method="POST" action="profile.php">
+            <form method="POST" action="profile.php" id="changePasswordForm" novalidate>
                 <div class="modal-header border-0">
                     <h5 class="modal-title" id="passwordModalLabel">Change Password</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -367,16 +380,19 @@ $user_name = $_SESSION['user_name'] ?? '';
                     <input type="hidden" name="change_password" value="1">
                     <div class="mb-3">
                         <label for="current_password" class="form-label">Current Password</label>
-                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        <input type="password" class="form-control" id="current_password" name="current_password">
+                        <small class="field-error" id="current_password-error">Current password is required.</small>
                     </div>
                     <div class="mb-3">
                         <label for="new_password" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        <input type="password" class="form-control" id="new_password" name="new_password">
                         <small class="text-muted" style="color: var(--page-muted) !important;">Must be at least 6 characters and contain letters and numbers.</small>
+                        <small class="field-error" id="new_password-error">Use at least 6 characters with letters and numbers.</small>
                     </div>
                     <div class="mb-3">
                         <label for="confirm_password" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        <small class="field-error" id="confirm_password-error">Passwords do not match.</small>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -495,11 +511,11 @@ $user_name = $_SESSION['user_name'] ?? '';
 
     function validateName() {
         const val = (document.getElementById('name_user')?.value ?? '').trim();
-        return val.length > 0 ? showValid('name_user', 'name_user-error') : showError('name_user', 'name_user-error');
+        return val.length >= 3 ? showValid('name_user', 'name_user-error') : showError('name_user', 'name_user-error');
     }
     function validateLastname() {
         const val = (document.getElementById('lastname_user')?.value ?? '').trim();
-        return val.length > 0 ? showValid('lastname_user', 'lastname_user-error') : showError('lastname_user', 'lastname_user-error');
+        return val.length >= 3 ? showValid('lastname_user', 'lastname_user-error') : showError('lastname_user', 'lastname_user-error');
     }
     function validateEmail() {
         const val = (document.getElementById('email_user')?.value ?? '').trim();
@@ -513,16 +529,22 @@ $user_name = $_SESSION['user_name'] ?? '';
         const val = document.getElementById('birthday_user')?.value ?? '';
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const cutoff = new Date(today);
+        cutoff.setFullYear(cutoff.getFullYear() - 15);
         const selected = new Date(val);
-        return val && selected < today ? showValid('birthday_user', 'birthday_user-error') : showError('birthday_user', 'birthday_user-error');
+        return val && selected <= cutoff ? showValid('birthday_user', 'birthday_user-error') : showError('birthday_user', 'birthday_user-error');
     }
     function validateHeight() {
         const val = parseInt(document.getElementById('height_user')?.value ?? 0);
-        return val >= 50 && val <= 250 ? showValid('height_user', 'height_user-error') : showError('height_user', 'height_user-error');
+        return val >= 100 && val <= 250 ? showValid('height_user', 'height_user-error') : showError('height_user', 'height_user-error');
     }
     function validateWeight() {
         const val = parseInt(document.getElementById('weight_user')?.value ?? 0);
-        return val >= 20 && val <= 300 ? showValid('weight_user', 'weight_user-error') : showError('weight_user', 'weight_user-error');
+        return val >= 30 && val <= 300 ? showValid('weight_user', 'weight_user-error') : showError('weight_user', 'weight_user-error');
+    }
+    function validateActivity() {
+        const val = (document.getElementById('activitylvl_user')?.value ?? '').trim();
+        return val.length > 0 ? showValid('activitylvl_user', 'activitylvl_user-error') : showError('activitylvl_user', 'activitylvl_user-error');
     }
 
     document.getElementById('phone_user')?.addEventListener('input', function () {
@@ -536,11 +558,43 @@ $user_name = $_SESSION['user_name'] ?? '';
     document.getElementById('birthday_user')?.addEventListener('blur', validateBirthday);
     document.getElementById('height_user')?.addEventListener('blur', validateHeight);
     document.getElementById('weight_user')?.addEventListener('blur', validateWeight);
+    document.getElementById('activitylvl_user')?.addEventListener('change', validateActivity);
 
     document.getElementById('profileForm').addEventListener('submit', function (e) {
         if (saveBtn.classList.contains('d-none')) return;
-        const nameOk = validateName(), lastnameOk = validateLastname(), emailOk = validateEmail(), phoneOk = validatePhone(), birthdayOk = validateBirthday(), heightOk = validateHeight(), weightOk = validateWeight();
-        if (!nameOk || !lastnameOk || !emailOk || !phoneOk || !birthdayOk || !heightOk || !weightOk) e.preventDefault();
+        const nameOk = validateName(), lastnameOk = validateLastname(), emailOk = validateEmail(), phoneOk = validatePhone(), birthdayOk = validateBirthday(), heightOk = validateHeight(), weightOk = validateWeight(), activityOk = validateActivity();
+        if (!nameOk || !lastnameOk || !emailOk || !phoneOk || !birthdayOk || !heightOk || !weightOk || !activityOk) e.preventDefault();
+    });
+
+    (() => {
+        const birthdayInput = document.getElementById('birthday_user');
+        if (!birthdayInput) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        today.setFullYear(today.getFullYear() - 15);
+        birthdayInput.max = today.toISOString().split('T')[0];
+    })();
+
+    function validatePasswordField(fieldId, check, errorId) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(errorId);
+        const ok = check(field.value);
+        field.classList.toggle('invalid', !ok);
+        field.classList.toggle('valid', ok);
+        if (error) {
+            error.style.display = ok ? 'none' : 'block';
+        }
+        return ok;
+    }
+
+    document.getElementById('changePasswordForm')?.addEventListener('submit', function (e) {
+        const currentOk = validatePasswordField('current_password', v => v.trim().length > 0, 'current_password-error');
+        const newOk = validatePasswordField('new_password', v => v.length >= 6 && /[A-Za-z]/.test(v) && /\d/.test(v), 'new_password-error');
+        const confirmOk = validatePasswordField('confirm_password', v => v === document.getElementById('new_password').value && v.length > 0, 'confirm_password-error');
+
+        if (!currentOk || !newOk || !confirmOk) {
+            e.preventDefault();
+        }
     });
 </script>
 </body>
