@@ -443,7 +443,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link id="foovia-style" rel="stylesheet" href="./styleT.css?v=20260426">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
   /* Improved AI result panel styling */
   .ai-result-panel {
@@ -1202,13 +1201,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   <p class="section-label">History</p>
   <h2 class="cta-title">Each Weekly Objective,<br><em>with full details.</em></h2>
 
-  <div class="history-shell" id="history-export-content">
+  <div class="history-shell">
     <?php if (empty($weekly_history_rows)): ?>
       <p class="history-empty">No weekly tracking history yet. Save your first daily entry from Weekly Tracking.</p>
     <?php else: ?>
-      <div class="history-list">
+      <div class="history-list" id="history-list" data-history-page-size="7">
         <?php foreach ($weekly_history_rows as $history_row): ?>
-          <article class="history-card">
+          <article class="history-card" data-history-item>
             <div class="history-head">
               <h3 class="history-date"><?php echo htmlspecialchars((string) ($history_row['date_suiv'] ?? '')); ?></h3>
               <p class="history-status"><?php echo htmlspecialchars((string) ($history_row['status_obj_quot_suiv'] ?? 'No status')); ?></p>
@@ -1229,15 +1228,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           </article>
         <?php endforeach; ?>
       </div>
+      <div class="history-pagination" id="history-pagination">
+        <button type="button" class="history-pagination-btn" id="history-prev-btn">Previous</button>
+        <div class="history-page-meta" id="history-page-meta" aria-live="polite">Page 1 of 1</div>
+        <button type="button" class="history-pagination-btn" id="history-next-btn">Next</button>
+      </div>
     <?php endif; ?>
   </div>
   
-  <div style="text-align: center; margin-top: 2.5rem;">
-    <button class="export-pdf-btn" onclick="exportHistoryPDF()">
-      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" style="vertical-align: -3px; margin-right: 6px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-      Export to PDF
-    </button>
-  </div>
+
 </section>
 
 <footer>
@@ -2147,12 +2146,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealLampBtn = document.getElementById('weekly-btn-lamp-ai');
     const weeklyMealLampTooltip = document.getElementById('weekly-lamp-tooltip');
     const weeklyMealLogEntries = document.getElementById('weekly-meal-log-entries');
+    const historyList = document.getElementById('history-list');
+    const historyPrevBtn = document.getElementById('history-prev-btn');
+    const historyNextBtn = document.getElementById('history-next-btn');
+    const historyPageMeta = document.getElementById('history-page-meta');
     let weeklyWeightEntries = [];
     let weeklyMealEntries = [];
     const weeklyMealDotColors = ['#D94F00', '#4BAE52', '#F5C842', '#F2A98A', '#2E4A28', '#C0381A'];
     const weeklyMealStoragePrefix = 'foovia.weekly-meals';
     const weeklyMealStorageUserId = <?php echo (int) $current_user_id; ?>;
     const weeklyMacroMaxValue = 9999;
+    const historyPageSize = 7;
+
+    const renderHistoryPagination = () => {
+      if (!historyList) {
+        return;
+      }
+
+      const historyItems = Array.from(historyList.querySelectorAll('[data-history-item]'));
+      const totalPages = Math.max(1, Math.ceil(historyItems.length / historyPageSize));
+      const currentPage = Math.min(Math.max(parseInt(historyList.getAttribute('data-history-page') || '1', 10) || 1, 1), totalPages);
+
+      historyList.setAttribute('data-history-page', String(currentPage));
+
+      historyItems.forEach((item, index) => {
+        const pageIndex = Math.floor(index / historyPageSize) + 1;
+        item.hidden = pageIndex !== currentPage;
+      });
+
+      if (historyPrevBtn) {
+        historyPrevBtn.disabled = currentPage <= 1;
+      }
+
+      if (historyNextBtn) {
+        historyNextBtn.disabled = currentPage >= totalPages;
+      }
+
+      if (historyPageMeta) {
+        historyPageMeta.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+      }
+    };
+
+    const setHistoryPage = (page) => {
+      if (!historyList) {
+        return;
+      }
+
+      const historyItems = Array.from(historyList.querySelectorAll('[data-history-item]'));
+      const totalPages = Math.max(1, Math.ceil(historyItems.length / historyPageSize));
+      const nextPage = Math.min(Math.max(page, 1), totalPages);
+      historyList.setAttribute('data-history-page', String(nextPage));
+      renderHistoryPagination();
+    };
+
+    if (historyList) {
+      historyList.setAttribute('data-history-page', '1');
+      renderHistoryPagination();
+
+      if (historyPrevBtn) {
+        historyPrevBtn.addEventListener('click', () => {
+          const currentPage = parseInt(historyList.getAttribute('data-history-page') || '1', 10) || 1;
+          setHistoryPage(currentPage - 1);
+        });
+      }
+
+      if (historyNextBtn) {
+        historyNextBtn.addEventListener('click', () => {
+          const currentPage = parseInt(historyList.getAttribute('data-history-page') || '1', 10) || 1;
+          setHistoryPage(currentPage + 1);
+        });
+      }
+    }
 
     const showWeeklyGoalRequiredMessage = () => {
       if (!weeklyGoalRequiredMsg || hasLongTermGoal) {
@@ -3098,115 +3162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     renderMacroBreakdownChart();
     renderBodyWeightEvolutionChart();
   })();
-  
-function exportHistoryPDF() {
-  const sourceElement = document.getElementById('history-export-content');
-  if (!sourceElement) {
-    alert("History content not found.");
-    return;
-  }
-
-  const opt = {
-    margin:      10,
-    filename:    'Weekly_Tracking_Report.pdf',
-    image:       { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  html2pdf().set(opt).from(sourceElement).save();
-}
 </script>
-
-<!-- html2pdf for PDF export -->
-
-<div id="pdf-template" style="display: none;">
-  <div style="font-family: 'Syne', 'Inter', Arial, sans-serif; padding: 40px; color: #2a2c2e; background-color: #f4f7f6;">
-    
-    <!-- Header with Gradient -->
-    <div style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 40px; color: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-      <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; color: #4bae52;">FOOVIA</h1>
-      <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; font-weight: 300;">Premium Tracking Report</p>
-    </div>
-    
-    <!-- Long Term Goal -->
-    <h2 style="font-size: 20px; color: #111827; border-left: 4px solid #4bae52; padding-left: 12px; margin-bottom: 20px;">Long Term Goal Details</h2>
-    <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 40px; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 14px;">
-      <tr>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; width: 35%; background: #fafafa; color: #4bae52;">Type</td>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151;"><?php echo !empty($current_user_goal) ? htmlspecialchars(ucfirst(goal_type_label((string)$current_user_goal['type_obj']))) : 'No active goal'; ?></td>
-      </tr>
-      <tr>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Status</td>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151;"><span style="background: #e6f4ea; color: #1e7e34; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 12px;"><?php echo !empty($current_user_goal) ? htmlspecialchars(ucfirst(goal_status_label((string)$current_user_goal['status_obj']))) : '-'; ?></span></td>
-      </tr>
-      <tr>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Initial Weight</td>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151; font-weight: 600;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['val_init_obj']) . ' kg' : '-'; ?></td>
-      </tr>
-      <tr>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Target Weight</td>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151; font-weight: 600;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['val_cible_obj']) . ' kg' : '-'; ?></td>
-      </tr>
-      <tr>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; background: #fafafa; color: #4bae52;">Timeline</td>
-        <td style="padding: 14px 20px; border-bottom: 1px solid #f0f0f0; color: #374151;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['date_deb_obj']) . ' to ' . htmlspecialchars((string)$current_user_goal['date_fin_obj']) : '-'; ?></td>
-      </tr>
-      <tr>
-        <td style="padding: 14px 20px; font-weight: 700; background: #fafafa; color: #4bae52;">Daily Targets</td>
-        <td style="padding: 14px 20px; color: #374151;"><?php echo !empty($current_user_goal) ? htmlspecialchars((string)$current_user_goal['obj_cal_obj']) . ' kcal | ' . htmlspecialchars((string)$current_user_goal['obj_fat_obj']) . 'g F | ' . htmlspecialchars((string)$current_user_goal['obj_prot_obj']) . 'g P | ' . htmlspecialchars((string)$current_user_goal['obj_carb_obj']) . 'g C' : '-'; ?></td>
-      </tr>
-    </table>
-
-    <!-- Weekly Tracking Logs -->
-    <h2 style="font-size: 20px; color: #111827; border-left: 4px solid #f5a623; padding-left: 12px; margin-bottom: 20px;">Weekly Tracking Logs</h2>
-    <?php if (empty($weekly_history_rows)): ?>
-      <div style="background: #fff; padding: 20px; border-radius: 12px; text-align: center; color: #6b7280; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">No tracking history available yet.</div>
-    <?php else: ?>
-      <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 13px; text-align: left;">
-        <thead>
-          <tr style="background: linear-gradient(90deg, #1f2937 0%, #374151 100%); color: #ffffff;">
-            <th style="padding: 14px 12px; font-weight: 600;">Date</th>
-            <th style="padding: 14px 12px; font-weight: 600;">Status</th>
-            <th style="padding: 14px 12px; font-weight: 600;">Weight</th>
-            <th style="padding: 14px 12px; font-weight: 600;">Calories</th>
-            <th style="padding: 14px 12px; font-weight: 600;">F / P / C (g)</th>
-            <th style="padding: 14px 12px; font-weight: 600;">Water</th>
-            <th style="padding: 14px 12px; font-weight: 600;">Sleep</th>
-            <th style="padding: 14px 12px; font-weight: 600;">Steps</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($weekly_history_rows as $index => $row): ?>
-          <?php $bg = $index % 2 === 0 ? '#ffffff' : '#f9fafb'; ?>
-          <tr style="background: <?php echo $bg; ?>;">
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #111827;"><?php echo htmlspecialchars((string)($row['date_suiv'] ?? '')); ?></td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #4bae52; font-weight: 600;"><?php echo htmlspecialchars((string)($row['status_obj_quot_suiv'] ?? '')); ?></td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #f5a623;"><?php echo htmlspecialchars((string)($row['poids_suiv'] ?? 0)); ?> kg</td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #374151;"><?php echo htmlspecialchars((string)($row['val_cal_suiv'] ?? 0)); ?></td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #6b7280; font-size: 12px;"><?php echo htmlspecialchars((string)($row['val_fat_suiv'] ?? 0) . ' / ' . (string)($row['val_prot_suiv'] ?? 0) . ' / ' . (string)($row['val_carb_suiv'] ?? 0)); ?></td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #3b82f6;">&#128167; <?php echo htmlspecialchars((string)($row['nb_verre_eau_suiv'] ?? 0)); ?></td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #8b5cf6;">&#127769; <?php echo htmlspecialchars((string)($row['nb_h_sommeil_suiv'] ?? 0)); ?>h</td>
-            <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; color: #10b981;">&#128095; <?php echo htmlspecialchars((string)($row['nb_pas_suiv'] ?? 0)); ?></td>
-          </tr>
-          <?php if (!empty(trim((string)($row['note_suiv'] ?? '')))): ?>
-          <tr style="background: <?php echo $bg; ?>;">
-            <td colspan="8" style="padding: 10px 12px 14px; border-bottom: 1px solid #f0f0f0; color: #6b7280; font-size: 12px; font-style: italic;">
-              <strong style="color: #4bae52;">Note:</strong> <?php echo nl2br(htmlspecialchars(trim((string)$row['note_suiv']))); ?>
-            </td>
-          </tr>
-          <?php endif; ?>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
-    
-    <!-- Footer -->
-    <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 20px;">
-      Generated by FOOVIA on <?php echo date('Y-m-d H:i'); ?>
-    </div>
-  </div>
-</div>
 
 <script>
   (function() {
@@ -3383,6 +3339,54 @@ function exportHistoryPDF() {
     font-size: .82rem; color: #D94F00;
     text-align: center; line-height: 1.5;
     display: none;
+  }
+
+  .history-list {
+    display: grid;
+    gap: 18px;
+  }
+
+  .history-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  .history-pagination-btn {
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: #fff;
+    color: #2a2c2e;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .15s ease, border-color .2s ease, background .2s ease, color .2s ease;
+  }
+
+  .history-pagination-btn:hover:not(:disabled) {
+    border-color: #4BAE52;
+    color: #4BAE52;
+    transform: translateY(-1px);
+  }
+
+  .history-pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+  }
+
+  .history-page-meta {
+    font-family: 'DM Sans', sans-serif;
+    font-size: .92rem;
+    font-weight: 600;
+    color: #2a2c2e;
+    padding: 0 8px;
+    min-width: 120px;
+    text-align: center;
   }
 </style>
 
