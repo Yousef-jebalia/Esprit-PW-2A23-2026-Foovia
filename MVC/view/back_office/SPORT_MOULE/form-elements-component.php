@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../model/config.php';
+require_once __DIR__ . '/../../../model/config.php';
 
 $db = config::getConnexion();
 $stmt = $db->query("SELECT * FROM exercice ORDER BY id_ex DESC");
@@ -954,7 +954,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                 </div>
 
                 <!-- Delete button & edit button -->
-                <form method="POST" action="../../controle/controle_workout.php" style="margin: 0; display: flex; gap: 5px;">
+                <form method="POST" action="../../controle/SPORT_MOULE/controle_workout.php" style="margin: 0; display: flex; gap: 5px;">
                     <input type="hidden" name="delete_id" value="<?= (int)$wk['id_work'] ?>">
                     
                     <!-- Delete button -->
@@ -982,7 +982,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                         <!-- RIGHT SIDE: WORKOUT FORM -->
                         <div style="flex: 0 0 480px; max-width: 480px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
                             
-                            <form onsubmit="return validateWorkoutForm()" class="workout-form" id="workout-form" action="../../controle/controle_workout.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+                            <form onsubmit="return validateWorkoutForm()" class="workout-form" id="workout-form" action="../../controle/SPORT_MOULE/controle_workout.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
 
                                 <input type="hidden" name="action" id="work-form-action" value="add">
                                 <input type="hidden" name="edit_id" id="work-edit-id" value="">
@@ -1073,12 +1073,12 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                                 </div>
                             </form>
 
-                            <form id="standalone-category-form" action="../../controle/controle_workout.php" method="POST" style="display: none;">
+                            <form id="standalone-category-form" action="../../controle/SPORT_MOULE/controle_workout.php" method="POST" style="display: none;">
                                 <input type="hidden" name="action" value="add_category">
                                 <input type="hidden" id="standalone_new_work_categorie" name="new_work_categorie" value="">
                             </form>
 
-                            <form id="standalone-delete-category-form" action="../../controle/controle_workout.php" method="POST" style="display: none;">
+                            <form id="standalone-delete-category-form" action="../../controle/SPORT_MOULE/controle_workout.php" method="POST" style="display: none;">
                                 <input type="hidden" name="action" value="delete_category">
                                 <input type="hidden" id="standalone_delete_id_cat" name="delete_id_cat" value="">
                             </form>
@@ -1130,7 +1130,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                                         <!-- LEFT SIDE: EXERCISE FORM -->
                                         <div style="flex: 0 0 480px; max-width: 480px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
-                                            <form onsubmit="return validateForm()" class="exercise-form" id="exercise-form" action="../../controle/controle_exercice.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+                                            <form onsubmit="return validateForm()" class="exercise-form" id="exercise-form" action="../../controle/SPORT_MOULE/controle_exercice.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
 
                                                 <input type="hidden" name="action" id="form-action" value="add">
                                                 <input type="hidden" name="edit_id" id="edit-id" value="">
@@ -1273,7 +1273,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                         </span>
                     </div>
                 </div>
-                <form method="POST" action="../../controle/controle_exercice.php" style="margin: 0; display: flex; gap: 5px;">
+                <form method="POST" action="../../controle/SPORT_MOULE/controle_exercice.php" style="margin: 0; display: flex; gap: 5px;">
                     <input type="hidden" name="delete_id" value="<?= (int)$ex['id_ex'] ?>">
                     <button type="submit" name="action" value="delete"
                         style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"

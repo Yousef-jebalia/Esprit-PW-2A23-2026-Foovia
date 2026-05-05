@@ -3,8 +3,8 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-include_once __DIR__ . '/../model/exercice.php';
-include_once __DIR__ . '/../model/config.php';
+include_once __DIR__ . '/../../model/SPORT_MOULE/exercice.php';
+include_once __DIR__ . '/../../model/config.php';
 
 
 class controle_exercice
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── DELETE ──────────────────────────────────────────────
     if ($action === 'delete') {
         $controller->delete_exercise((int)$_POST['delete_id']);
-        header('Location: ../view/back_office/form-elements-component.php');
+        header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php');
         exit;
     }
 
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result   = $controller->update_exercise($exercise, (int)$_POST['edit_id']);
 
         if ($result === true) {
-            header('Location: ../view/back_office/form-elements-component.php');
+            header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php');
         } else {
             echo "<script>alert('Error: " . addslashes($result) . "');</script>";
         }
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result   = $controller->add_exercise($exercise);
 
     if ($result === true) {
-        header('Location: ../view/back_office/form-elements-component.php');
+        header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php');
     } else {
         echo "<script>alert('Error: " . addslashes($result) . "');</script>";
     }

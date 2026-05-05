@@ -1,7 +1,7 @@
 <?php
 
-include_once __DIR__ . '/../model/categorie.php';
-include_once __DIR__ . '/../model/config.php';
+include_once __DIR__ . '/../../model/SPORT_MOULE/categorie.php';
+include_once __DIR__ . '/../../model/config.php';
 
 class controle_categorie_workout
 {

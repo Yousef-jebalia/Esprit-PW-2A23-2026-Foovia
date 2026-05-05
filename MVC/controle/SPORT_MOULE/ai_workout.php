@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../model/config.php';
+require_once __DIR__ . '/../../model/config.php';
 
 function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') {
     $keyFilePath = 'C:\\API keys\\foovia_api_keys.txt';
@@ -39,12 +39,14 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
 
     // Read API key from file
     if (!file_exists($keyFilePath)) {
-        return ['error' => "API key file not found at: $keyFilePath"];
+        return ['error' => "API key mathamech: $keyFilePath"];
     }
+
     
+
     $key = trim(file_get_contents($keyFilePath));
     if (empty($key)) {
-        return ['error' => "API key file is empty at: $keyFilePath"];
+        return ['error' => "winou el API key ??: $keyFilePath"];
     }
 
     $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$key");
@@ -110,7 +112,7 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
 }
 
 function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
-    require_once __DIR__ . '/../model/workout.php';
+    require_once __DIR__ . '/../../model/SPORT_MOULE/workout.php';
     
     if (!$aiOutput || empty($aiOutput['exercises'])) return null;
     

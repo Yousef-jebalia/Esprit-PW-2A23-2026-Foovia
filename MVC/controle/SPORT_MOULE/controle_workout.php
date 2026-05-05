@@ -3,8 +3,8 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-include_once __DIR__ . '/../model/workout.php';
-include_once __DIR__ . '/../model/config.php';
+include_once __DIR__ . '/../../model/SPORT_MOULE/workout.php';
+include_once __DIR__ . '/../../model/config.php';
 include_once __DIR__ . '/controle_categorie.php';
 
 class controle_workout
@@ -189,17 +189,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $createdCategoryId = $categoryController->add_category(new Categorie($newCategoryName));
 
         if (is_int($createdCategoryId) && $createdCategoryId > 0) {
-            header('Location: ../view/back_office/form-elements-component.php?section=workout&category_added=1&category_id=' . $createdCategoryId);
+            header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php?section=workout&category_added=1&category_id=' . $createdCategoryId);
         } else {
             $error = urlencode((string)$createdCategoryId);
-            header('Location: ../view/back_office/form-elements-component.php?section=workout&category_error=' . $error);
+            header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php?section=workout&category_error=' . $error);
         }
         exit;
     }
 
     if ($action === 'delete') {
         $controller->delete_workout((int)$_POST['delete_id']);
-        header('Location: ../view/back_office/form-elements-component.php');
+        header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php');
         exit;
     }
 
@@ -208,10 +208,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $deleteResult = $categoryController->delete_category($idCat);
 
         if ($deleteResult === true) {
-            header('Location: ../view/back_office/form-elements-component.php?section=workout&category_deleted=1');
+            header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php?section=workout&category_deleted=1');
         } else {
             $error = urlencode((string)$deleteResult);
-            header('Location: ../view/back_office/form-elements-component.php?section=workout&category_delete_error=' . $error);
+            header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php?section=workout&category_delete_error=' . $error);
         }
         exit;
     }
@@ -263,7 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($result === true) {
-        header('Location: ../view/back_office/form-elements-component.php');
+        header('Location: ../../view/back_office/SPORT_MOULE/form-elements-component.php');
     } else {
         echo "<script>alert('Error: " . addslashes($result) . "');</script>";
     }

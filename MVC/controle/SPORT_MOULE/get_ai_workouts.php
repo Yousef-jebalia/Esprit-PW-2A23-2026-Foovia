@@ -4,7 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 try {
-    require_once __DIR__ . '/../model/config.php';
+    require_once __DIR__ . '/../../model/config.php';
 
     // Get user ID (from session or request)
     $userId = $_GET['user_id'] ?? null;

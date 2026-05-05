@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../model/config.php';
+require_once __DIR__ . '/../../../model/config.php';
 
 $db = config::getConnexion();
 $stmt = $db->query("SELECT * FROM exercice ORDER BY id_ex DESC");

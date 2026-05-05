@@ -39,6 +39,11 @@
   </div>
 </nav>
 
+
+
+
+
+
 <!-- MAIN PAGE -->
 <div class="cw-page">
 
@@ -90,6 +95,9 @@
 
 </div>
 
+
+
+
 <!-- AI WORKOUT FORM OVERLAY -->
 <div class="ai-form-overlay" id="aiFormOverlay" onclick="closeOnOverlay(event)">
   <div class="ai-form-panel" id="aiFormPanel">
@@ -114,8 +122,8 @@
         type="text"
         id="workoutName"
         placeholder="e.g. Monday Push Day, Leg Destroyer…"
-        maxlength="60"
       />
+      <div class="form-error" id="workoutNameError" aria-live="polite"></div>
     </div>
 
     <!-- Workout image -->
@@ -128,6 +136,7 @@
         accept="image/*"
       />
       <p class="form-hint">Add an image for this workout so it appears in your workout list.</p>
+      <div class="form-error" id="workPictureError" aria-live="polite"></div>
     </div>
 
     <!-- Muscle groups (chip select) -->
@@ -152,10 +161,11 @@
         <span class="muscle-chip" data-value="neck"        onclick="toggleChip(this)">Neck</span>
       </div>
       <p class="form-hint">Select one or more muscle groups to focus on.</p>
+      <div class="form-error" id="muscleChipsError" aria-live="polite"></div>
     </div>
 
     <!-- Submit -->
-    <button class="ai-form-submit" onclick="submitAIWorkout()">
+    <button class="ai-form-submit" type="button" onclick="submitAIWorkout(this)">
       <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       Generate My Workout
     </button>
@@ -169,115 +179,152 @@
     <h2 class="workouts-title">Your AI-Generated Workouts</h2>
     <p class="workouts-subtitle">View all your custom workouts created with AI</p>
   </div>
-  <div class="workouts-grid" id="workoutsGrid">
-    <div class="workouts-empty">
+  <ul class="workouts-grid" id="workoutsGrid">
+    <li class="workouts-empty">
       <div class="workouts-empty-icon">📭</div>
       <div class="workouts-empty-title">No workouts yet</div>
       <p>Create your first AI-generated workout to get started.</p>
-    </div>
-  </div>
+    </li>
+  </ul>
 </section>
 
-<!-- COPYABLE ERROR MODAL -->
-<div class="copy-modal-overlay" id="copyModalOverlay" onclick="closeCopyModal(event)">
-  <div class="copy-modal" id="copyModal">
-    <div class="copy-modal-header">
-      <div class="copy-modal-title" id="copyModalTitle">Message</div>
-      <button class="copy-modal-close" type="button" onclick="closeCopyModalNow()">×</button>
-    </div>
-    <div class="copy-modal-body">
-      <textarea class="copy-modal-message" id="copyModalMessage" readonly></textarea>
-      <div class="copy-modal-actions">
-        <button class="copy-modal-btn primary" type="button" onclick="copyModalText()">Copy Message</button>
-        <button class="copy-modal-btn secondary" type="button" onclick="closeCopyModalNow()">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+
+
 
 <script>
   // Get user ID (you'll need to set this from your auth system)
   const userId = localStorage.getItem('userId') || '1'; // fallback to 1 for testing
 
   function loadAIWorkouts() {
-    fetch(`../../../MVC/controle/get_ai_workouts.php?user_id=${userId}`)
+    fetch(`../../../MVC/controle/SPORT_MOULE/get_ai_workouts.php?user_id=${userId}`)
       .then(res => res.json())
       .then(workouts => {
         const grid = document.getElementById('workoutsGrid');
-        
+
         if (!workouts || workouts.length === 0) {
           grid.innerHTML = `
-            <div class="workouts-empty">
+            <li class="workouts-empty">
               <div class="workouts-empty-icon">📭</div>
               <div class="workouts-empty-title">No workouts yet</div>
               <p>Create your first AI-generated workout to get started.</p>
-            </div>
-          `;
+            </li>`;
           return;
         }
 
-        grid.innerHTML = workouts.map(w => `
-          <div class="workout-card" onclick="viewWorkout(${w.id_work})">
-            <div class="workout-badge">🤖 AI Generated</div>
-            <div class="workout-name">${w.name_work}</div>
-            <div class="workout-meta">
-              <div class="meta-item">
-                <span>🔥</span>
-                <span>${w.cal_work} cal</span>
+        grid.innerHTML = workouts.map(w => {
+          const imgEl = w.picture_work
+            ? `<img class="workout-thumb" src="${w.picture_work}" alt="${w.name_work}" loading="lazy"
+                    onerror="this.outerHTML='<div class=\\'workout-thumb-placeholder\\'>No Image</div>'">`
+            : `<div class="workout-thumb-placeholder">No Image</div>`;
+
+          return `
+            <li class="workout-card">
+              ${imgEl}
+              <div class="workout-card-info">
+                <span class="workout-badge">🤖 AI Generated</span>
+                <span class="workout-name">${w.name_work}</span>
+                <div class="workout-meta">
+                  <div class="meta-item"><span class="meta-label">Cal:</span><span>${w.cal_work}</span></div>
+                  <div class="meta-item"><span class="meta-label">Time:</span><span>${w.duree_work} min</span></div>
+                </div>
+                <button type="button" class="workout-info-btn" data-workout-id="${w.id_work}" aria-label="Open workout details">i</button>
               </div>
-              <div class="meta-item">
-                <span>⏱️</span>
-                <span>${w.duree_work} min</span>
-              </div>
-              <div class="meta-item">
-                <span>💪</span>
-                <span>${w.exercises_count} exercises</span>
-              </div>
-            </div>
-          </div>
-        `).join('');
+            </li>`;
+        }).join('');
+
+        // Re-bind info buttons after render
+        initCWModal();
       })
       .catch(err => console.error('Error loading workouts:', err));
   }
 
-  function viewWorkout(workoutId) {
-    alert(`View workout ${workoutId} details (feature coming soon)`);
+  function initCWModal() {
+    const overlay   = document.getElementById('cw-info-overlay');
+    const closeBtn  = document.getElementById('cw-modal-close');
+    const title     = document.getElementById('cw-modal-title');
+    const img       = document.getElementById('cw-modal-img');
+    const imgEmpty  = document.getElementById('cw-modal-img-empty');
+    const name      = document.getElementById('cw-modal-name');
+    const cal       = document.getElementById('cw-modal-cal');
+    const dur       = document.getElementById('cw-modal-dur');
+    const count     = document.getElementById('cw-modal-count');
+    const muscles   = document.getElementById('cw-modal-muscles');
+    const exList    = document.getElementById('cw-modal-exercises');
+
+    const open = (workoutId) => {
+      // Fetch details on demand
+      fetch(`../../../MVC/controle/SPORT_MOULE/get_workout_details.php?workout_id=${workoutId}&user_id=${userId}`)
+        .then(r => r.json())
+        .then(w => {
+          title.textContent   = (w.name_work || 'Workout') + ' details';
+          name.textContent    = w.name_work || '—';
+          cal.textContent     = (w.cal_work  || 0) + ' cal';
+          dur.textContent     = (w.duree_work || 0) + ' min';
+          count.textContent   = (w.exercises_count || (w.exercises || []).length || 0) + ' exercises';
+
+          if (w.picture_work) {
+            img.src = w.picture_work;
+            img.style.display = 'block';
+            imgEmpty.style.display = 'none';
+          } else {
+            img.removeAttribute('src');
+            img.style.display = 'none';
+            imgEmpty.style.display = 'flex';
+          }
+
+          muscles.innerHTML = '';
+          const muscleList = w.muscles || [];
+          if (muscleList.length === 0) {
+            muscles.innerHTML = '<span class="cw-muscle-tag">No muscles detected</span>';
+          } else {
+            muscleList.forEach(m => {
+              const tag = document.createElement('span');
+              tag.className = 'cw-muscle-tag';
+              tag.textContent = m;
+              muscles.appendChild(tag);
+            });
+          }
+
+          exList.innerHTML = '';
+          (w.exercises || []).forEach(ex => {
+            const li = document.createElement('li');
+            li.textContent = ex.name_ex || ex.name || 'Exercise';
+            if (ex.type_ex) li.textContent += ' (' + ex.type_ex + ')';
+            exList.appendChild(li);
+          });
+
+          overlay.style.display = 'flex';
+          overlay.setAttribute('aria-hidden', 'false');
+        })
+        .catch(() => {
+          // Fallback: show what we have from the grid
+          title.textContent = 'Workout details';
+          overlay.style.display = 'flex';
+          overlay.setAttribute('aria-hidden', 'false');
+        });
+    };
+
+    const close = () => {
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
+    };
+
+    document.querySelectorAll('.workout-info-btn').forEach(btn => {
+      // clone to remove any old listeners
+      const fresh = btn.cloneNode(true);
+      btn.parentNode.replaceChild(fresh, btn);
+      fresh.addEventListener('click', () => open(fresh.dataset.workoutId));
+    });
+
+    closeBtn.onclick = close;
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && overlay.style.display === 'flex') close();
+    });
   }
 
   function showCopyModal(title, message) {
-    document.getElementById('copyModalTitle').textContent = title || 'Message';
-    const textArea = document.getElementById('copyModalMessage');
-    textArea.value = message || '';
-    document.getElementById('copyModalOverlay').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => textArea.focus(), 0);
-  }
-
-  function closeCopyModalNow() {
-    document.getElementById('copyModalOverlay').style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  function closeCopyModal(event) {
-    if (event.target === document.getElementById('copyModalOverlay')) {
-      closeCopyModalNow();
-    }
-  }
-
-  async function copyModalText() {
-    const text = document.getElementById('copyModalMessage').value;
-    try {
-      await navigator.clipboard.writeText(text);
-      const button = document.querySelector('.copy-modal-btn.primary');
-      const previousText = button.textContent;
-      button.textContent = 'Copied';
-      setTimeout(() => { button.textContent = previousText; }, 1200);
-    } catch (err) {
-      const textArea = document.getElementById('copyModalMessage');
-      textArea.focus();
-      textArea.select();
-      document.execCommand('copy');
-    }
+    alert(title + '\n\n' + message);
   }
 
   // Load workouts on page load
@@ -326,40 +373,131 @@
   /* ── MUSCLE CHIP TOGGLE ── */
   function toggleChip(el) {
     el.classList.toggle('selected');
+    clearFieldError('muscleChips');
+  }
+
+  function clearFieldError(fieldKey) {
+    const errorEl = document.getElementById(fieldKey + 'Error');
+    if (errorEl) errorEl.textContent = '';
+
+    const input = document.getElementById(fieldKey);
+    if (input) {
+      const group = input.closest('.form-group');
+      if (group) group.classList.remove('error');
+    }
+
+    if (fieldKey === 'muscleChips') {
+      const chips = document.getElementById('muscleChips');
+      if (chips) chips.classList.remove('error');
+    }
+  }
+
+  function setFieldError(fieldKey, message) {
+    const errorEl = document.getElementById(fieldKey + 'Error');
+    if (errorEl) errorEl.textContent = message;
+
+    const input = document.getElementById(fieldKey);
+    if (input) {
+      const group = input.closest('.form-group');
+      if (group) group.classList.add('error');
+    }
+
+    if (fieldKey === 'muscleChips') {
+      const chips = document.getElementById('muscleChips');
+      if (chips) chips.classList.add('error');
+    }
+  }
+
+  function clearAIFormErrors() {
+    ['workoutName', 'workPicture', 'muscleChips'].forEach(clearFieldError);
+  }
+
+  function validateAIWorkoutForm() {
+    clearAIFormErrors();
+
+    const nameInput = document.getElementById('workoutName');
+    const workoutName = nameInput.value.trim();
+    const selectedMuscles = [...document.querySelectorAll('.muscle-chip.selected')].map(c => c.dataset.value);
+    const workoutPicture = document.getElementById('work_picture').files[0];
+
+    let firstInvalidField = null;
+    let errorMessage = '';
+
+    if (!workoutName) {
+      errorMessage = 'Workout name is required.';
+      setFieldError('workoutName', errorMessage);
+      firstInvalidField = firstInvalidField || nameInput;
+    } else if (workoutName.length < 3) {
+      errorMessage = 'Workout name must be at least 3 characters.';
+      setFieldError('workoutName', errorMessage);
+      firstInvalidField = firstInvalidField || nameInput;
+    } else if (workoutName.length > 50) {
+      errorMessage = 'Workout name must be 50 characters or less.';
+      setFieldError('workoutName', errorMessage);
+      firstInvalidField = firstInvalidField || nameInput;
+    }
+
+    if (selectedMuscles.length === 0) {
+      errorMessage = errorMessage || 'Select at least one muscle group.';
+      setFieldError('muscleChips', 'Select at least one muscle group.');
+      firstInvalidField = firstInvalidField || document.getElementById('muscleChips');
+    }
+
+    if (workoutPicture) {
+      const isImage = workoutPicture.type.startsWith('image/');
+      const maxSize = 5 * 1024 * 1024;
+
+      if (!isImage) {
+        errorMessage = errorMessage || 'Workout picture must be an image file.';
+        setFieldError('workPicture', 'Workout picture must be an image file.');
+        firstInvalidField = firstInvalidField || document.getElementById('work_picture');
+      } else if (workoutPicture.size > maxSize) {
+        errorMessage = errorMessage || 'Workout picture must be 5 MB or smaller.';
+        setFieldError('workPicture', 'Workout picture must be 5 MB or smaller.');
+        firstInvalidField = firstInvalidField || document.getElementById('work_picture');
+      }
+    }
+
+    if (firstInvalidField) {
+      firstInvalidField.focus();
+      return { valid: false, message: errorMessage || 'Please fix the form errors and try again.' };
+    }
+
+    return {
+      valid: true,
+      workoutName,
+      selectedMuscles,
+      workoutPicture
+    };
   }
 
   /* ── SUBMIT ── */
-  function submitAIWorkout() {
-    const name    = document.getElementById('workoutName').value.trim();
-    const selectedMuscles = [...document.querySelectorAll('.muscle-chip.selected')].map(c => c.dataset.value);
+  function submitAIWorkout(button) {
+    const validated = validateAIWorkoutForm();
+    if (!validated.valid) {
+      alert(validated.message);
+      return;
+    }
 
-    if (!name) {
-      document.getElementById('workoutName').focus();
-      return;
-    }
-    if (selectedMuscles.length === 0) {
-      alert('Please select at least one muscle group.');
-      return;
-    }
+    const { workoutName, selectedMuscles, workoutPicture } = validated;
 
     // Disable button during submission
-    const btn = event.target;
+    const btn = button;
     btn.disabled = true;
     btn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg> Generating...';
 
     const formData = new FormData();
-    formData.append('workoutName', name);
+    formData.append('workoutName', workoutName);
     formData.append('targetMuscles', JSON.stringify(selectedMuscles));
     formData.append('userId', userId);
     formData.append('aiService', 'gemini');
 
-    const workoutPicture = document.getElementById('work_picture').files[0];
     if (workoutPicture) {
       formData.append('work_picture', workoutPicture);
     }
 
     // Call backend to generate and save workout
-    fetch('../../../MVC/controle/submit_ai_workout.php', {
+    fetch('../../../MVC/controle/SPORT_MOULE/submit_ai_workout.php', {
       method: 'POST',
       body: formData
     })
@@ -378,11 +516,12 @@
           return;
         }
 
-        alert(`✅ Workout "${name}" created successfully!`);
+        alert(`✅ Workout "${workoutName}" created successfully!`);
         closeAIForm();
         document.getElementById('workoutName').value = '';
         document.getElementById('work_picture').value = '';
         document.querySelectorAll('.muscle-chip').forEach(c => c.classList.remove('selected'));
+        clearAIFormErrors();
         loadAIWorkouts();
       } catch (e) {
         showCopyModal('Invalid AI Response', text);

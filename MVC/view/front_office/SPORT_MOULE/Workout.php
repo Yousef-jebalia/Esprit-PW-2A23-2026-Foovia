@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../model/config.php';
+require_once __DIR__ . '/../../../model/config.php';
 
 $db = config::getConnexion();
 $categories = $db->query('SELECT id_cat, name_cat FROM work_categorie ORDER BY name_cat ASC')->fetchAll();
