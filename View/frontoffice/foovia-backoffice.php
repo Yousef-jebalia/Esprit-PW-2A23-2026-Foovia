@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signin_submit'])) {
             $_SESSION['user_email'] = $user['email_user'];
             $_SESSION['user_role'] = $user['role_user'];
 
-            header('Location: ../backoffice/backoffice_work.php');
+            header('Location: ../backoffice/accordion.html');
             exit;
           } else {
             if ($role !== 'admin') {
