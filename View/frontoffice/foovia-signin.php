@@ -5,7 +5,7 @@ include_once(__DIR__ . '/../../controller/Controller_user.php');
 require_once __DIR__ . '/google-config.php';
 require_once __DIR__ . '/facebook-config.php';
 
-$googleLoginUrl = $client->createAuthUrl();
+$googleLoginUrl = ($client instanceof Google_Client) ? $client->createAuthUrl() : null;
 // $fb_login_url is already provided by facebook-config.php
 
 $error_message = '';
@@ -182,12 +182,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
   </div>
 
   <div class="social-btns">
-    <a href="<?php echo htmlspecialchars($googleLoginUrl); ?>" class="social-btn" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; justify-content: center;">
-      <span class="social-icon">G</span> Google
-    </a>
-    <a href="<?php echo htmlspecialchars($fb_login_url); ?>" class="social-btn" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; justify-content: center;">
-      <span class="social-icon" style="color:#1877F2; font-weight:bold;">f</span> Facebook
-    </a>
+    <?php if (!empty($googleLoginUrl)): ?>
+      <a href="<?php echo htmlspecialchars($googleLoginUrl); ?>" class="social-btn" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; justify-content: center;">
+        <span class="social-icon">G</span> Google
+      </a>
+    <?php else: ?>
+      <button type="button" class="social-btn" disabled title="Google sign-in is not configured" style="opacity: 0.6; cursor: not-allowed;">
+        <span class="social-icon">G</span> Google
+      </button>
+    <?php endif; ?>
+    <?php if (!empty($fb_login_url)): ?>
+      <a href="<?php echo htmlspecialchars($fb_login_url); ?>" class="social-btn" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; justify-content: center;">
+        <span class="social-icon" style="color:#1877F2; font-weight:bold;">f</span> Facebook
+      </a>
+    <?php else: ?>
+      <button type="button" class="social-btn" disabled title="Facebook sign-in is not configured" style="opacity: 0.6; cursor: not-allowed;">
+        <span class="social-icon" style="color:#1877F2; font-weight:bold;">f</span> Facebook
+      </button>
+    <?php endif; ?>
     <button type="button" class="social-btn" onclick="document.getElementById('wa-modal').style.display='flex'">
       <span class="social-icon" style="color:#25D366;">💬</span> WhatsApp
     </button>

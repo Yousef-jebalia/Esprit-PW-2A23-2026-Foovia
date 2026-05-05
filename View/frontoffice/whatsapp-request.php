@@ -23,7 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     session_write_close();
 
     // --- REAL WHATSAPP SENDING VIA TWILIO ---
-    $env = parse_ini_file(__DIR__ . '/../../.env');
+    $envFile = __DIR__ . '/../../.env';
+    $env = is_file($envFile) ? parse_ini_file($envFile) : [];
+    if (!is_array($env)) {
+        $env = [];
+    }
     $sid = $env['TWILIO_ACCOUNT_SID'] ?? '';
     $token = $env['TWILIO_AUTH_TOKEN'] ?? '';
     $twilio_number = $env['TWILIO_WHATSAPP_NUMBER'] ?? ''; // Format: "whatsapp:+14155238886"

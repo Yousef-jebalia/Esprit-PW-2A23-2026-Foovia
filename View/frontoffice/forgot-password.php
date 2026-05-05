@@ -36,9 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                     $mail->SMTPAuth   = true;
                     
                     // Load credentials from .env
-                    $env = parse_ini_file(__DIR__ . '/../../.env');
-                    $mail->Username   = $env['SMTP_USERNAME']; 
-                    $mail->Password   = $env['SMTP_PASSWORD']; 
+                  $envFile = __DIR__ . '/../../.env';
+                  $env = is_file($envFile) ? parse_ini_file($envFile) : [];
+                  if (!is_array($env)) {
+                    $env = [];
+                  }
+                  $mailUsername = $env['SMTP_USERNAME'] ?? '';
+                  $mailPassword = $env['SMTP_PASSWORD'] ?? '';
+
+                  if ($mailUsername === '' || $mailPassword === '') {
+                    throw new Exception('SMTP credentials are not configured in .env.');
+                  }
+
+                  $mail->Username   = $mailUsername; 
+                  $mail->Password   = $mailPassword; 
                     
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
