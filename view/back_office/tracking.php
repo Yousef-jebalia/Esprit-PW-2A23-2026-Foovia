@@ -2,22 +2,45 @@
 session_start();
 require_once '../../controller/tracking/ObjectifLongTerme_Controller.php';
 require_once '../../controller/tracking/ObjectifHebdomadaire_Controller.php';
+require_once '../../model/config.php';
 
 $longTermController = new ObjectifLongTerme_Controller();
 $weeklyController = new ObjectifHebdomadaire_Controller();
 
-$currentUserId = (int) ($_SESSION['user_id'] ?? 1);
-
 $allGoals = $longTermController->list_objectifs();
-$currentUserGoal = null;
+
+// Get all unique user IDs from goals
+$allUserIds = [];
+$goalsByUser = [];
 foreach ($allGoals as $goal) {
-    if ((int) ($goal['id_user'] ?? 0) === $currentUserId) {
-        $currentUserGoal = $goal;
-        break;
+    $userId = (int) ($goal['id_user'] ?? 0);
+    if ($userId > 0 && !in_array($userId, $allUserIds, true)) {
+        $allUserIds[] = $userId;
+    }
+    if (!isset($goalsByUser[$userId])) {
+        $goalsByUser[$userId] = $goal;
     }
 }
 
-$weeklyRows = $weeklyController->list_objectifs_by_user($currentUserId);
+// Get all users from database
+$db = config::getConnexion();
+$allUsers = [];
+try {
+    $query = $db->query("SELECT DISTINCT id_user FROM objectiflongterme ORDER BY id_user ASC");
+    $rows = $query->fetchAll();
+    foreach ($rows as $row) {
+        $userId = (int) ($row['id_user'] ?? 0);
+        if ($userId > 0) {
+            $allUsers[$userId] = [
+                'id_user' => $userId,
+                'goal' => $goalsByUser[$userId] ?? null,
+                'weeklyRows' => $weeklyController->list_objectifs_by_user($userId)
+            ];
+        }
+    }
+} catch (Exception $e) {
+    $allUsers = [];
+}
 
 function h($value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -133,7 +156,7 @@ function h($value): string {
                         </ul>
                         <ul class="nav-right">
                             <li>
-                                <a href="../front_office/foovia.html" class="nav-btn nav-frontoffice waves-effect waves-light" title="Open Front Office">
+                                <a href="../back_office/tracking.php" class="nav-btn nav-frontoffice waves-effect waves-light" title="Open Front Office">
                                     <i class="fa fa-home" aria-hidden="true"></i>&nbsp;Front Office
                                 </a>
                             </li>
@@ -224,7 +247,7 @@ function h($value): string {
                                                         <h5>User Information</h5>
                                                     </div>
                                                     <div class="card-block">
-                                                        <h6 class="m-b-0">User ID: <strong><?php echo h($currentUserId); ?></strong></h6>
+                                                        <h6 class="m-b-0">All Users Tracking Data</h6>
                                                     </div>
                                                 </div>
                                             </div>
@@ -232,82 +255,119 @@ function h($value): string {
                                             <div class="col-xl-12">
                                                 <div class="card table-card">
                                                     <div class="card-header">
-                                                        <h5>Long-Term Goal Details</h5>
+                                                        <h5>All Users Tracking Summary</h5>
                                                     </div>
                                                     <div class="card-block">
-                                                        <?php if ($currentUserGoal === null): ?>
-                                                            <p class="tracking-empty m-b-0">No long-term goal found for this user.</p>
-                                                        <?php else: ?>
-                                                            <div class="table-responsive">
-                                                                <table class="table table-bordered table-striped mb-0">
-                                                                    <tbody>
-                                                                        <tr><th>ID Goal</th><td><?php echo h($currentUserGoal['id_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>ID User</th><td><?php echo h($currentUserGoal['id_user'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Type</th><td><?php echo h($currentUserGoal['type_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Initial Value</th><td><?php echo h($currentUserGoal['val_init_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Target Value</th><td><?php echo h($currentUserGoal['val_cible_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Start Date</th><td><?php echo h($currentUserGoal['date_deb_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>End Date</th><td><?php echo h($currentUserGoal['date_fin_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Status</th><td><?php echo h($currentUserGoal['status_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Reminder Frequency</th><td><?php echo h($currentUserGoal['frequency_rappel_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Sport Consistency</th><td><?php echo h($currentUserGoal['consistancy_sport_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Diet Consistency</th><td><?php echo h($currentUserGoal['consistency_alim_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Calories Target</th><td><?php echo h($currentUserGoal['obj_cal_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Fat Target</th><td><?php echo h($currentUserGoal['obj_fat_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Protein Target</th><td><?php echo h($currentUserGoal['obj_prot_obj'] ?? ''); ?></td></tr>
-                                                                        <tr><th>Carbs Target</th><td><?php echo h($currentUserGoal['obj_carb_obj'] ?? ''); ?></td></tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-xl-12">
-                                                <div class="card table-card">
-                                                    <div class="card-header">
-                                                        <h5>Weekly Tracking Entries</h5>
-                                                    </div>
-                                                    <div class="card-block">
-                                                        <?php if (empty($weeklyRows)): ?>
-                                                            <p class="tracking-empty m-b-0">No weekly tracking entries found for this user.</p>
+                                                        <?php if (empty($allUsers)): ?>
+                                                            <p class="tracking-empty m-b-0">No users with tracking data found.</p>
                                                         <?php else: ?>
                                                             <div class="table-responsive">
                                                                 <table class="table table-hover table-bordered mb-0">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>ID Suiv</th>
-                                                                            <th>ID Goal</th>
-                                                                            <th>Date</th>
-                                                                            <th>Weight</th>
-                                                                            <th>Calories</th>
-                                                                            <th>Fat</th>
-                                                                            <th>Protein</th>
-                                                                            <th>Carbs</th>
-                                                                            <th>Status</th>
-                                                                            <th>Water Glasses</th>
-                                                                            <th>Sleep Hours</th>
-                                                                            <th>Steps</th>
-                                                                            <th>Note</th>
+                                                                            <th>User ID</th>
+                                                                            <th>Goal Type</th>
+                                                                            <th>Initial Value</th>
+                                                                            <th>Target Value</th>
+                                                                            <th>Goal Status</th>
+                                                                            <th>Start Date</th>
+                                                                            <th>End Date</th>
+                                                                            <th>Weekly Entries</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        <?php foreach ($weeklyRows as $row): ?>
-                                                                            <tr>
-                                                                                <td><?php echo h($row['id_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['id_obj'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['date_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['poids_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['val_cal_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['val_fat_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['val_prot_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['val_carb_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['status_obj_quot_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['nb_verre_eau_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['nb_h_sommeil_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['nb_pas_suiv'] ?? ''); ?></td>
-                                                                                <td><?php echo h($row['note_suiv'] ?? ''); ?></td>
+                                                                        <?php foreach ($allUsers as $userId => $userData): ?>
+                                                                            <tr style="cursor: pointer;" onclick="toggleUserDetails(<?php echo (int) $userId; ?>)">
+                                                                                <td><strong><?php echo h($userId); ?></strong></td>
+                                                                                <td><?php echo $userData['goal'] ? h($userData['goal']['type_obj'] ?? '—') : '—'; ?></td>
+                                                                                <td><?php echo $userData['goal'] ? h($userData['goal']['val_init_obj'] ?? '—') : '—'; ?></td>
+                                                                                <td><?php echo $userData['goal'] ? h($userData['goal']['val_cible_obj'] ?? '—') : '—'; ?></td>
+                                                                                <td><?php echo $userData['goal'] ? h($userData['goal']['status_obj'] ?? '—') : '—'; ?></td>
+                                                                                <td><?php echo $userData['goal'] ? h($userData['goal']['date_deb_obj'] ?? '—') : '—'; ?></td>
+                                                                                <td><?php echo $userData['goal'] ? h($userData['goal']['date_fin_obj'] ?? '—') : '—'; ?></td>
+                                                                                <td><?php echo count($userData['weeklyRows']); ?></td>
+                                                                            </tr>
+                                                                            <tr id="details-<?php echo (int) $userId; ?>" style="display: none;">
+                                                                                <td colspan="8">
+                                                                                    <div style="padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
+                                                                                        <h6>User ID <?php echo h($userId); ?> - Detailed Information</h6>
+
+                                                                                        <?php if ($userData['goal']): ?>
+                                                                                            <div style="margin-bottom: 20px;">
+                                                                                                <h6 style="margin-bottom: 10px;">Long-Term Goal Details:</h6>
+                                                                                                <div class="table-responsive">
+                                                                                                    <table class="table table-bordered table-sm mb-0">
+                                                                                                        <tbody>
+                                                                                                            <tr><th>ID Goal</th><td><?php echo h($userData['goal']['id_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>ID User</th><td><?php echo h($userData['goal']['id_user'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Type</th><td><?php echo h($userData['goal']['type_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Initial Value</th><td><?php echo h($userData['goal']['val_init_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Target Value</th><td><?php echo h($userData['goal']['val_cible_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Start Date</th><td><?php echo h($userData['goal']['date_deb_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>End Date</th><td><?php echo h($userData['goal']['date_fin_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Status</th><td><?php echo h($userData['goal']['status_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Reminder Frequency</th><td><?php echo h($userData['goal']['frequency_rappel_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Sport Consistency</th><td><?php echo h($userData['goal']['consistancy_sport_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Diet Consistency</th><td><?php echo h($userData['goal']['consistency_alim_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Calories Target</th><td><?php echo h($userData['goal']['obj_cal_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Fat Target</th><td><?php echo h($userData['goal']['obj_fat_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Protein Target</th><td><?php echo h($userData['goal']['obj_prot_obj'] ?? ''); ?></td></tr>
+                                                                                                            <tr><th>Carbs Target</th><td><?php echo h($userData['goal']['obj_carb_obj'] ?? ''); ?></td></tr>
+                                                                                                        </tbody>
+                                                                                                    </table>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        <?php else: ?>
+                                                                                            <p style="color: #666;">No long-term goal found for this user.</p>
+                                                                                        <?php endif; ?>
+
+                                                                                        <?php if (!empty($userData['weeklyRows'])): ?>
+                                                                                            <div>
+                                                                                                <h6 style="margin-bottom: 10px;">Weekly Tracking Entries (<?php echo count($userData['weeklyRows']); ?>):</h6>
+                                                                                                <div class="table-responsive">
+                                                                                                    <table class="table table-hover table-bordered table-sm mb-0">
+                                                                                                        <thead>
+                                                                                                            <tr>
+                                                                                                                <th>ID Suiv</th>
+                                                                                                                <th>Date</th>
+                                                                                                                <th>Weight</th>
+                                                                                                                <th>Calories</th>
+                                                                                                                <th>Fat</th>
+                                                                                                                <th>Protein</th>
+                                                                                                                <th>Carbs</th>
+                                                                                                                <th>Status</th>
+                                                                                                                <th>Water</th>
+                                                                                                                <th>Sleep</th>
+                                                                                                                <th>Steps</th>
+                                                                                                                <th>Note</th>
+                                                                                                            </tr>
+                                                                                                        </thead>
+                                                                                                        <tbody>
+                                                                                                            <?php foreach ($userData['weeklyRows'] as $row): ?>
+                                                                                                                <tr>
+                                                                                                                    <td><?php echo h($row['id_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['date_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['poids_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['val_cal_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['val_fat_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['val_prot_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['val_carb_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['status_obj_quot_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['nb_verre_eau_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['nb_h_sommeil_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['nb_pas_suiv'] ?? ''); ?></td>
+                                                                                                                    <td><?php echo h($row['note_suiv'] ?? ''); ?></td>
+                                                                                                                </tr>
+                                                                                                            <?php endforeach; ?>
+                                                                                                        </tbody>
+                                                                                                    </table>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        <?php else: ?>
+                                                                                            <p style="color: #666; margin-top: 15px;">No weekly tracking entries found for this user.</p>
+                                                                                        <?php endif; ?>
+                                                                                    </div>
+                                                                                </td>
                                                                             </tr>
                                                                         <?php endforeach; ?>
                                                                     </tbody>
@@ -339,5 +399,17 @@ function h($value): string {
     <script src="assets/js/pcoded.min.js"></script>
     <script src="assets/js/vertical/vertical-layout.min.js"></script>
     <script type="text/javascript" src="assets/js/script.js"></script>
+    <script>
+        function toggleUserDetails(userId) {
+            const detailsRow = document.getElementById('details-' + userId);
+            if (detailsRow) {
+                if (detailsRow.style.display === 'none') {
+                    detailsRow.style.display = 'table-row';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+            }
+        }
+    </script>
 </body>
 </html>

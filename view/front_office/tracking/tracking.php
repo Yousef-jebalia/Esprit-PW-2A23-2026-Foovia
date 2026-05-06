@@ -305,14 +305,28 @@ $weekly_form_objectif = $weekly_today_objectif ?: [
   'nb_pas_suiv' => '',
   'id_user' => $current_user_id,
 ];
-$weekly_weight_default_value = trim((string) ($weekly_form_objectif['poids_suiv'] ?? ''));
+$weekly_has_record = !empty($weekly_today_objectif);
+
+$weekly_history_rows = !empty($current_user_goal)
+  ? $hebdo_controller->list_objectifs_by_user($current_user_id)
+  : [];
+
+$weekly_weight_default_value = '';
+if (!empty($weekly_history_rows)) {
+  $last_logged_weight = (string) ($weekly_history_rows[0]['poids_suiv'] ?? '');
+  if ($last_logged_weight !== '' && (float) $last_logged_weight > 0) {
+    $weekly_weight_default_value = $last_logged_weight;
+  }
+}
+if ($weekly_weight_default_value === '') {
+  $weekly_weight_default_value = trim((string) ($weekly_form_objectif['poids_suiv'] ?? ''));
+}
 if ($weekly_weight_default_value === '') {
   $weekly_weight_default_value = trim((string) ($long_term_form['val_init_obj'] ?? ''));
 }
 if ($weekly_weight_default_value === '') {
   $weekly_weight_default_value = '70';
 }
-$weekly_has_record = !empty($weekly_today_objectif);
 
 $weekly_chart_rows = $hebdo_controller->get_recent_objectifs_by_user($current_user_id, 21);
 $weekly_chart_by_date = [];
@@ -366,10 +380,6 @@ $weekly_weight_evolution_json = json_encode($weekly_weight_evolution, JSON_UNESC
 if ($weekly_weight_evolution_json === false) {
   $weekly_weight_evolution_json = '[]';
 }
-
-$weekly_history_rows = !empty($current_user_goal)
-  ? $hebdo_controller->list_objectifs_by_user($current_user_id)
-  : [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_save_objective'])) {
   if (empty($current_user_goal)) {
@@ -1071,6 +1081,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           <input type="hidden" id="survey-water" name="nb_verre_eau_suiv" value="<?php echo htmlspecialchars((string) ($weekly_form_objectif['nb_verre_eau_suiv'] ?? '')); ?>">
           <div class="weekly-water-glasses" id="weekly-water-glasses" data-target="8"></div>
           <div class="weekly-water-summary"><span id="weekly-water-count">0</span> / 8 glasses</div>
+        </div>
+        <div class="weekly-survey-field weekly-sport-field" id="sport-log-card">
+          <p class="sec-label">Sport Activity</p>
+          <h2 class="card-title"><span class="emoji">⚽</span> Log exercice</h2>
+
+          <div id="sport-log-summary" class="weekly-sport-summary" style="display:none;">
+            <div class="ex-bubble">
+              <div class="ex-bubble-val" id="sport-total-sessions">0</div>
+              <div class="ex-bubble-lbl">Sessions</div>
+            </div>
+            <div class="ex-bubble">
+              <div class="ex-bubble-val" id="sport-total-min">0</div>
+              <div class="ex-bubble-lbl">Minutes</div>
+            </div>
+            <div class="ex-bubble">
+              <div class="ex-bubble-val" id="sport-total-kcal">0</div>
+              <div class="ex-bubble-lbl">Kcal burned</div>
+            </div>
+          </div>
+
+          <div id="sport-log-entries" class="weekly-sport-entries">
+            <p class="weekly-sport-empty">No sport sessions logged yet</p>
+          </div>
         </div>
         <div class="weekly-tracker-overview">
           <div class="weekly-tracker-row">
@@ -2134,6 +2167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyWeightCount = document.getElementById('weekly-weight-count');
     const weeklyWeightLog = document.getElementById('weekly-weight-log');
     const weeklyWeightLogEmpty = document.getElementById('weekly-weight-log-empty');
+    const weeklySportLogCard = document.getElementById('sport-log-card');
+    const weeklySportLogSummary = document.getElementById('sport-log-summary');
+    const weeklySportLogEntries = document.getElementById('sport-log-entries');
     const weeklyMealCalInput = document.getElementById('weekly-meal-cal');
     const weeklyMealProtInput = document.getElementById('weekly-meal-prot');
     const weeklyMealCarbInput = document.getElementById('weekly-meal-carb');
@@ -2157,6 +2193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     const weeklyMealStorageUserId = <?php echo (int) $current_user_id; ?>;
     const weeklyMacroMaxValue = 9999;
     const historyPageSize = 7;
+    let weeklySportEntries = [];
 
     const renderHistoryPagination = () => {
       if (!historyList) {
@@ -2507,6 +2544,130 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       });
     };
 
+    const renderSportLog = () => {
+      if (!weeklySportLogEntries || !weeklySportLogSummary) {
+        return;
+      }
+
+      if (!weeklySportEntries.length) {
+        weeklySportLogSummary.style.display = 'none';
+        weeklySportLogEntries.innerHTML = '<p class="weekly-sport-empty">No sport sessions logged yet</p>';
+        return;
+      }
+
+      weeklySportLogSummary.style.display = 'grid';
+      const totalMin = weeklySportEntries.reduce((sum, entry) => sum + entry.duration, 0);
+      const totalKcal = weeklySportEntries.reduce((sum, entry) => sum + entry.kcal, 0);
+
+      const sportTotalSessions = document.getElementById('sport-total-sessions');
+      const sportTotalMin = document.getElementById('sport-total-min');
+      const sportTotalKcal = document.getElementById('sport-total-kcal');
+
+      if (sportTotalSessions) {
+        sportTotalSessions.textContent = String(weeklySportEntries.length);
+      }
+      if (sportTotalMin) {
+        sportTotalMin.textContent = String(totalMin);
+      }
+      if (sportTotalKcal) {
+        sportTotalKcal.textContent = String(totalKcal);
+      }
+
+      weeklySportLogEntries.innerHTML = weeklySportEntries.map((entry, index) => {
+        const meta = [];
+        if (entry.time) {
+          meta.push('🕐 ' + entry.time);
+        }
+        if (entry.duration) {
+          meta.push(entry.duration + ' min');
+        }
+        if (entry.intensity) {
+          meta.push(entry.intensity.charAt(0).toUpperCase() + entry.intensity.slice(1));
+        }
+
+        return '<div class="sport-entry">' +
+          '<div class="sport-entry-dot"></div>' +
+          '<div class="sport-entry-info">' +
+            '<div class="sport-entry-name">⚽ ' + entry.name + '</div>' +
+            (meta.length ? '<div class="sport-entry-meta">' + meta.join(' · ') + '</div>' : '') +
+          '</div>' +
+          (entry.kcal ? '<div class="sport-entry-kcal">' + entry.kcal + ' kcal</div>' : '') +
+          '<button type="button" class="sport-entry-del" data-index="' + index + '">&#10005;</button>' +
+        '</div>';
+      }).join('');
+
+      weeklySportLogEntries.querySelectorAll('.sport-entry-del').forEach((button) => {
+        button.addEventListener('click', () => {
+          const index = parseInt(button.getAttribute('data-index') || '-1', 10);
+          if (index < 0 || index >= weeklySportEntries.length) {
+            return;
+          }
+
+          weeklySportEntries.splice(index, 1);
+          renderSportLog();
+        });
+      });
+
+      if (weeklySportLogCard) {
+        weeklySportLogCard.style.transition = 'box-shadow .3s';
+        weeklySportLogCard.style.boxShadow = '0 0 0 3px var(--green)';
+        window.setTimeout(() => {
+          weeklySportLogCard.style.boxShadow = '';
+        }, 800);
+      }
+    };
+
+    const addSportExercise = () => {
+      const nameInput = document.getElementById('ex-name');
+      const durationInput = document.getElementById('ex-duration');
+      const kcalInput = document.getElementById('ex-kcal');
+      const intensityInput = document.getElementById('ex-intensity');
+
+      if (!nameInput || !durationInput || !kcalInput || !intensityInput) {
+        return;
+      }
+
+      const name = nameInput.value.trim();
+      const duration = parseInt(durationInput.value, 10) || 0;
+      const kcal = parseInt(kcalInput.value, 10) || 0;
+      const intensity = intensityInput.value;
+
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+
+      weeklySportEntries.unshift({
+        name: name,
+        duration: duration,
+        kcal: kcal,
+        intensity: intensity,
+        time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      });
+
+      ['ex-name', 'ex-duration', 'ex-kcal'].forEach((fieldId) => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.value = '';
+        }
+      });
+
+      if (intensityInput) {
+        intensityInput.value = '';
+      }
+
+      renderSportLog();
+    };
+
+    const deleteSportExercise = (index) => {
+      if (index < 0 || index >= weeklySportEntries.length) {
+        return;
+      }
+
+      weeklySportEntries.splice(index, 1);
+      renderSportLog();
+    };
+
     const addWeeklyMealEntry = () => {
       if (!weeklyMealCalInput || !weeklyMealProtInput || !weeklyMealCarbInput || !weeklyMealFatInput) {
         return;
@@ -2790,6 +2951,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     renderWeeklyWaterSelector();
     renderWeeklyMacroOverview();
     renderWeeklyTrackerOverview();
+    renderSportLog();
     updateWeeklyStatusBadge();
     updateWeeklyNotesCharCount();
     syncWeeklyWeightSlider();
@@ -2939,7 +3101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklySwipeLayout && !hasLongTermGoal) {
       weeklySwipeLayout.addEventListener('click', (event) => {
-        const interactiveTarget = event.target.closest('button, input, select, textarea, label, .weekly-macro-overview, .weekly-weight-card, .weekly-meal-card, .weekly-survey-macro-grid, .weekly-water-field, .weekly-tracker-overview, .weekly-daily-log');
+        const interactiveTarget = event.target.closest('button, input, select, textarea, label, .weekly-macro-overview, .weekly-weight-card, .weekly-meal-card, .weekly-survey-macro-grid, .weekly-water-field, .weekly-sport-field, .weekly-tracker-overview, .weekly-daily-log');
         if (interactiveTarget) {
           showWeeklyGoalRequiredMessage();
         }
