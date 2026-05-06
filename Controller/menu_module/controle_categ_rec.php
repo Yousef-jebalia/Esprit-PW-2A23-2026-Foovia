@@ -1,6 +1,6 @@
 <?php
-include_once(__DIR__ . '/../../model/config.php');
-include_once(__DIR__ . '/../../model/menu_module/category_rec.php');
+include_once(__DIR__ . '/../../Model/config.php');
+include_once(__DIR__ . '/../../Model/menu_module/category_rec.php');
 class controle_categ_rec{
     private function get_next_categ_rec_id($db){
         $sql="SELECT COALESCE(MAX(id_categ_rec),0) + 1 AS next_id FROM categorie_recipe";

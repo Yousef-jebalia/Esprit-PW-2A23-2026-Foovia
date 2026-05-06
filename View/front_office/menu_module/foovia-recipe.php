@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../../controle/menu_module/controle_Menu.php';
-require_once __DIR__ . '/../../../controle/menu_module/controle_categ_rec.php';
+require_once __DIR__ . '/../../../Controller/menu_module/controle_Menu.php';
+require_once __DIR__ . '/../../../Controller/menu_module/controle_categ_rec.php';
 
 $controller = new Controller_menu();
 $categoryController = new controle_categ_rec();
@@ -16,7 +16,7 @@ function foovia_normalize_image_path($path, $fallback = 'images/product-thumb-1.
   }
 
   if (!preg_match('~^(https?://|/|\./|\.\./)~i', $path)) {
-    return '../../Back Office/' . ltrim($path, '/');
+    return '../../back_office/' . ltrim($path, '/');
   }
 
   return $path;

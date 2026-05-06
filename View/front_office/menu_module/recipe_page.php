@@ -1,8 +1,8 @@
 ﻿<?php
-require_once __DIR__ . '/../../../controle/menu_module/controle_Menu.php';
+require_once __DIR__ . '/../../../Controller/menu_module/controle_Menu.php';
 
-require_once __DIR__ . '/../../../controle/menu_module/controle_categ_rec.php';
-require_once __DIR__ . '/../../../controle/menu_module/controle_ingrediant.php';
+require_once __DIR__ . '/../../../Controller/menu_module/controle_categ_rec.php';
+require_once __DIR__ . '/../../../Controller/menu_module/controle_ingrediant.php';
 
 $controller = new Controller_menu();
 $recipes = $controller->list_recipe();
@@ -58,7 +58,7 @@ if (!function_exists('foovia_normalize_image_path')) {
     }
 
     if (!preg_match('~^(https?://|/|\./|\.\./)~i', $path)) {
-      return '../../Back Office/' . ltrim($path, '/');
+      return '../../back_office/' . ltrim($path, '/');
     }
 
     return $path;
@@ -243,7 +243,7 @@ ksort($categories);
       </ul>
 
       <div class="nav-actions">
-        <a href="../../Back Office/index.html" class="nav-btn nav-backoffice">Backoffice</a>
+        <a href="../../back_office/index.html" class="nav-btn nav-backoffice">Backoffice</a>
         <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
           <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="4"></circle>
@@ -253,8 +253,8 @@ ksort($categories);
             <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 1 0 11.5 11.5z"></path>
           </svg>
         </button>
-        <a href="../../Back Office/auth-normal-sign-in.html" class="nav-btn nav-signin">Sign In</a>
-        <a href="../../Back Office/auth-sign-up.html" class="nav-btn nav-signup">Sign Up</a>
+        <a href="../../back_office/auth-normal-sign-in.html" class="nav-btn nav-signin">Sign In</a>
+        <a href="../../back_office/auth-sign-up.html" class="nav-btn nav-signup">Sign Up</a>
       </div>
     </nav>
     
@@ -465,7 +465,7 @@ ksort($categories);
                     $imagePath = isset($recipe['img_rec']) ? $recipe['img_rec'] : '';
                     $imagePath = str_replace('\\', '/', $imagePath);
                     if (!empty($imagePath) && !preg_match('~^(https?://|/|\./|\.\./)~i', $imagePath)) {
-                      $imagePath = '../../Back Office/' . ltrim($imagePath, '/');
+                      $imagePath = '../../back_office/' . ltrim($imagePath, '/');
                     }
                   if (empty($imagePath)) {
                       $imagePath = 'images/product-thumb-1.png';

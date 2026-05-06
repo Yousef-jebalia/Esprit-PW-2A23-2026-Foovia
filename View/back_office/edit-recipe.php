@@ -1,7 +1,7 @@
 <?php
-include '../../controle/menu_module/controle_Menu.php';
-include '../../controle/menu_module/controle_categ_rec.php';
-include '../../controle/menu_module/controle_ingrediant.php';
+include '../../Controller/menu_module/controle_Menu.php';
+include '../../Controller/menu_module/controle_categ_rec.php';
+include '../../Controller/menu_module/controle_ingrediant.php';
 
 $controller = new Controller_menu();
 $categoryController = new controle_categ_rec();

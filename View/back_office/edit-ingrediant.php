@@ -1,5 +1,5 @@
 <?php
-include '../../controle/menu_module/controle_ingrediant.php';
+include '../../Controller/menu_module/controle_ingrediant.php';
 
 $controller = new Controller_ingrediant();
 $error = "";
