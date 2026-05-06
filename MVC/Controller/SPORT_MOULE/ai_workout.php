@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../model/config.php';
+require_once __DIR__ . '/../../Model/config.php';
 
 function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') {
     $keyFilePath = 'C:\\API keys\\foovia_api_keys.txt';
