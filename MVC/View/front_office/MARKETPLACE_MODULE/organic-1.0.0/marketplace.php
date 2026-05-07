@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../../../Model/MARKETPLACE_MODULE/url_helper.php';
 $appBaseUrl = foovia_app_base_url();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ' . foovia_url('MVC/View/front_office/foovia-signin.php?redirect=marketplace'));
+    header('Location: ../../foovia-signin.php?redirect=marketplace');
     exit;
 }
 

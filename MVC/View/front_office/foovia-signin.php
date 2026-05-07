@@ -2,7 +2,6 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 include_once(__DIR__ . '/../../Model/config.php');
 include_once(__DIR__ . '/../../Controller/Controller_user.php');
-require_once __DIR__ . '/../../Model/MARKETPLACE_MODULE/url_helper.php';
 require_once __DIR__ . '/google-config.php';
 require_once __DIR__ . '/facebook-config.php';
 
@@ -13,7 +12,7 @@ $error_message = '';
 $success_message = '';
 $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '';
 $redirectUrl = match ($redirect) {
-    'marketplace' => foovia_url('MVC/View/front_office/MARKETPLACE_MODULE/organic-1.0.0/marketplace.php'),
+    'marketplace' => 'MARKETPLACE_MODULE/organic-1.0.0/marketplace.php',
     'support' => 'SUPPORT_MODULE/support_rec_page.php',
     'support_create' => 'SUPPORT_MODULE/add_rec_page.php',
     default => 'foovia.php',
