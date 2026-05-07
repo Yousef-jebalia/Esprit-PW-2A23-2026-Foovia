@@ -37,7 +37,7 @@ $user_name = $_SESSION['user_name'] ?? 'User';
 
 <!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">
+  <a href="../foovia.php" class="nav-logo">
     <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
     FOOVIA
   </a>

@@ -670,7 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
 
 <nav>
-  <a href="foovia.html" class="nav-logo">
+  <a href="../foovia.php" class="nav-logo">
     <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
     FOOVIA
   </a>

@@ -21,12 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const serviceWorkerVersion = 'foovia-sw-v2';
   let serviceWorkerRegistration = null;
 
-  const projectBase = (() => {
-    const marker = '/View/';
-    const path = window.location.pathname || '/';
-    const markerIndex = path.indexOf(marker);
-    return markerIndex >= 0 ? path.slice(0, markerIndex + 1) : '/';
-  })();
+  const serviceWorkerUrl = '/integration%20foovia/MVC/View/front_office/MARKETPLACE_MODULE/foovia-sw.js';
 
   const registerNotificationWorker = async () => {
     if (!('serviceWorker' in navigator)) {
@@ -38,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      serviceWorkerRegistration = await navigator.serviceWorker.register(`${projectBase}foovia-sw.js?v=${serviceWorkerVersion}`);
+      serviceWorkerRegistration = await navigator.serviceWorker.register(`${serviceWorkerUrl}?v=${serviceWorkerVersion}`);
       return serviceWorkerRegistration;
     } catch (error) {
       return null;
