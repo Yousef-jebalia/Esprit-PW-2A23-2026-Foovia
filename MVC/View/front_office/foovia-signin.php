@@ -11,9 +11,12 @@ $googleLoginUrl = ($client instanceof Google_Client) ? $client->createAuthUrl() 
 $error_message = '';
 $success_message = '';
 $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '';
-$redirectUrl = $redirect === 'marketplace'
-    ? '/integration%20foovia/MVC/View/front_office/MARKETPLACE_MODULE/organic-1.0.0/marketplace.php'
-    : 'foovia.php';
+$redirectUrl = match ($redirect) {
+    'marketplace' => '/integration%20foovia/MVC/View/front_office/MARKETPLACE_MODULE/organic-1.0.0/marketplace.php',
+    'support' => 'SUPPORT_MODULE/support_rec_page.php',
+    'support_create' => 'SUPPORT_MODULE/add_rec_page.php',
+    default => 'foovia.php',
+};
 
 $controller = new Controller_user();
 $controller->release_expired_bans();
@@ -45,13 +48,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') == 'POST' && isset($_POST['signin_subm
                 if ($password === $user['password_user']) {
                   $controller->increment_user_login_count((int) $user['id_user']);
                   $controller->reset_failed_login_attempts((int) $user['id_user']);
+                  session_regenerate_id(true);
 
                   // Password is correct
-                  $_SESSION['user_id'] = $user['id_user'];
-                  $_SESSION['user_name'] = $user['name_user'];
-                  $_SESSION['user_email'] = $user['email_user'];
-                  $success_message = 'Connected successfully! Redirecting...';
-                  header('refresh:2;url=' . $redirectUrl);
+                  $_SESSION['user_id'] = (int) $user['id_user'];
+                  $_SESSION['user_name'] = (string) $user['name_user'];
+                  $_SESSION['user_email'] = (string) $user['email_user'];
+                  
+                  // Redirect immediately instead of using refresh to preserve session
+                  header('Location: ' . $redirectUrl, true, 302);
                   exit;
                 } else {
                   $attemptState = $controller->register_failed_login_attempt((int) $user['id_user']);

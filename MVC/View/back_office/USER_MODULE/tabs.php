@@ -365,7 +365,7 @@ if (!empty($users)) {
                                     </a>
                                     <ul class="pcoded-submenu">
                                         <li class=" ">
-                                            <a href="hot_path_te3ek.php" class="waves-effect waves-dark">
+                                            <a href="../SUPPORT_MODULE/support_admin.php" class="waves-effect waves-dark">
                                                 <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
                                                 <span class="pcoded-mtext">SUPPORT</span>
                                                 <span class="pcoded-mcaret"></span>

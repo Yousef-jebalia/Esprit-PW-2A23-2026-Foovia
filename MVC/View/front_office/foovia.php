@@ -26,7 +26,7 @@ $user_name = $_SESSION['user_name'] ?? '';
     <li><a href="#features">Features</a></li>
     <li><a href="#how">How it works</a></li>
     <li><a href="marketplace-gateway.php">Marketplace</a></li>
-    <li><a href="#community">Community</a></li>
+    <li><a href="SUPPORT_MODULE/support_rec_page.php">Support & Community</a></li>
   </ul>
   <div class="nav-actions">
     <a href="foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
