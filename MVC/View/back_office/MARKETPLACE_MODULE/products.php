@@ -31,6 +31,13 @@ $products = $marchandiseModel->fetchAllWithStores();
 $summary = $marchandiseModel->fetchSummary();
 $reservationsByProduct = $marchandiseModel->fetchReservationsByProduct();
 $status = (string) ($_GET['status'] ?? '');
+$productsPerPage = 8;
+$currentPage = max(1, (int) ($_GET['page'] ?? 1));
+$totalProducts = count($products);
+$totalPages = max(1, (int) ceil($totalProducts / $productsPerPage));
+$currentPage = min($currentPage, $totalPages);
+$pageOffset = ($currentPage - 1) * $productsPerPage;
+$paginatedProducts = array_slice($products, $pageOffset, $productsPerPage);
 $editId = (int) ($_GET['edit'] ?? 0);
 $editingProduct = $editId > 0 ? $marchandiseModel->findById($editId) : null;
 $isEditing = $editingProduct !== null;
@@ -41,6 +48,7 @@ $selectedCategoryIds = $isEditing && !empty($editingProduct['category_ids'])
     ? array_map('intval', explode(',', (string) $editingProduct['category_ids']))
     : [];
 $formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((float) $price, 3, '.', ''), '0'), '.');
+$buildProductPageUrl = static fn (int $page): string => 'products.php?page=' . max(1, $page) . '#products-table';
 
 $message = match ($status) {
     'success' => ['class' => 'alert-success', 'text' => 'Product added successfully. It is now available in the front office.'],
@@ -70,7 +78,7 @@ $message = match ($status) {
     <link rel="stylesheet" type="text/css" href="../USER_MODULE/assets/icon/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="../USER_MODULE/assets/css/jquery.mCustomScrollbar.css">
     <link rel="stylesheet" type="text/css" href="../USER_MODULE/assets/css/style.css">
-    <link rel="stylesheet" type="text/css" href="../../front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=admin-integrated-1">
+    <link rel="stylesheet" type="text/css" href="../../front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=admin-pagination-3">
 </head>
 <body>
     <div class="theme-loader">
@@ -343,7 +351,7 @@ $message = match ($status) {
 
                                                             <button type="submit" class="btn btn-primary waves-effect waves-light"><?= $isEditing ? 'Update Product' : 'Save Product' ?></button>
                                                             <?php if ($isEditing): ?>
-                                                                <a href="products.php" class="btn btn-default waves-effect m-l-10">Cancel Edit</a>
+                                                                <a href="<?= $buildProductPageUrl($currentPage) ?>" class="btn btn-default waves-effect m-l-10">Cancel Edit</a>
                                                             <?php endif; ?>
                                                         </form>
                                                     </div>
@@ -373,10 +381,10 @@ $message = match ($status) {
                                             </div>
                                         </div>
 
-                                        <div class="card foovia-admin-products-card">
+                                        <div class="card foovia-admin-products-card" id="products-table">
                                             <div class="card-header">
                                                 <h5>Recently Published Products</h5>
-                                                <span>Manage product edits, reservations, and visibility from here.</span>
+                                                <span>Showing <?= $totalProducts === 0 ? 0 : $pageOffset + 1 ?>-<?= min($pageOffset + $productsPerPage, $totalProducts) ?> of <?= $totalProducts ?> products.</span>
                                             </div>
                                             <div class="card-block table-border-style">
                                                 <div class="table-responsive">
@@ -394,10 +402,10 @@ $message = match ($status) {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <?php if ($products === []): ?>
+                                                            <?php if ($paginatedProducts === []): ?>
                                                                 <tr><td colspan="8" class="text-center">No products available yet.</td></tr>
                                                             <?php else: ?>
-                                                                <?php foreach ($products as $product): ?>
+                                                                <?php foreach ($paginatedProducts as $product): ?>
                                                                     <tr>
                                                                         <td><img class="admin-table-thumb" src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/Controller/MARKETPLACE_MODULE/Marchandise_Controller.php?action=image&id=<?= (int) $product['id_march'] ?>" alt="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>"></td>
                                                                         <td><strong><?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?></strong><br><small><?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?></small></td>
@@ -412,7 +420,7 @@ $message = match ($status) {
                                                                             <?php endif; ?>
                                                                         </td>
                                                                         <td class="admin-action-cell">
-                                                                            <a href="products.php?edit=<?= (int) $product['id_march'] ?>" class="admin-action-btn admin-action-modify">Modify</a>
+                                                                            <a href="products.php?page=<?= $currentPage ?>&edit=<?= (int) $product['id_march'] ?>" class="admin-action-btn admin-action-modify">Modify</a>
                                                                             <form action="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/Controller/MARKETPLACE_MODULE/Marchandise_Controller.php?action=reset_reservations" method="post">
                                                                                 <input type="hidden" name="id_march" value="<?= (int) $product['id_march'] ?>">
                                                                                 <button type="submit" class="admin-action-btn admin-action-reset">Reset</button>
@@ -428,6 +436,34 @@ $message = match ($status) {
                                                         </tbody>
                                                     </table>
                                                 </div>
+                                                <?php if ($totalPages > 1): ?>
+                                                    <nav aria-label="Products pagination" style="margin-top: 20px;">
+                                                        <ul class="pagination">
+                                                            <?php if ($currentPage > 1): ?>
+                                                                <li class="page-item">
+                                                                    <a class="page-link" href="<?= $buildProductPageUrl(1) ?>">First</a>
+                                                                </li>
+                                                                <li class="page-item">
+                                                                    <a class="page-link" href="<?= $buildProductPageUrl($currentPage - 1) ?>">Previous</a>
+                                                                </li>
+                                                            <?php endif; ?>
+                                                            <?php for ($page = 1; $page <= $totalPages; $page++): ?>
+                                                                <li class="page-item <?= $page === $currentPage ? 'active' : '' ?>">
+                                                                    <a class="page-link" href="<?= $buildProductPageUrl($page) ?>"><?= $page ?></a>
+                                                                </li>
+                                                            <?php endfor; ?>
+                                                            <?php if ($currentPage < $totalPages): ?>
+                                                                <li class="page-item">
+                                                                    <a class="page-link" href="<?= $buildProductPageUrl($currentPage + 1) ?>">Next</a>
+                                                                </li>
+                                                                <li class="page-item">
+                                                                    <a class="page-link" href="<?= $buildProductPageUrl($totalPages) ?>">Last</a>
+                                                                </li>
+                                                            <?php endif; ?>
+                                                        </ul>
+                                                    </nav>
+                                                    <p class="text-muted" style="margin-top: 10px;">Page <?= $currentPage ?> of <?= $totalPages ?> (<?= $totalProducts ?> total products)</p>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>

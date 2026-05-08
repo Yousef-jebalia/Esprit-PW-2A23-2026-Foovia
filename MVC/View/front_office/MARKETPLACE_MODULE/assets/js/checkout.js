@@ -60,6 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${price.toFixed(3).replace(/\.?0+$/, '')} TND`;
   };
 
+  const productUnit = (item) => item?.unit || 'kg';
+  const formatUnitPrice = (price, unit = 'kg') => `${formatPrice(price)} / ${unit}`;
+  const formatQuantity = (quantity, unit = 'kg') => {
+    if (unit === 'piece') {
+      return `${quantity} ${Number(quantity) === 1 ? 'piece' : 'pieces'}`;
+    }
+
+    return `${quantity} ${unit}`;
+  };
+
   const formatMinutes = (minutes) => {
     if (minutes < 1) {
       return `${Math.max(1, Math.round(minutes * 60))} sec`;
@@ -152,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="${item.image}" alt="${item.name}">
         <div>
           <h3>${item.name}</h3>
-          <p>${item.quantity} x ${formatPrice(item.price)}</p>
+          <p>${formatQuantity(item.quantity, productUnit(item))} x ${formatUnitPrice(item.price, productUnit(item))}</p>
           <small>${item.storeName}</small>
         </div>
         <strong>${formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</strong>

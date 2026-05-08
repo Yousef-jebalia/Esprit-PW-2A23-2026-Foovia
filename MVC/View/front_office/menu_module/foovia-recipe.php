@@ -42,6 +42,79 @@ function foovia_format_number($value) {
   return rtrim(rtrim(number_format($value, $precision), '0'), '.');
 }
 
+function foovia_market_ingredient_key($name) {
+  $name = strtolower(trim((string)$name));
+  $name = str_replace(['_', '-', '(', ')'], ' ', $name);
+  return preg_replace('/\s+/', ' ', $name) ?: $name;
+}
+
+function foovia_market_product_url_for_ingredient($name) {
+  $marketProductIds = [
+    'apples' => 1,
+    'apple' => 1,
+    'chicken breast' => 2,
+    'salmon' => 3,
+    'tofu' => 4,
+    'eggs' => 5,
+    'egg' => 5,
+    'milk' => 6,
+    'yogurt' => 7,
+    'flour' => 8,
+    'sugar' => 9,
+    'salt' => 10,
+    'olive oil' => 11,
+    'butter' => 12,
+    'garlic' => 13,
+    'onion' => 14,
+    'tomato' => 15,
+    'tomatoes' => 15,
+    'cucumber' => 16,
+    'lettuce' => 17,
+    'spinach' => 18,
+    'rice white' => 19,
+    'rice' => 19,
+    'pasta' => 20,
+    'potatoes' => 21,
+    'potato' => 21,
+    'carrot' => 22,
+    'bell pepper' => 23,
+    'avocado' => 24,
+    'lemon' => 25,
+    'honey' => 26,
+    'almonds' => 27,
+    'almond' => 27,
+    'walnuts' => 28,
+    'walnut' => 28,
+    'oats' => 29,
+    'banana' => 30,
+    'bananas' => 30,
+    'blueberries' => 31,
+    'blueberry' => 31,
+    'chickpeas' => 32,
+    'chickpea' => 32,
+    'black beans' => 33,
+    'black bean' => 33,
+    'lentils' => 34,
+    'lentil' => 34,
+    'parmesan' => 35,
+    'cheddar' => 36,
+    'bacon' => 37,
+    'ground beef' => 38,
+    'shrimp' => 39,
+    'soy sauce' => 40,
+    'paprika' => 41,
+    'orange' => 42,
+    'oranges' => 42,
+  ];
+
+  $key = foovia_market_ingredient_key($name);
+  if (!isset($marketProductIds[$key])) {
+    return '';
+  }
+
+  return '../MARKETPLACE_MODULE/organic-1.0.0/product-details.php?id=' . (int)$marketProductIds[$key];
+}
+
 function foovia_normalize_hex_color($color) {
   $color = trim((string)$color);
   if ($color === '') {
@@ -230,14 +303,28 @@ if ($recipe) {
                 $ingredientImagePath = foovia_normalize_image_path($ingredientRow['img_ing'] ?? '', 'images/product-thumb-1.png');
                 $ingredientQuantity = foovia_clean_text($ingredientRow['quantity'] ?? '', '');
                 $ingredientUnity = foovia_clean_text($ingredientRow['unity'] ?? '', '');
+                $marketProductUrl = foovia_market_product_url_for_ingredient($ingredientName);
               ?>
-              <div class="ingredient-card">
+              <?php if ($marketProductUrl !== ''): ?>
+                <a class="ingredient-card is-market-available" href="<?php echo htmlspecialchars($marketProductUrl); ?>" aria-label="Open <?php echo htmlspecialchars($ingredientName); ?> in the marketplace">
+              <?php else: ?>
+                <div class="ingredient-card">
+              <?php endif; ?>
+                <?php if ($marketProductUrl !== ''): ?>
+                  <span class="ingredient-market-badge" title="Available in marketplace">
+                    <img src="assets/marketplace-stars-svgrepo-com.svg" alt="">
+                  </span>
+                <?php endif; ?>
                 <img class="ingredient-photo" src="<?php echo htmlspecialchars($ingredientImagePath); ?>" alt="<?php echo htmlspecialchars($ingredientName); ?>">
                 <div class="ingredient-name"><?php echo htmlspecialchars($ingredientName); ?></div>
                 <?php if ($ingredientQuantity !== '' || $ingredientUnity !== ''): ?>
                   <div class="ingredient-qty"><?php echo htmlspecialchars(trim($ingredientQuantity . ' ' . $ingredientUnity)); ?></div>
                 <?php endif; ?>
-              </div>
+              <?php if ($marketProductUrl !== ''): ?>
+                </a>
+              <?php else: ?>
+                </div>
+              <?php endif; ?>
             <?php endforeach; ?>
           </div>
         <?php else: ?>

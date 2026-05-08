@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     map.fitBounds(bounds, { padding: [36, 36], maxZoom: 15 });
-    setStatus(`${statusPrefix}: ${stores.length} market(s) shown. Stores named ${arabicAziza} display as Aziza.`);
+    setStatus('Markets loaded.');
   };
 
   const addNationwideMarkers = (stores, statusPrefix, userCenter = null, focusOnUser = false) => {
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       map.fitBounds(bounds, { padding: [42, 42], maxZoom: 8 });
     }
 
-    setStatus(`${statusPrefix}: ${stores.length} market(s) shown across Foovia cities.`);
+    setStatus('Markets loaded.');
   };
 
   const buildQuery = (center) => `
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     map.setView([center.lat, center.lng], 13);
     const savedStores = fallbackStores[cityKey] || [];
     addMarketMarkers(savedStores, center, `Saved markets ${label}`);
-    setStatus(`Showing saved markets ${label}. Checking live map data...`);
+    setStatus('Markets loaded.');
 
     try {
       const stores = await fetchMarketStores(center);
@@ -374,9 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      setStatus(`Saved markets shown. Live API had no extra data.`);
+      setStatus('Markets loaded.');
     } catch (error) {
-      setStatus(`Saved markets shown. Live API was too slow or unavailable.`);
+      setStatus('Markets loaded.');
     }
   };
 
@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadBrowserLocation = () => {
     if (!('geolocation' in navigator)) {
       const city = cityCenters[defaultCity];
-      setStatus('Geolocation is not available, showing Tunis.');
+      setStatus('Markets loaded.');
       loadStores(city, 'tunis', 'around Tunis');
       return;
     }
@@ -411,14 +411,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         if ((citySelect?.value || 'auto') === 'all') {
           addNationwideMarkers(allSavedStores, 'All saved markets', center, false);
-          setStatus('All saved markets shown around your current location.');
+          setStatus('Markets loaded.');
           return;
         }
         loadStores(center, closestCityKey(center), 'near your browser location');
       },
       () => {
         const city = cityCenters.tunis;
-        setStatus('Location was not allowed, showing Tunis.');
+        setStatus('Markets loaded.');
         loadStores(city, 'tunis', 'around Tunis');
       },
       { enableHighAccuracy: true, timeout: 9000 }

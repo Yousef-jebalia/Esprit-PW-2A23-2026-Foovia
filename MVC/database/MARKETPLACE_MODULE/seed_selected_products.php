@@ -16,7 +16,7 @@ $products = [
         'point' => 'F1',
         'image' => __DIR__ . '/../../View/front_office/MARKETPLACE_MODULE/assets/products/oranges.jpg',
         'stores' => [1, 2, 3, 4, 5],
-        'categories' => [1],
+        'categories' => ['Fruits'],
     ],
     [
         'name' => 'Potatoes',
@@ -27,7 +27,7 @@ $products = [
         'point' => 'V2',
         'image' => __DIR__ . '/../../View/front_office/MARKETPLACE_MODULE/assets/products/potatoes.webp',
         'stores' => [1, 2, 4, 5],
-        'categories' => [2],
+        'categories' => ['Vegetables'],
     ],
     [
         'name' => 'Bananas',
@@ -38,7 +38,7 @@ $products = [
         'point' => 'F2',
         'image' => __DIR__ . '/../../View/front_office/MARKETPLACE_MODULE/assets/products/banana.jpg',
         'stores' => [1, 3, 4, 5],
-        'categories' => [1],
+        'categories' => ['Fruits', 'Breakfast Food'],
     ],
     [
         'name' => 'Beef Steak',
@@ -49,7 +49,7 @@ $products = [
         'point' => 'M1',
         'image' => __DIR__ . '/../../View/front_office/MARKETPLACE_MODULE/assets/products/steak.jpg',
         'stores' => [2, 3, 5],
-        'categories' => [4],
+        'categories' => ['Meat'],
     ],
     [
         'name' => 'Tomatoes',
@@ -60,7 +60,7 @@ $products = [
         'point' => 'V1',
         'image' => __DIR__ . '/../../View/front_office/MARKETPLACE_MODULE/assets/products/tomato.jpg',
         'stores' => [1, 2, 3, 4, 5],
-        'categories' => [2],
+        'categories' => ['Vegetables'],
     ],
 ];
 
@@ -86,6 +86,7 @@ $deleteStoreLinks = $db->prepare('DELETE FROM vendre WHERE id_march = :id_march'
 $insertStoreLink = $db->prepare('INSERT INTO vendre (id_march, id_mag) VALUES (:id_march, :id_mag)');
 $deleteCategoryLinks = $db->prepare('DELETE FROM marchandise_categorie WHERE id_march = :id_march');
 $insertCategoryLink = $db->prepare('INSERT INTO marchandise_categorie (id_march, id_categ) VALUES (:id_march, :id_categ)');
+$findCategory = $db->prepare('SELECT id_categ FROM categorie WHERE LOWER(name_categ) = LOWER(:name_categ) LIMIT 1');
 
 $db->beginTransaction();
 
@@ -127,10 +128,16 @@ try {
         }
 
         $deleteCategoryLinks->execute(['id_march' => $productId]);
-        foreach ($product['categories'] as $categoryId) {
+        foreach ($product['categories'] as $categoryName) {
+            $findCategory->execute(['name_categ' => $categoryName]);
+            $categoryId = $findCategory->fetchColumn();
+            if ($categoryId === false) {
+                throw new RuntimeException('Missing marketplace category: ' . $categoryName);
+            }
+
             $insertCategoryLink->execute([
                 'id_march' => $productId,
-                'id_categ' => $categoryId,
+                'id_categ' => (int) $categoryId,
             ]);
         }
     }

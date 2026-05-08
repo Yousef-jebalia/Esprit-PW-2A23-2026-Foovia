@@ -16,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $requestDir = str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')));
-$marketplaceUrl = rtrim($requestDir, '/') . '/' . $marketplaceRelativePath;
+$marketplaceUrl = rtrim($requestDir, '/') . '/' . $marketplaceRelativePath . '?top=1';
 
 header('Location: ' . $marketplaceUrl);
 exit;

@@ -244,11 +244,44 @@ nav {
   border: 1.5px solid rgba(0,0,0,.06);
   transition: border-color .2s, transform .2s, box-shadow .2s;
   cursor: default;
+  display: block;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
 }
 .ingredient-card:hover {
   border-color: var(--green);
   transform: translateY(-3px);
   box-shadow: 0 10px 28px rgba(75,174,82,.15);
+}
+.ingredient-card.is-market-available {
+  cursor: pointer;
+}
+.ingredient-card.is-market-available:hover {
+  border-color: #ff8a00;
+  box-shadow: 0 12px 30px rgba(255,138,0,.18);
+}
+.ingredient-market-badge {
+  align-items: center;
+  background: #fff7e6;
+  border: 1px solid rgba(255,138,0,.2);
+  border-radius: 999px;
+  box-shadow: 0 5px 12px rgba(17,16,8,.08);
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 4px;
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 24px;
+  z-index: 2;
+}
+.ingredient-market-badge img {
+  display: block;
+  height: 15px;
+  object-fit: contain;
+  width: 15px;
 }
 .ingredient-photo {
   width: 72px; height: 72px;

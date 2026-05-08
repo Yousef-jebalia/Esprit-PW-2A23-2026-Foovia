@@ -545,6 +545,7 @@ h6,
 
 .foovia-spotlight-btn {
   background: linear-gradient(135deg, #6bb252, #4bae52);
+  border: 0;
   box-shadow: 0 18px 34px rgba(75, 174, 82, 0.22);
   color: #fff;
   padding: 0.88rem 1.35rem;
@@ -908,6 +909,139 @@ h6,
   max-height: 180px;
   object-fit: contain;
   width: 100%;
+}
+
+.foovia-waste-planner {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 255, 239, 0.95)),
+    #fffef8;
+}
+
+.foovia-waste-controls {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(75, 174, 82, 0.18);
+  border-radius: 8px;
+  display: inline-grid;
+  gap: 0.75rem;
+  grid-template-columns: 40px minmax(130px, auto) 40px;
+  margin-top: 1rem;
+  padding: 0.55rem;
+}
+
+.foovia-waste-controls button {
+  align-items: center;
+  background: var(--market-primary);
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 1.2rem;
+  font-weight: 900;
+  height: 40px;
+  justify-content: center;
+  line-height: 1;
+  transition: transform 0.18s ease, background 0.18s ease;
+  width: 40px;
+}
+
+.foovia-waste-controls button:hover {
+  background: #348d39;
+  transform: translateY(-1px);
+}
+
+.foovia-waste-controls div {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.foovia-waste-controls span {
+  color: var(--market-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.foovia-waste-controls strong {
+  color: var(--market-dark);
+  font-family: var(--foovia-heading-font);
+  font-size: 1.05rem;
+}
+
+.foovia-waste-impact {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.foovia-waste-impact span {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(17, 16, 8, 0.06);
+  border-radius: 8px;
+  color: var(--market-muted);
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 0.2rem;
+  min-height: 76px;
+  padding: 0.7rem;
+  text-transform: uppercase;
+}
+
+.foovia-waste-impact b {
+  color: var(--market-dark);
+  font-family: var(--foovia-heading-font);
+  font-size: 1.05rem;
+  text-transform: none;
+}
+
+.foovia-waste-planner .foovia-promoted-media {
+  overflow: hidden;
+  position: relative;
+}
+
+.foovia-waste-planner .foovia-promoted-media img {
+  animation: foovia-waste-float 4.5s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+.foovia-waste-orbit {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(75, 174, 82, 0.18);
+  border-radius: 999px;
+  box-shadow: 0 12px 24px rgba(17, 16, 8, 0.08);
+  color: var(--market-primary);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 0.42rem 0.65rem;
+  position: absolute;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.foovia-waste-orbit-one {
+  left: 0.8rem;
+  top: 0.8rem;
+}
+
+.foovia-waste-orbit-two {
+  bottom: 0.8rem;
+  right: 0.8rem;
+}
+
+@keyframes foovia-waste-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
 }
 
 .foovia-recommend-promote-slot .foovia-mini-thumb {
@@ -1404,6 +1538,9 @@ h6,
 :root[data-theme="dark"] .foovia-mini-item,
 :root[data-theme="dark"] .foovia-promoted-detail,
 :root[data-theme="dark"] .foovia-promoted-media,
+:root[data-theme="dark"] .foovia-waste-controls,
+:root[data-theme="dark"] .foovia-waste-impact span,
+:root[data-theme="dark"] .foovia-waste-orbit,
 :root[data-theme="dark"] .foovia-recommend-scroll,
 :root[data-theme="dark"] .foovia-scroll-btn,
 :root[data-theme="dark"] .foovia-spotlight-media,
@@ -1413,6 +1550,7 @@ h6,
 :root[data-theme="dark"] .foovia-delivery-map,
 :root[data-theme="dark"] .foovia-checkout-card-preview,
 :root[data-theme="dark"] .foovia-bank-chip,
+:root[data-theme="dark"] .market-pagination,
 :root[data-theme="dark"] .foovia-checkout-field,
 :root[data-theme="dark"] .foovia-checkout-submit,
 :root[data-theme="dark"] .foovia-checkout-method,
@@ -1454,6 +1592,8 @@ h6,
 :root[data-theme="dark"] .foovia-recommend-card-index,
 :root[data-theme="dark"] .foovia-recommend-promote-empty strong,
 :root[data-theme="dark"] .foovia-promoted-copy h3,
+:root[data-theme="dark"] .foovia-waste-controls strong,
+:root[data-theme="dark"] .foovia-waste-impact b,
 :root[data-theme="dark"] .foovia-recommend-card-head h2,
 :root[data-theme="dark"] .foovia-mini-name,
 :root[data-theme="dark"] .market-product-link,
@@ -1463,11 +1603,46 @@ h6,
   color: var(--page-text) !important;
 }
 
+:root[data-theme="dark"] .market-pagination-page {
+  background: rgba(253, 248, 238, 0.08) !important;
+  color: var(--page-text) !important;
+}
+
+:root[data-theme="dark"] .market-pagination-page:hover,
+:root[data-theme="dark"] .market-pagination-page.is-active {
+  background: linear-gradient(135deg, #6bb252, #4bae52) !important;
+  color: #fff !important;
+}
+
+:root[data-theme="dark"] .market-pagination-arrow {
+  background: #fdf8ee !important;
+  color: #1a1914 !important;
+}
+
+:root[data-theme="dark"] .market-pagination-arrow:hover {
+  background: var(--market-primary) !important;
+  color: #fff !important;
+}
+
+:root[data-theme="dark"] .market-pagination-status {
+  background: rgba(217, 79, 0, 0.14) !important;
+  color: #ff9a5c !important;
+}
+
+:root[data-theme="dark"] .foovia-promoted-meta strong,
+:root[data-theme="dark"] .foovia-promoted-meta span {
+  background: #242219 !important;
+  border-color: rgba(253, 248, 238, 0.12) !important;
+  box-shadow: inset 0 1px 0 rgba(253, 248, 238, 0.04) !important;
+}
+
 :root[data-theme="dark"] .foovia-recommend-card-head p,
 :root[data-theme="dark"] .foovia-recommend-subhead p,
 :root[data-theme="dark"] .foovia-recommend-promote-empty p,
 :root[data-theme="dark"] .foovia-promoted-copy p,
 :root[data-theme="dark"] .foovia-promoted-hint,
+:root[data-theme="dark"] .foovia-waste-controls span,
+:root[data-theme="dark"] .foovia-waste-impact span,
 :root[data-theme="dark"] .market-meta,
 :root[data-theme="dark"] .foovia-store-popover small,
 :root[data-theme="dark"] .foovia-checkout-head p,
@@ -2303,6 +2478,97 @@ h6,
   text-align: center;
 }
 
+.market-pagination {
+  align-items: center;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 255, 239, 0.92)),
+    #fff;
+  border: 1px solid rgba(75, 174, 82, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 18px 42px rgba(17, 16, 8, 0.08);
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  margin: 2.2rem auto 0;
+  max-width: max-content;
+  padding: 0.55rem;
+}
+
+.market-pagination-pages {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.market-pagination-page,
+.market-pagination-arrow {
+  align-items: center;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  font-family: var(--foovia-heading-font);
+  font-weight: 900;
+  justify-content: center;
+  transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.market-pagination-page {
+  background: rgba(75, 174, 82, 0.08);
+  color: var(--market-dark);
+  height: 38px;
+  min-width: 38px;
+  padding: 0 0.75rem;
+}
+
+.market-pagination-arrow {
+  background: var(--market-dark);
+  color: #fff;
+  height: 42px;
+  width: 42px;
+}
+
+.market-pagination-page:hover,
+.market-pagination-arrow:hover {
+  box-shadow: 0 12px 24px rgba(75, 174, 82, 0.16);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.market-pagination-page:hover,
+.market-pagination-page.is-active {
+  background: linear-gradient(135deg, #6bb252, #4bae52);
+  color: #fff;
+}
+
+.market-pagination-page.is-active {
+  box-shadow: 0 12px 24px rgba(75, 174, 82, 0.2);
+}
+
+.market-pagination-arrow:hover {
+  background: var(--market-primary);
+}
+
+.market-pagination-arrow:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+  transform: none;
+}
+
+.market-pagination-status {
+  align-items: center;
+  background: rgba(255, 122, 26, 0.1);
+  border-radius: 999px;
+  color: var(--market-orange);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  min-height: 38px;
+  padding: 0 0.9rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .foovia-catalog-section .container-lg {
   padding-left: 3rem;
 }
@@ -2796,6 +3062,11 @@ h6,
   border-bottom: 1px solid rgba(17, 16, 8, 0.05);
 }
 
+#products-table,
+#magasins-table {
+  scroll-margin-top: 92px;
+}
+
 .admin-action-cell {
   display: flex;
   gap: 0.55rem;
@@ -3063,6 +3334,16 @@ h6,
   height: 34px;
   border: 1px solid #c9c9c9;
   border-radius: 10px;
+  text-align: center;
+}
+
+.foovia-quantity-total {
+  display: block;
+  margin: -0.25rem 0 1.1rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
   text-align: center;
 }
 
@@ -4382,6 +4663,10 @@ h6,
     grid-template-columns: 1fr;
   }
 
+  .foovia-waste-impact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .foovia-promoted-media {
     min-height: 220px;
   }
@@ -4413,6 +4698,18 @@ h6,
 
   .market-card-media {
     height: 190px;
+  }
+
+  .market-pagination {
+    border-radius: 24px;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .market-pagination-status {
+    order: 5;
+    width: 100%;
+    justify-content: center;
   }
 
   .foovia-hero-copy {

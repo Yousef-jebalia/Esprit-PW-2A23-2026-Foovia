@@ -22,9 +22,17 @@ $appBaseUrl = foovia_app_base_url();
 $magasinModel = new Magasin();
 $stores = $magasinModel->fetchAll();
 $status = (string) ($_GET['status'] ?? '');
+$storesPerPage = 8;
+$currentPage = max(1, (int) ($_GET['page'] ?? 1));
+$totalStores = count($stores);
+$totalPages = max(1, (int) ceil($totalStores / $storesPerPage));
+$currentPage = min($currentPage, $totalPages);
+$pageOffset = ($currentPage - 1) * $storesPerPage;
+$paginatedStores = array_slice($stores, $pageOffset, $storesPerPage);
 $editId = (int) ($_GET['edit'] ?? 0);
 $editingStore = $editId > 0 ? $magasinModel->findById($editId) : null;
 $isEditing = $editingStore !== null;
+$buildStorePageUrl = static fn (int $page): string => 'magasins.php?page=' . max(1, $page) . '#magasins-table';
 
 $message = match ($status) {
     'success' => ['class' => 'alert-success', 'text' => 'Magasin added successfully.'],
@@ -51,7 +59,7 @@ $message = match ($status) {
     <link rel="stylesheet" type="text/css" href="../USER_MODULE/assets/icon/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="../USER_MODULE/assets/css/jquery.mCustomScrollbar.css">
     <link rel="stylesheet" type="text/css" href="../USER_MODULE/assets/css/style.css">
-    <link rel="stylesheet" type="text/css" href="../../front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=admin-integrated-1">
+    <link rel="stylesheet" type="text/css" href="../../front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=admin-pagination-3">
 </head>
 <body>
     <div id="pcoded" class="pcoded">
@@ -248,7 +256,7 @@ $message = match ($status) {
 
                                                             <button type="submit" class="btn btn-primary waves-effect waves-light"><?= $isEditing ? 'Update Magasin' : 'Save Magasin' ?></button>
                                                             <?php if ($isEditing): ?>
-                                                                <a href="magasins.php" class="btn btn-default waves-effect m-l-10">Cancel Edit</a>
+                                                                <a href="<?= $buildStorePageUrl($currentPage) ?>" class="btn btn-default waves-effect m-l-10">Cancel Edit</a>
                                                             <?php endif; ?>
                                                         </form>
                                                     </div>
@@ -256,10 +264,10 @@ $message = match ($status) {
                                             </div>
 
                                             <div class="col-xl-7 col-md-12">
-                                                <div class="card">
+                                                <div class="card" id="magasins-table">
                                                     <div class="card-header">
                                                         <h5>Available Magasins</h5>
-                                                        <span>These stores become checkbox choices in the product form.</span>
+                                                        <span>Showing <?= $totalStores === 0 ? 0 : $pageOffset + 1 ?>-<?= min($pageOffset + $storesPerPage, $totalStores) ?> of <?= $totalStores ?> magasins.</span>
                                                     </div>
                                                     <div class="card-block table-border-style">
                                                         <div class="table-responsive">
@@ -275,10 +283,10 @@ $message = match ($status) {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    <?php if ($stores === []): ?>
+                                                                    <?php if ($paginatedStores === []): ?>
                                                                         <tr><td colspan="6" class="text-center">No magasins available yet.</td></tr>
                                                                     <?php else: ?>
-                                                                        <?php foreach ($stores as $store): ?>
+                                                                        <?php foreach ($paginatedStores as $store): ?>
                                                                             <tr>
                                                                                 <td>
                                                                                     <?php if ((int) ($store['has_image'] ?? 0) === 1): ?>
@@ -292,7 +300,7 @@ $message = match ($status) {
                                                                                 <td><?= htmlspecialchars((string) $store['phone_mag'], ENT_QUOTES) ?></td>
                                                                                 <td><?= htmlspecialchars($store['adress_mag'], ENT_QUOTES) ?></td>
                                                                                 <td class="admin-action-cell">
-                                                                                    <a href="magasins.php?edit=<?= (int) $store['id_mag'] ?>" class="admin-action-btn admin-action-modify">Modify</a>
+                                                                                    <a href="magasins.php?page=<?= $currentPage ?>&edit=<?= (int) $store['id_mag'] ?>" class="admin-action-btn admin-action-modify">Modify</a>
                                                                                     <form action="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/Controller/MARKETPLACE_MODULE/Magasin_Controller.php?action=delete" method="post" data-delete-store-form data-store-name="<?= htmlspecialchars($store['name_mag'], ENT_QUOTES) ?>">
                                                                                         <input type="hidden" name="id_mag" value="<?= (int) $store['id_mag'] ?>">
                                                                                         <button type="submit" class="admin-action-btn admin-action-delete">Delete</button>
@@ -304,6 +312,34 @@ $message = match ($status) {
                                                                 </tbody>
                                                             </table>
                                                         </div>
+                                                        <?php if ($totalPages > 1): ?>
+                                                            <nav aria-label="Magasins pagination" style="margin-top: 20px;">
+                                                                <ul class="pagination">
+                                                                    <?php if ($currentPage > 1): ?>
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="<?= $buildStorePageUrl(1) ?>">First</a>
+                                                                        </li>
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="<?= $buildStorePageUrl($currentPage - 1) ?>">Previous</a>
+                                                                        </li>
+                                                                    <?php endif; ?>
+                                                                    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
+                                                                        <li class="page-item <?= $page === $currentPage ? 'active' : '' ?>">
+                                                                            <a class="page-link" href="<?= $buildStorePageUrl($page) ?>"><?= $page ?></a>
+                                                                        </li>
+                                                                    <?php endfor; ?>
+                                                                    <?php if ($currentPage < $totalPages): ?>
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="<?= $buildStorePageUrl($currentPage + 1) ?>">Next</a>
+                                                                        </li>
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="<?= $buildStorePageUrl($totalPages) ?>">Last</a>
+                                                                        </li>
+                                                                    <?php endif; ?>
+                                                                </ul>
+                                                            </nav>
+                                                            <p class="text-muted" style="margin-top: 10px;">Page <?= $currentPage ?> of <?= $totalPages ?> (<?= $totalStores ?> total magasins)</p>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                             </div>

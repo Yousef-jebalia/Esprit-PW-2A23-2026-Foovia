@@ -32,7 +32,6 @@ $userName = $_SESSION['user_name'] ?? '';
             FOOVIA
         </a>
         <nav class="foovia-nav" aria-label="Primary">
-            <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php#features">Features</a>
             <a href="marketplace.php">Marketplace</a>
             <a href="#impact">Impact</a>
             <a href="#calculator">Calculator</a>

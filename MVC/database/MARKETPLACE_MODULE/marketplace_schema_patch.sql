@@ -60,19 +60,26 @@ CREATE TABLE IF NOT EXISTS `marchandise_reservation` (
 INSERT IGNORE INTO `categorie` (`name_categ`) VALUES
 ('Fruits'),
 ('Vegetables'),
+('Leafy Greens'),
 ('Dairy'),
+('Eggs'),
 ('Meat'),
 ('Poultry'),
 ('Fish and Seafood'),
-('Bakery'),
-('Canned Food'),
-('Frozen Food'),
+('Plant-Based Protein'),
+('Grains and Cereals'),
 ('Pasta and Rice'),
-('Beverages'),
-('Snacks'),
+('Bakery and Baking'),
+('Sweeteners'),
+('Oils and Fats'),
 ('Spices and Condiments'),
 ('Legumes'),
+('Nuts and Seeds'),
 ('Breakfast Food'),
-('Oils and Sauces');
+('Sauces and Marinades'),
+('Beverages'),
+('Snacks'),
+('Canned Food'),
+('Frozen Food');
 
 COMMIT;

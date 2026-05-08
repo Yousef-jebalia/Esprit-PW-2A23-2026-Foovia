@@ -141,13 +141,28 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const parseQuantity = (value) => {
-    const quantity = Number.parseInt(String(value || '1'), 10);
+    const quantity = Number.parseFloat(String(value || '1').replace(',', '.'));
     return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
   };
 
   const formatPrice = (value) => {
     const price = Number(value || 0);
     return price.toFixed(3).replace(/\.?0+$/, '');
+  };
+
+  const productUnit = (product) => product?.unit || 'kg';
+  const formatUnitPrice = (price, unit = 'kg') => `${formatPrice(price)} TND / ${unit}`;
+  const formatQuantity = (quantity, unit = 'kg') => {
+    const cleanQuantity = parseQuantity(quantity);
+    if (unit === 'piece') {
+      return `${cleanQuantity} ${cleanQuantity === 1 ? 'piece' : 'pieces'}`;
+    }
+
+    return `${cleanQuantity} ${unit}`;
+  };
+  const formatQuantityTotal = (price, quantity, unit = 'kg') => {
+    const cleanQuantity = parseQuantity(quantity);
+    return `Total ${formatPrice(Number(price || 0) * cleanQuantity)} TND for ${formatQuantity(cleanQuantity, unit)}`;
   };
 
   const formatWeatherLabel = (payload) => {
@@ -698,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <img src="${product.image}" alt="${product.name}">
       <div class="foovia-drag-preview-copy">
         <strong>${product.name}</strong>
-        <span>${formatPrice(product.price)} TND</span>
+        <span>${formatUnitPrice(product.price, productUnit(product))}</span>
       </div>
     `;
     document.body.appendChild(preview);
@@ -782,7 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const renderCart = () => {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const totalItems = cart.length;
     const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
     if (cartCount) cartCount.textContent = String(totalItems);
@@ -799,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="${item.image}" alt="${item.name}">
         <div>
           <h3>${item.name}</h3>
-          <p>${item.quantity} x ${formatPrice(item.price)} TND</p>
+          <p>${formatQuantity(item.quantity, productUnit(item))} x ${formatUnitPrice(item.price, productUnit(item))}</p>
           <div class="foovia-cart-store">
             <div class="foovia-cart-store-line">
               <img src="${item.storeImage || item.image}" alt="${item.storeName}">
@@ -834,11 +849,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCart();
   };
 
-  const openPickerForProduct = (product) => {
+  const openPickerForProduct = (product, initialQuantity = '1') => {
     pendingProduct = product;
 
     if (pickerName) pickerName.textContent = pendingProduct.name;
-    if (pickerPrice) pickerPrice.textContent = `${formatPrice(pendingProduct.price)} TND`;
     if (pickerStore) {
       pickerStore.innerHTML = (pendingProduct.stores || []).map((store, index) => `
         <label class="foovia-store-choice">
@@ -854,17 +868,62 @@ document.addEventListener('DOMContentLoaded', () => {
         </label>
       `).join('');
     }
-    if (pickerQuantity) pickerQuantity.value = '1';
+    if (pickerQuantity) pickerQuantity.value = String(initialQuantity || '1');
+    if (pickerPrice) pickerPrice.textContent = formatQuantityTotal(pendingProduct.price, pickerQuantity?.value, productUnit(pendingProduct));
     if (pickerReservationTotal) pickerReservationTotal.textContent = '0 reservations';
     if (picker) picker.hidden = false;
   };
 
+  const updatePickerPrice = () => {
+    if (!pendingProduct || !pickerPrice) {
+      return;
+    }
+
+    pickerPrice.textContent = formatQuantityTotal(pendingProduct.price, pickerQuantity?.value, productUnit(pendingProduct));
+  };
+
+  const bindLiveQuantity = (input, callback) => {
+    if (!input) {
+      return;
+    }
+
+    const updateSoon = () => window.requestAnimationFrame(callback);
+    ['input', 'change', 'keyup', 'paste', 'mouseup'].forEach((eventName) => {
+      input.addEventListener(eventName, updateSoon);
+    });
+  };
+
+  const updateDetailPrice = () => {
+    const detailPrice = document.querySelector('[data-detail-price]');
+    const detailTotal = document.querySelector('[data-detail-total]');
+    const detailButton = document.querySelector('[data-add-to-cart]');
+    const quantityInput = document.querySelector('[data-detail-quantity]');
+    if (!detailPrice || !detailButton) {
+      return;
+    }
+
+    const price = Number(detailButton.dataset.productPrice || 0);
+    const unit = detailButton.dataset.productUnit || 'kg';
+    detailPrice.textContent = formatUnitPrice(price, unit);
+    if (detailTotal) {
+      detailTotal.textContent = formatQuantityTotal(price, quantityInput?.value, unit);
+    }
+  };
+
   const readProductFromDataset = (source) => {
-    const stores = JSON.parse(source.dataset.productStores || '[]');
+    let stores = [];
+    try {
+      const parsedStores = JSON.parse(source.dataset.productStores || '[]');
+      stores = Array.isArray(parsedStores) ? parsedStores : [];
+    } catch (error) {
+      stores = [];
+    }
+
     return {
       id: Number(source.dataset.productId),
       name: source.dataset.productName || 'Product',
       price: Number(source.dataset.productPrice || 0),
+      unit: source.dataset.productUnit || 'kg',
       image: source.dataset.productImage || '',
       stores
     };
@@ -911,7 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showCheckoutMessage(button, premiumOnlyMessage);
         return;
       }
-      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const totalItems = cart.length;
       const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
       if (totalItems === 0) {
         showCheckoutMessage(button, 'Your cart is empty. Add a product before checkout.');
@@ -1036,6 +1095,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-recommend-add]');
+    if (!button) {
+      return;
+    }
+
+    openPickerForProduct(readProductFromDataset(button), button.dataset.recommendQuantity || '1');
+  });
+
   document.querySelectorAll('[data-drag-product]').forEach((card) => {
     card.addEventListener('dragstart', (event) => {
       const product = readProductFromDataset(card);
@@ -1102,6 +1170,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  if (pickerQuantity) {
+    bindLiveQuantity(pickerQuantity, updatePickerPrice);
+  }
+
+  document.querySelectorAll('[data-detail-quantity]').forEach((input) => {
+    bindLiveQuantity(input, updateDetailPrice);
+  });
+  updateDetailPrice();
+
   document.querySelectorAll('[data-picker-confirm]').forEach((button) => {
     button.addEventListener('click', () => {
       if (!canUseDelivery) {
@@ -1114,6 +1191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: pendingProduct.id,
         name: pendingProduct.name,
         price: pendingProduct.price,
+        unit: productUnit(pendingProduct),
         image: pendingProduct.image,
         quantity: parseQuantity(pickerQuantity?.value),
         storeId: Number(selectedStore?.value || 0),
@@ -1165,6 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: Number(button.dataset.productId),
         name: button.dataset.productName || 'Product',
         price: Number(button.dataset.productPrice || 0),
+        unit: button.dataset.productUnit || 'kg',
         image: button.dataset.productImage || '',
         quantity: parseQuantity(quantityInput?.value),
         storeId: selectedStore.id,

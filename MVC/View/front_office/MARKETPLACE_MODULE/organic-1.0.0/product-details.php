@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../../../Model/MARKETPLACE_MODULE/url_helper.php';
+require_once __DIR__ . '/../../../../Model/MARKETPLACE_MODULE/pricing_helper.php';
 $appBaseUrl = foovia_app_base_url();
 
 if (!isset($_SESSION['user_id'])) {
@@ -34,8 +35,6 @@ $product = $productId > 0 ? $marchandiseModel->findById($productId) : null;
 $availability = $productId > 0 ? $marchandiseModel->fetchAvailabilityById($productId) : [];
 $recommendedProducts = $productId > 0 ? $marchandiseModel->fetchRecommendedProducts($productId) : [];
 $availableStores = array_values(array_filter($availability, static fn (array $store): bool => (int) $store['is_available'] === 1));
-$formatPrice = static fn (mixed $price): string => rtrim(rtrim(number_format((float) $price, 3, '.', ''), '0'), '.');
-
 if ($product === null) {
     http_response_code(404);
 }
@@ -51,7 +50,7 @@ if ($product === null) {
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=premium-dark-checkout-2">
+    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=quantity-total-1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -67,10 +66,10 @@ if ($product === null) {
             FOOVIA
         </a>
         <nav class="foovia-nav" aria-label="Primary">
-            <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php#features">Features</a>
-            <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php#how">How it works</a>
-            <a href="marketplace.php">Marketplace</a>
-            <a href="marketplace.php#aziza-map">Community</a>
+            <a href="marketplace.php#recommended">recommanded</a>
+            <a href="food-waste-awareness.php">food waste</a>
+            <a href="marketplace.php#products">marketplace</a>
+            <a href="marketplace.php#aziza-map">around you</a>
         </nav>
         <div class="foovia-nav-actions">
             <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia-backoffice.php" class="foovia-nav-btn foovia-nav-backoffice">Backoffice</a>
@@ -167,11 +166,12 @@ if ($product === null) {
                     </section>
 
                     <aside class="foovia-purchase-card">
-                        <strong><?= htmlspecialchars($formatPrice($product['price_march']), ENT_QUOTES) ?> TND</strong>
+                        <strong data-detail-price><?= htmlspecialchars(foovia_format_unit_price($product), ENT_QUOTES) ?></strong>
                         <div class="foovia-quantity-row">
                             <span>Quantity</span>
-                            <input type="text" value="1" data-detail-quantity>
+                            <input type="number" value="1" min="0.1" step="0.1" data-detail-quantity>
                         </div>
+                        <small class="foovia-quantity-total" data-detail-total>Total <?= htmlspecialchars(foovia_format_price(foovia_product_unit_price($product)), ENT_QUOTES) ?> TND for 1 <?= htmlspecialchars(foovia_product_unit($product), ENT_QUOTES) ?></small>
                         <div class="foovia-store-choice-box">
                             <span class="foovia-store-label">Choose store</span>
                             <?php foreach ($availableStores as $store): ?>
@@ -194,7 +194,8 @@ if ($product === null) {
                             data-add-to-cart
                             data-product-id="<?= (int) $product['id_march'] ?>"
                             data-product-name="<?= htmlspecialchars((string) $product['name_march'], ENT_QUOTES) ?>"
-                            data-product-price="<?= htmlspecialchars($formatPrice($product['price_march']), ENT_QUOTES) ?>"
+                            data-product-price="<?= htmlspecialchars(foovia_format_price(foovia_product_unit_price($product)), ENT_QUOTES) ?>"
+                            data-product-unit="<?= htmlspecialchars(foovia_product_unit($product), ENT_QUOTES) ?>"
                             data-product-image="<?= htmlspecialchars($imageUrl, ENT_QUOTES) ?>"
                         >Add to cart</button>
                         <button
@@ -225,7 +226,7 @@ if ($product === null) {
                                             <p class="market-meta"><?= htmlspecialchars($recommended['description_march'], ENT_QUOTES) ?></p>
                                             <span class="market-badge"><?= htmlspecialchars($recommended['category_names'] ?? 'Food', ENT_QUOTES) ?></span>
                                             <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="market-price"><?= htmlspecialchars($formatPrice($recommended['price_march']), ENT_QUOTES) ?> TND</span>
+                                                <span class="market-price"><?= htmlspecialchars(foovia_format_unit_price($recommended), ENT_QUOTES) ?></span>
                                                 <a href="product-details.php?id=<?= (int) $recommended['id_march'] ?>" class="btn btn-outline-success rounded-pill px-3">View</a>
                                             </div>
                                         </div>
@@ -298,7 +299,7 @@ if ($product === null) {
         window.FOOVIA_CAN_DELIVER = <?= $canUseDelivery ? 'true' : 'false' ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/foovia-cart.js?v=premium-gate-msg-1"></script>
+    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/foovia-cart.js?v=cart-count-lines-1"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/marketplace-delivery-tracker.js?v=push-notify-3"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/foovia-market-theme.js"></script>
 </body>
