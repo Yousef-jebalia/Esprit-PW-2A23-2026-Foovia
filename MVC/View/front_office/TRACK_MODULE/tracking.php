@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
   header('Location: ../foovia-signin.php');
@@ -14,6 +14,22 @@ $user_name = $_SESSION['user_name'] ?? 'User';
 session_start();
 require_once '../../../Controller/tracking/ObjectifLongTerme_Controller.php';
 require_once '../../../Controller/tracking/ObjectifHebdomadaire_Controller.php';
+require_once '../../../Controller/menu_module/controle_Menu.php';
+
+$menu_controller = new Controller_menu();
+$recipes = $menu_controller->list_recipe();
+$recipe_map_json = json_encode(array_reduce($recipes, function($acc, $r) {
+    $acc[$r['id_rec']] = [
+        'name' => $r['name_rec'],
+        'kcal' => (int)$r['cal_rec'],
+        'prot' => (int)$r['prot_rec'],
+        'fat' => (int)$r['fat_rec'],
+        'carb' => (int)$r['carb_rec']
+    ];
+    return $acc;
+}, []));
+
+
 
 $controller = new ObjectifLongTerme_Controller();
 $hebdo_controller = new ObjectifHebdomadaire_Controller();
@@ -2372,30 +2388,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       renderWeeklyMacroOverview();
     };
 
+    const RECIPE_MAP = <?php echo $recipe_map_json; ?>;
+
     const restoreWeeklyMealEntries = (dateValue) => {
+      const activeDate = dateValue || (weeklySurveyDateInput ? weeklySurveyDateInput.value : '');
       weeklyMealEntries = [];
 
-      if (!hasLongTermGoal) {
-        syncWeeklyMacroInputsFromMealEntries();
-        renderWeeklyMealLog();
-        return;
-      }
-
+      // 1. Load local entries from localStorage
       if (window.localStorage) {
         try {
-          const parsedValue = JSON.parse(localStorage.getItem(getWeeklyMealStorageKey(dateValue)) || '[]');
-          if (Array.isArray(parsedValue)) {
-            weeklyMealEntries = parsedValue.map((entry) => ({
-              name: String(entry && entry.name ? entry.name : 'Unnamed meal'),
-              cal: Math.max(0, parseFloat(entry && entry.cal ? entry.cal : 0) || 0),
-              prot: Math.max(0, parseFloat(entry && entry.prot ? entry.prot : 0) || 0),
-              carb: Math.max(0, parseFloat(entry && entry.carb ? entry.carb : 0) || 0),
-              fat: Math.max(0, parseFloat(entry && entry.fat ? entry.fat : 0) || 0)
-            })).filter((entry) => entry.cal > 0 || entry.prot > 0 || entry.carb > 0 || entry.fat > 0);
+          const localData = JSON.parse(localStorage.getItem(getWeeklyMealStorageKey(activeDate)) || '[]');
+          if (Array.isArray(localData)) {
+            weeklyMealEntries = localData.map(e => ({
+              name: String(e.name || 'Unnamed'),
+              cal: parseFloat(e.cal) || 0,
+              prot: parseFloat(e.prot) || 0,
+              carb: parseFloat(e.carb) || 0,
+              fat: parseFloat(e.fat) || 0
+            }));
           }
-        } catch (error) {
-          weeklyMealEntries = [];
-        }
+        } catch (e) {}
+      }
+
+      // 2. Load database logs via API
+      if (activeDate) {
+        fetch(`../../../Controller/menu_module/log_meal_handler.php?dates=${activeDate}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.logs) {
+              data.logs.forEach(log => {
+                const r = RECIPE_MAP[log.id_rec];
+                if (r) {
+                  // Check if already in local entries to avoid duplicates (based on name and time if available)
+                  const exists = weeklyMealEntries.some(e => e.name === r.name && e.isDb);
+                  if (!exists) {
+                    const qty = log.quantity || 100;
+                    const mult = qty / 100;
+                    weeklyMealEntries.push({
+                      name: r.name + ' (Logged)',
+                      cal: Math.round(r.kcal * mult),
+                      prot: Math.round(r.prot * mult),
+                      carb: Math.round(r.carb * mult),
+                      fat: Math.round(r.fat * mult),
+                      isDb: true
+                    });
+                  }
+                }
+              });
+              syncWeeklyMacroInputsFromMealEntries();
+              renderWeeklyMealLog();
+            }
+          })
+          .catch(err => console.error("Error fetching logs:", err));
       }
 
       syncWeeklyMacroInputsFromMealEntries();
@@ -2552,7 +2596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
           '<div class="weekly-meal-dot" style="background:' + color + '"></div>' +
           '<div class="weekly-meal-entry-name">' + entry.name + '</div>' +
           '<div class="weekly-meal-entry-macros">' + entry.cal + 'kcal \u00B7 ' + entry.prot + 'g P \u00B7 ' + entry.carb + 'g C \u00B7 ' + entry.fat + 'g F</div>' +
-          '<button type="button" class="weekly-meal-entry-del" data-index="' + index + '">&#10005;</button>' +
+          (entry.isDb ? '' : '<button type="button" class="weekly-meal-entry-del" data-index="' + index + '">&#10005;</button>') +
         '</div>';
       }).join('');
 

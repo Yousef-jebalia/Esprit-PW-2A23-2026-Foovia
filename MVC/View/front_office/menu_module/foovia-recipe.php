@@ -2,12 +2,45 @@
 require_once __DIR__ . '/../../../Controller/menu_module/controle_Menu.php';
 require_once __DIR__ . '/../../../Controller/menu_module/controle_categ_rec.php';
 
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+  header('Location: ../foovia-signin.php');
+  exit;
+}
+
 $controller = new Controller_menu();
 $categoryController = new controle_categ_rec();
 $categoryRows = $categoryController->list_categ_rec();
 $recipe = null;
 $recipeIngredients = [];
 $error = '';
+$userId = (int)$_SESSION['user_id'];
+$is_logged_in = true;
+$user_name = $_SESSION['user_name'] ?? 'User';
+
+$recipeId = 0;
+if (isset($_GET['id_rec']) && is_numeric($_GET['id_rec'])) {
+  $recipeId = (int)$_GET['id_rec'];
+} elseif (isset($_POST['id_rec']) && is_numeric($_POST['id_rec'])) {
+  $recipeId = (int)$_POST['id_rec'];
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['favorite_action'] ?? '') === 'toggle' && $recipeId > 0) {
+  $isAlreadyFavorite = $controller->is_recipe_favorited_by_user($userId, $recipeId);
+
+  if ($isAlreadyFavorite) {
+    if ($controller->remove_recipe_from_user_favorites($userId, $recipeId)) {
+      header('Location: foovia-recipe.php?id_rec=' . $recipeId);
+      exit;
+    }
+  } else {
+    if ($controller->add_recipe_to_user_favorites($userId, $recipeId)) {
+      header('Location: foovia-recipe.php?id_rec=' . $recipeId);
+      exit;
+    }
+  }
+}
 
 function foovia_normalize_image_path($path, $fallback = 'images/product-thumb-1.png') {
   $path = str_replace('\\', '/', trim((string)$path));
@@ -151,14 +184,14 @@ function foovia_category_text_color($color) {
   return $luminance > 160 ? '#111008' : '#ffffff';
 }
 
-if (!isset($_GET['id_rec']) || !is_numeric($_GET['id_rec'])) {
+if ($recipeId <= 0) {
   $error = 'Recipe ID is missing or invalid.';
 } else {
-  $recipe = $controller->get_recipe_by_id((int)$_GET['id_rec']);
+  $recipe = $controller->get_recipe_by_id($recipeId);
   if (!$recipe) {
     $error = 'Recipe not found.';
   } else {
-    $recipeIngredients = $controller->get_recipe_ingredients((int)$_GET['id_rec']);
+    $recipeIngredients = $controller->get_recipe_ingredients($recipeId);
   }
 }
 
@@ -215,6 +248,8 @@ if ($recipe) {
     }
   }
 }
+
+$isRecipeFavorite = $recipe && $userId > 0 ? $controller->is_recipe_favorited_by_user($userId, (int)$recipe['id_rec']) : false;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -359,8 +394,24 @@ if ($recipe) {
 
     <div class="sidebar">
 
-      <button class="btn-save">Save Recipe</button>
-      <button class="btn-log">Log to Daily Tracker</button>
+      <form method="post" class="favorite-form">
+        <input type="hidden" name="id_rec" value="<?php echo (int)($recipe['id_rec'] ?? $recipeId); ?>">
+        <button class="btn-save<?php echo $isRecipeFavorite ? ' saved' : ''; ?>" type="submit" name="favorite_action" value="toggle">
+          <?php echo $isRecipeFavorite ? 'Favorited' : 'Favorite'; ?>
+        </button>
+      </form>
+      <div class="log-controls" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 24px; background: rgba(0,0,0,0.03); padding: 16px; border-radius: 16px;">
+        <div style="flex: 0 0 100px;">
+          <label for="log-qty" style="display: block; font-size: 0.75rem; color: #888; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Quantity</label>
+          <div style="display: flex; align-items: center; gap: 4px; background: #fff; border: 1.5px solid rgba(0,0,0,.08); border-radius: 12px; padding: 8px 12px; transition: border-color 0.2s;">
+            <input type="number" id="log-qty" value="100" min="1" step="1" style="width: 100%; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; color: var(--dark);">
+            <span style="font-size: 0.85rem; color: #aaa; font-weight: 500;">g</span>
+          </div>
+        </div>
+        <button class="btn-log" style="flex: 1; height: 46px; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; border-radius: 12px;">
+          <span>📝</span> Log to Tracker
+        </button>
+      </div>
 
       <div class="macros-card" style="margin-top:20px">
         <h2>Nutrition per serving</h2>
@@ -472,29 +523,46 @@ if ($recipe) {
 </footer>
 
 <script>
-  const saveRecipeBtn = document.querySelector('.btn-save');
-  if (saveRecipeBtn) {
-    saveRecipeBtn.addEventListener('click', function() {
-      if (this.classList.contains('saved')) {
-        this.classList.remove('saved');
-        this.textContent = 'Save Recipe';
-      } else {
-        this.classList.add('saved');
-        this.textContent = 'Saved';
-      }
-    });
-  }
-
   const logMealBtn = document.querySelector('.btn-log');
+  const qtyInput = document.getElementById('log-qty');
   if (logMealBtn) {
     logMealBtn.addEventListener('click', function() {
-      if (this.classList.contains('saved')) {
-        this.classList.remove('saved');
-        this.textContent = 'Log to Daily Tracker';
-      } else {
-        this.classList.add('saved');
-        this.textContent = 'Logged';
-      }
+      if (this.classList.contains('saved')) return;
+
+      const qty = qtyInput ? qtyInput.value : 100;
+      const recipeId = <?php echo (int)($recipe['id_rec'] ?? 0); ?>;
+      const today = new Date().toISOString().split('T')[0];
+
+      logMealBtn.innerHTML = '⏳ Logging...';
+      logMealBtn.disabled = true;
+
+      fetch('../../../Controller/menu_module/log_meal_handler.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: today,
+          meals: [{ id_rec: recipeId, meal_type: 'Recipe Page', qty: qty }]
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          this.classList.add('saved');
+          this.innerHTML = '<span>✅</span> Logged';
+          this.style.background = 'var(--blue)';
+          this.style.borderColor = 'var(--blue)';
+          this.style.color = '#fff';
+        } else {
+          alert('Error: ' + data.error);
+          this.innerHTML = '<span>📝</span> Log to Tracker';
+          this.disabled = false;
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        this.innerHTML = '<span>📝</span> Log to Tracker';
+        this.disabled = false;
+      });
     });
   }
 </script>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../../../Controller/menu_module/controle_Menu.php';
 
 require_once __DIR__ . '/../../../Controller/menu_module/controle_categ_rec.php';
@@ -102,6 +102,16 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $is_logged_in = true;
 $user_name = $_SESSION['user_name'] ?? 'User';
+$favoriteRecipeIds = [];
+
+try {
+  $favoriteQuery = $db->prepare('SELECT id_rec FROM choisir WHERE id_user = :id_user');
+  $favoriteQuery->execute(['id_user' => (int)$userId]);
+  $favoriteRecipeIds = array_map('intval', $favoriteQuery->fetchAll(PDO::FETCH_COLUMN));
+} catch (Exception $e) {
+  $favoriteRecipeIds = [];
+}
+$favoriteRecipeSet = array_fill_keys($favoriteRecipeIds, true);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +129,7 @@ $user_name = $_SESSION['user_name'] ?? 'User';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
-    <link rel="stylesheet" type="text/css" href="style.css?v=20260428">
+    <link rel="stylesheet" type="text/css" href="style.css?v=20260509">
 
 
 
@@ -283,11 +293,14 @@ $user_name = $_SESSION['user_name'] ?? 'User';
     </nav>
     
     <section class="top-cta-section" aria-label="Quick action">
-      <div class="container-lg">
+      <div class="container-lg" style="display:flex; gap:12px; align-items:center;">
         <button type="button" class="top-cta-button" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false">
            By ingredients
           <span class="top-cta-count" id="ingredientCountBadge">0</span>
         </button>
+        <a href="foovia-planner.php" class="top-cta-button" style="text-decoration:none; background:var(--green); color:#fff; border-color:var(--green); display:flex; align-items:center; gap:8px;">
+          <span>🥗</span> Go to Planner
+        </a>
       </div>
     </section>
 
@@ -423,6 +436,21 @@ $user_name = $_SESSION['user_name'] ?? 'User';
           </div>
         </div>
         <div class="category-scroll-row">
+          <div class="category-scroll-item">
+            <button
+              type="button"
+              class="product-item category-mini-card text-center category-filter-card category-favorite-card"
+              data-category-key="favorite"
+              aria-pressed="false"
+              style="--cat-color: var(--red); --cat-text: #ffffff;"
+            >
+              <figure class="d-flex justify-content-center">
+                <span class="category-favorite-icon" aria-hidden="true">&#10084;</span>
+              </figure>
+              <h4 class="fs-6 mt-2 fw-normal category-title">Favorite</h4>
+              <span class="text-body-secondary"><?php echo (int)count($favoriteRecipeIds); ?> recipes</span>
+            </button>
+          </div>
           <?php if (!empty($categories)): ?>
             <?php foreach ($categories as $categoryName => $categoryCount): ?>
               <?php
@@ -529,6 +557,7 @@ $user_name = $_SESSION['user_name'] ?? 'User';
                     class="col-6 col-md-4 col-lg-3 recipe-filter-item"
                     data-category-keys="<?php echo htmlspecialchars(implode(',', $recipeCategoryKeys)); ?>"
                     data-ingredient-ids="<?php echo htmlspecialchars(implode(',', $recipeIngredientIds)); ?>"
+                    data-recipe-id="<?php echo (int)$recipe['id_rec']; ?>"
                     data-recipe-name="<?php echo htmlspecialchars($recipe['name_rec']); ?>"
                   >
                     <div class="product-item recipe-card-shell">
@@ -536,6 +565,11 @@ $user_name = $_SESSION['user_name'] ?? 'User';
                         <div class="card-img">
                           <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($recipe['name_rec']); ?>" class="tab-image d-block mx-auto">
                           <div class="card-img-overlay"></div>
+                          <?php if (isset($favoriteRecipeSet[(int)$recipe['id_rec']])): ?>
+                            <span class="recipe-favorite-badge" title="Saved to your favorites" aria-label="Saved to your favorites">
+                              <span class="recipe-favorite-icon" aria-hidden="true">&#10084;</span>
+                            </span>
+                          <?php endif; ?>
                           <div class="card-badges">
                             <span class="card-badge badge-cat"><?php echo htmlspecialchars($recipePrimaryCategory); ?></span>
                             <?php if ($recipeTime > 0): ?>
@@ -1306,6 +1340,8 @@ $user_name = $_SESSION['user_name'] ?? 'User';
         const emptyState = document.getElementById('recipesFilterEmpty');
         const selectedCategoryKeys = new Set();
         const recipeSearchInput = document.getElementById('recipeSearchInput');
+        const favoriteRecipeIds = new Set(<?php echo json_encode(array_values(array_map('intval', $favoriteRecipeIds))); ?>);
+        const favoriteCategoryKey = 'favorite';
         let recipeSearchTerm = '';
         let isFirstFilterRun = true;
 
@@ -1350,6 +1386,7 @@ $user_name = $_SESSION['user_name'] ?? 'User';
           const ingredientFilterActive = document.body.dataset.ingredientFilterActive === 'true';
           const selectedIngredientSet = getSelectedIngredientSet();
           const useIngredientFilter = ingredientFilterActive && selectedIngredientSet.size > 0;
+          const favoriteOnly = selectedCategoryKeys.has(favoriteCategoryKey);
 
           recipeItems.forEach((recipeItem) => {
             const wasHidden = recipeItem.classList.contains('d-none');
@@ -1361,12 +1398,14 @@ $user_name = $_SESSION['user_name'] ?? 'User';
               .split(',')
               .map(normalizeId)
               .filter(Boolean);
+            const recipeId = normalizeId(recipeItem.getAttribute('data-recipe-id'));
             const recipeName = normalizeText(recipeItem.getAttribute('data-recipe-name'));
 
-            const matchesCategories = selectedCategoryKeys.size === 0 || Array.from(selectedCategoryKeys).every((selectedKey) => recipeKeys.includes(selectedKey));
+            const matchesFavorite = !favoriteOnly || favoriteRecipeIds.has(Number(recipeId));
+            const matchesCategories = favoriteOnly ? true : (selectedCategoryKeys.size === 0 || Array.from(selectedCategoryKeys).every((selectedKey) => recipeKeys.includes(selectedKey)));
             const matchesIngredients = !useIngredientFilter || recipeIngredientIds.every((ingredientId) => selectedIngredientSet.has(ingredientId));
             const matchesSearch = !recipeSearchTerm || recipeName.includes(recipeSearchTerm);
-            const matches = matchesCategories && matchesIngredients && matchesSearch;
+            const matches = matchesFavorite && matchesCategories && matchesIngredients && matchesSearch;
             recipeItem.classList.toggle('d-none', !matches);
             if (matches) {
               visibleCount += 1;
@@ -1396,6 +1435,21 @@ $user_name = $_SESSION['user_name'] ?? 'User';
             const key = normalizeKey(categoryButton.getAttribute('data-category-key'));
             if (!key) {
               return;
+            }
+
+            if (key === favoriteCategoryKey) {
+              if (selectedCategoryKeys.has(favoriteCategoryKey)) {
+                selectedCategoryKeys.clear();
+              } else {
+                selectedCategoryKeys.clear();
+                selectedCategoryKeys.add(favoriteCategoryKey);
+              }
+              applyRecipeFilter();
+              return;
+            }
+
+            if (selectedCategoryKeys.has(favoriteCategoryKey)) {
+              selectedCategoryKeys.delete(favoriteCategoryKey);
             }
 
             if (selectedCategoryKeys.has(key)) {

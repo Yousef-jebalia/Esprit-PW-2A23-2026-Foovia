@@ -4,6 +4,63 @@ include_once(__DIR__ . '/../../Model/menu_module/menu.php');
 
 class Controller_menu {
 
+    public function is_recipe_favorited_by_user(int $id_user, int $id_rec): bool {
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare("SELECT 1 FROM choisir WHERE id_user = :id_user AND id_rec = :id_rec LIMIT 1");
+            $query->execute([
+                'id_user' => $id_user,
+                'id_rec' => $id_rec,
+            ]);
+
+            return (bool)$query->fetchColumn();
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return false;
+        }
+    }
+
+    public function add_recipe_to_user_favorites(int $id_user, int $id_rec): bool {
+        $db = config::getConnexion();
+
+        try {
+            $existsQuery = $db->prepare("SELECT 1 FROM choisir WHERE id_user = :id_user AND id_rec = :id_rec LIMIT 1");
+            $existsQuery->execute([
+                'id_user' => $id_user,
+                'id_rec' => $id_rec,
+            ]);
+
+            if ($existsQuery->fetchColumn()) {
+                return true;
+            }
+
+            $insertQuery = $db->prepare("INSERT INTO choisir (id_user, id_rec) VALUES (:id_user, :id_rec)");
+            return $insertQuery->execute([
+                'id_user' => $id_user,
+                'id_rec' => $id_rec,
+            ]);
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return false;
+        }
+    }
+
+    public function remove_recipe_from_user_favorites(int $id_user, int $id_rec): bool {
+        $db = config::getConnexion();
+
+        try {
+            $query = $db->prepare("DELETE FROM choisir WHERE id_user = :id_user AND id_rec = :id_rec");
+            return $query->execute([
+                'id_user' => $id_user,
+                'id_rec' => $id_rec,
+            ]);
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return false;
+        }
+    }
+
     private function get_next_recipe_id($db) {
         $sql = "SELECT COALESCE(MAX(id_rec), 0) + 1 AS next_id FROM recipe";
         $query = $db->query($sql);

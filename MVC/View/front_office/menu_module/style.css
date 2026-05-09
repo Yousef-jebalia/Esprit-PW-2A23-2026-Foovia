@@ -839,6 +839,32 @@ a.btn-link.text-light:after {
         background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.35) 100%);
       }
 
+      .recipe-filter-item .recipe-favorite-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 4;
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        color: var(--red);
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+        border: 2px solid rgba(192, 56, 26, 0.2);
+        pointer-events: none;
+      }
+
+      .recipe-filter-item .recipe-favorite-icon {
+        font-size: 19px;
+        line-height: 1;
+        font-weight: 700;
+        display: block;
+        transform: translateY(-0.5px);
+      }
+
       .recipe-filter-item .card-badges {
         position: absolute;
         top: 12px;
@@ -1003,6 +1029,20 @@ a.btn-link.text-light:after {
         object-fit: cover;
       }
 
+      .category-mini-card .category-favorite-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(192, 56, 26, 0.12);
+        color: var(--red);
+        font-size: 2rem;
+        line-height: 1;
+        box-shadow: inset 0 0 0 2px rgba(192, 56, 26, 0.15);
+      }
+
       .category-mini-card .category-title {
         font-size: 0.9rem;
         line-height: 1.2;
@@ -1032,6 +1072,12 @@ a.btn-link.text-light:after {
       .category-filter-card.is-selected .category-title,
       .category-filter-card.is-selected .text-body-secondary {
         color: var(--cat-text) !important;
+      }
+
+      .category-favorite-card.is-selected .category-favorite-icon {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
       }
 
       .search-bar,
