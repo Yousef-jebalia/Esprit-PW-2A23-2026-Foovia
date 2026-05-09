@@ -69,7 +69,7 @@ if ($apiKey === '' && function_exists('apache_getenv')) {
 
 // XAMPP fallback: read key from a local file outside the project repo.
 if ($apiKey === '') {
-  $localKeyPath = 'C:/xampp/apache/conf/gemini_api_key.txt';
+  $localKeyPath = 'C:/xampp/htdocs/gemini_api_key.txt';
   if (is_readable($localKeyPath)) {
     $fileKey = trim((string)@file_get_contents($localKeyPath));
     if ($fileKey !== '') {
@@ -80,7 +80,7 @@ if ($apiKey === '') {
 
 if (!$apiKey) {
   http_response_code(500);
-  echo json_encode(['error' => 'Gemini API key is missing on server. Set GEMINI_API_KEY or create C:/xampp/apache/conf/gemini_api_key.txt']);
+  echo json_encode(['error' => 'Gemini API key is missing on server. Set GEMINI_API_KEY or create C:/xampp/htdocs/gemini_api_key.txt']);
   exit;
 }
 
