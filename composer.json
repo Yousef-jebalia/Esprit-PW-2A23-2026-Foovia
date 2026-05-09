@@ -1,6 +1,0 @@
-{
-    "require": {
-        "google/apiclient": "*",
-        "phpmailer/phpmailer": "*"
-    }
-}
