@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (deliveryCashButton) {
-      deliveryCashButton.addEventListener('click', async () => {
+    deliveryCashButton.addEventListener('click', async () => {
       if (!canUseDelivery) {
         if (deliveryFeedbackNode) {
           deliveryFeedbackNode.textContent = premiumOnlyMessage;
@@ -1040,11 +1040,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if (!selectedHub) {
-      if (deliveryFeedbackNode) {
-        deliveryFeedbackNode.textContent = 'Choose a dispatch point on the map first.';
+        if (deliveryFeedbackNode) {
+          deliveryFeedbackNode.textContent = 'Choose a dispatch point on the map first.';
+        }
+        return;
       }
-      return;
-    }
       if (!isSelectionDeliverable()) {
         if (deliveryFeedbackNode) {
           deliveryFeedbackNode.textContent = `Choose a market within ${maxDeliveryDistanceKm} km for delivery.`;
