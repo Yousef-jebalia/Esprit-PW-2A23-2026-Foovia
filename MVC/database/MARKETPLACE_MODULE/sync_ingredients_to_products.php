@@ -3,7 +3,16 @@
 declare(strict_types=1);
 
 $rootDir = dirname(__DIR__, 3);
-$db = new PDO('mysql:host=127.0.0.1;dbname=foovia_db;charset=utf8mb4', 'root', '', [
+require_once $rootDir . DIRECTORY_SEPARATOR . 'MVC' . DIRECTORY_SEPARATOR . 'Model' . DIRECTORY_SEPARATOR . 'env.php';
+
+$host = foovia_env('DB_HOST', '127.0.0.1');
+$port = foovia_env('DB_PORT', '3306');
+$database = foovia_env('DB_NAME', 'foovia_db');
+$charset = foovia_env('DB_CHARSET', 'utf8mb4');
+$user = foovia_env('DB_USER', 'root');
+$password = foovia_env('DB_PASS', '');
+
+$db = new PDO("mysql:host=$host;port=$port;dbname=$database;charset=$charset", $user, $password, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES => false,

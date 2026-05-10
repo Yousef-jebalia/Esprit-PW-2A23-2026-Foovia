@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
   const editingId = Number(form.querySelector('[name="id_march"]')?.value || 0);
   const isEditingMode = form.dataset.editingMode === 'true' || editingId > 0;
+  const initialExpirationDate = fields.date_expiration_march?.value || '';
 
   const setError = (fieldName, message) => {
     const errorNode = form.querySelector(`[data-error-for="${fieldName}"]`);
@@ -52,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('name_march', 'Product name is required.');
         return false;
       }
-      if (value.length > 10) {
-        setError('name_march', 'Name must stay within 10 characters because of the SQL schema.');
+      if (value.length > 160) {
+        setError('name_march', 'Name must stay within 160 characters.');
         return false;
       }
       clearError('name_march');
@@ -104,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('date_expiration_march', 'Expiration date is required.');
         return false;
       }
-      if (value < today) {
+      if (value < today && (!isEditingMode || value !== initialExpirationDate)) {
         setError('date_expiration_march', 'Expiration date must be today or later.');
         return false;
       }
@@ -117,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setError('point_acces_march', 'Point d\'acces is required.');
         return false;
       }
-      if (value.length > 10) {
-        setError('point_acces_march', 'Point d\'acces must stay within 10 characters.');
+      if (value.length > 160) {
+        setError('point_acces_march', 'Point d\'acces must stay within 160 characters.');
         return false;
       }
       clearError('point_acces_march');

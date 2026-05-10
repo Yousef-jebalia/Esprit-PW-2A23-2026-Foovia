@@ -7,6 +7,10 @@ class Controller_user {
 
     
     public function add_user(User $user) {
+        $birthday = trim($user->getBirthdayUser());
+        $birthday = $birthday !== '' ? $birthday : null;
+        $inscriptionDate = trim($user->getInscriptiondateUser());
+        $inscriptionDate = $inscriptionDate !== '' ? date('Y-m-d', strtotime($inscriptionDate)) : date('Y-m-d');
 
         $sql = "INSERT INTO user (
             name_user,
@@ -64,7 +68,7 @@ class Controller_user {
                 'password'  => $user->getPasswordUser(),
                 'phone'     => $user->getPhoneUser(),
                 'gender'    => $user->getGenderUser(),
-                'birthday'  => $user->getBirthdayUser(),
+                'birthday'  => $birthday,
                 'height'    => $user->getHeightUser(),
                 'weight'    => $user->getWeightUser(),
                 'bmi'       => $user->getBmiUser(),
@@ -72,7 +76,7 @@ class Controller_user {
                 'illness'   => $user->getIllnessUser(),
                 'allergie'  => $user->getAllergieUser(),
                 'medicament'=> $user->getMedicamentUser(),
-                'date'      => $user->getInscriptiondateUser(),
+                'date'      => $inscriptionDate,
                 'role'      => $user->getRoleUser(),
                 'subscription' => $user->getSubscriptionUser(),
                 'account_state' => $user->getAccountStateUser(),
@@ -484,6 +488,10 @@ class Controller_user {
 
     
     public function update_user(User $user, $id) {
+        $birthday = trim($user->getBirthdayUser());
+        $birthday = $birthday !== '' ? $birthday : null;
+        $inscriptionDate = trim($user->getInscriptiondateUser());
+        $inscriptionDate = $inscriptionDate !== '' ? date('Y-m-d', strtotime($inscriptionDate)) : date('Y-m-d');
 
         $sql = "UPDATE user SET
             name_user = :name,
@@ -519,7 +527,7 @@ class Controller_user {
                 'password'   => $user->getPasswordUser(),
                 'phone'      => $user->getPhoneUser(),
                 'gender'     => $user->getGenderUser(),
-                'birthday'   => $user->getBirthdayUser(),
+                'birthday'   => $birthday,
                 'height'     => $user->getHeightUser(),
                 'weight'     => $user->getWeightUser(),
                 'bmi'        => $user->getBmiUser(),
@@ -527,7 +535,7 @@ class Controller_user {
                 'illness'    => $user->getIllnessUser(),
                 'allergie'   => $user->getAllergieUser(),
                 'medicament' => $user->getMedicamentUser(),
-                'date'       => $user->getInscriptiondateUser(),
+                'date'       => $inscriptionDate,
                 'role'       => $user->getRoleUser(),
                 'subscription' => $user->getSubscriptionUser(),
                 'account_state' => $user->getAccountStateUser(),

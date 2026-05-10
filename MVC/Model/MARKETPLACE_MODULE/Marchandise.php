@@ -28,13 +28,13 @@ final class Marchandise
                 m.date_expiration_march,
                 m.point_acces_march,
                 m.reserved_count_march,
-                GROUP_CONCAT(DISTINCT mag.id_mag ORDER BY mag.name_mag SEPARATOR ",") AS store_ids,
-                GROUP_CONCAT(DISTINCT mag.name_mag ORDER BY mag.name_mag SEPARATOR ", ") AS store_names,
-                GROUP_CONCAT(DISTINCT mag.email_mag ORDER BY mag.name_mag SEPARATOR ", ") AS store_emails,
-                GROUP_CONCAT(DISTINCT mag.phone_mag ORDER BY mag.name_mag SEPARATOR ", ") AS store_phones,
-                GROUP_CONCAT(DISTINCT mag.adress_mag ORDER BY mag.name_mag SEPARATOR " | ") AS store_addresses,
-                GROUP_CONCAT(DISTINCT c.id_categ ORDER BY c.name_categ SEPARATOR ",") AS category_ids,
-                GROUP_CONCAT(DISTINCT c.name_categ ORDER BY c.name_categ SEPARATOR ", ") AS category_names
+                GROUP_CONCAT(DISTINCT mag.id_mag ORDER BY mag.name_mag SEPARATOR \',\') AS store_ids,
+                GROUP_CONCAT(DISTINCT mag.name_mag ORDER BY mag.name_mag SEPARATOR \', \') AS store_names,
+                GROUP_CONCAT(DISTINCT mag.email_mag ORDER BY mag.name_mag SEPARATOR \', \') AS store_emails,
+                GROUP_CONCAT(DISTINCT mag.phone_mag ORDER BY mag.name_mag SEPARATOR \', \') AS store_phones,
+                GROUP_CONCAT(DISTINCT mag.adress_mag ORDER BY mag.name_mag SEPARATOR \' | \') AS store_addresses,
+                GROUP_CONCAT(DISTINCT c.id_categ ORDER BY c.name_categ SEPARATOR \',\') AS category_ids,
+                GROUP_CONCAT(DISTINCT c.name_categ ORDER BY c.name_categ SEPARATOR \', \') AS category_names
              FROM marchandise m
              LEFT JOIN vendre v ON v.id_march = m.id_march
              LEFT JOIN magasin mag ON mag.id_mag = v.id_mag
@@ -67,9 +67,9 @@ final class Marchandise
                 m.date_expiration_march,
                 m.point_acces_march,
                 m.reserved_count_march,
-                GROUP_CONCAT(DISTINCT mag.id_mag ORDER BY mag.name_mag SEPARATOR ",") AS store_ids,
-                GROUP_CONCAT(DISTINCT c.id_categ ORDER BY c.name_categ SEPARATOR ",") AS category_ids,
-                GROUP_CONCAT(DISTINCT c.name_categ ORDER BY c.name_categ SEPARATOR ", ") AS category_names
+                GROUP_CONCAT(DISTINCT mag.id_mag ORDER BY mag.name_mag SEPARATOR \',\') AS store_ids,
+                GROUP_CONCAT(DISTINCT c.id_categ ORDER BY c.name_categ SEPARATOR \',\') AS category_ids,
+                GROUP_CONCAT(DISTINCT c.name_categ ORDER BY c.name_categ SEPARATOR \', \') AS category_names
              FROM marchandise m
              LEFT JOIN vendre v ON v.id_march = m.id_march
              LEFT JOIN magasin mag ON mag.id_mag = v.id_mag
@@ -110,7 +110,7 @@ final class Marchandise
                 m.description_march,
                 m.price_march,
                 m.quantity_march,
-                GROUP_CONCAT(DISTINCT c.name_categ ORDER BY c.name_categ SEPARATOR ", ") AS category_names,
+                GROUP_CONCAT(DISTINCT c.name_categ ORDER BY c.name_categ SEPARATOR \', \') AS category_names,
                 COUNT(DISTINCT matched.id_categ) AS shared_categories
              FROM marchandise m
              INNER JOIN marchandise_categorie matched ON matched.id_march = m.id_march
@@ -289,7 +289,7 @@ final class Marchandise
         $statement = $this->db->query(
             'SELECT
                 store_totals.id_march,
-                GROUP_CONCAT(CONCAT(mag.name_mag, ": ", store_totals.quantity_total) ORDER BY mag.name_mag SEPARATOR " | ") AS reservation_details
+                GROUP_CONCAT(CONCAT(mag.name_mag, \': \', store_totals.quantity_total) ORDER BY mag.name_mag SEPARATOR \' | \') AS reservation_details
              FROM (
                 SELECT id_march, id_mag, SUM(quantity_reservation) AS quantity_total
                 FROM marchandise_reservation

@@ -52,17 +52,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             !empty($_POST["id_recl"]) && !empty($_POST["description"]) && 
             !empty($_POST["etat_rec"]) && !empty($_POST["type"]) && !empty($_POST["date_overture"]) )
          {
-            $reclamation = new Reclamations(
-                $_POST['id_recl'],
-                $logged_in_user_id,
-                $_POST['description'],
-                $_POST['etat_rec'],
-                $_POST['type'],
-                $_POST['date_overture'],
-                ''
-            );
-           /* $controller->add_reclamation($reclamation);
-            $success = "Claim added successfully.";*/
+            try {
+                $reclamation = new Reclamations(
+                    $_POST['id_recl'],
+                    $logged_in_user_id,
+                    $_POST['description'],
+                    $_POST['etat_rec'],
+                    $_POST['type'],
+                    $_POST['date_overture'],
+                    ''
+                );
+                $controller->add_reclamation($reclamation);
+                $success = "Claim added successfully.";
+            } catch (Exception $e) {
+                $error = 'Database error: ' . $e->getMessage();
+            }
         } else {
             $error = "All fields are required.";
         }

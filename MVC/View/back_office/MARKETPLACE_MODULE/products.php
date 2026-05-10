@@ -488,7 +488,7 @@ $message = match ($status) {
     <script src="../USER_MODULE/assets/js/pcoded.min.js"></script>
     <script src="../USER_MODULE/assets/js/vertical/vertical-layout.min.js"></script>
     <script src="../USER_MODULE/assets/js/script.js"></script>
-    <script src="../../front_office/MARKETPLACE_MODULE/assets/js/backoffice-validation.js?v=description-fix-4"></script>
+    <script src="../../front_office/MARKETPLACE_MODULE/assets/js/backoffice-validation.js?v=product-update-fix-1"></script>
     <script src="../../front_office/MARKETPLACE_MODULE/assets/js/backoffice-actions.js"></script>
 </body>
 </html>

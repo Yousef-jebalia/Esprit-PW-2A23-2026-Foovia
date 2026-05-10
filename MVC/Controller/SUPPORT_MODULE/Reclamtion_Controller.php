@@ -10,34 +10,23 @@ class Controller_reclamation {
         $db = config::getConnexion();
         $userId = (int) $reclamation->getIdUser();
         $dateOverture = trim($reclamation->getDateOverture());
+        $dateOverture = $dateOverture !== '' ? $dateOverture : date('Y-m-d');
 
         if ($userId <= 0) {
             throw new Exception('Missing authenticated user.');
         }
 
         try {
-            if ($dateOverture === '') {
-                $sql = "INSERT INTO reclamation (id_user, description_reclam, etat_reclam, type_reclam, dateferm_reclam) 
-                        VALUES (:id_user, :description, :etat, :type, :date_fermiture)";
-                $params = [
-                    'id_user' => $userId,
-                    'description' => $reclamation->getDescription(),
-                    'etat' => $reclamation->getEtat(),
-                    'type' => $reclamation->getType(),
-                    'date_fermiture' => null
-                ];
-            } else {
-                $sql = "INSERT INTO reclamation (id_user, description_reclam, etat_reclam, type_reclam, dateouvert_reclam, dateferm_reclam) 
-                        VALUES (:id_user, :description, :etat, :type, :date_overture, :date_fermiture)";
-                $params = [
-                    'id_user' => $userId,
-                    'description' => $reclamation->getDescription(),
-                    'etat' => $reclamation->getEtat(),
-                    'type' => $reclamation->getType(),
-                    'date_overture' => $dateOverture,
-                    'date_fermiture' => null
-                ];
-            }
+            $sql = "INSERT INTO reclamation (id_user, description_reclam, etat_reclam, type_reclam, dateouvert_reclam, dateferm_reclam)
+                    VALUES (:id_user, :description, :etat, :type, :date_overture, :date_fermiture)";
+            $params = [
+                'id_user' => $userId,
+                'description' => $reclamation->getDescription(),
+                'etat' => $reclamation->getEtat(),
+                'type' => $reclamation->getType(),
+                'date_overture' => $dateOverture,
+                'date_fermiture' => null
+            ];
 
             $query = $db->prepare($sql);
             $query->execute($params);

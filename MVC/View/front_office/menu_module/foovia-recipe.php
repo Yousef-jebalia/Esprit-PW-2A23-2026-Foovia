@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../Controller/menu_module/controle_Menu.php';
 require_once __DIR__ . '/../../../Controller/menu_module/controle_categ_rec.php';
+require_once __DIR__ . '/../../../Controller/Controller_user.php';
 
 session_start();
 

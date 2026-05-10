@@ -3,12 +3,23 @@ include_once(__DIR__ . '/../../Model/config.php');
 include_once(__DIR__ . '/../../Model/menu_module/menu.php');
 
 class Controller_menu {
+    private function ensure_recipe_favorite_table(PDO $db): void {
+        $db->exec(
+            "CREATE TABLE IF NOT EXISTS recipe_favorite (
+                id_user INT NOT NULL,
+                id_rec INT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id_user, id_rec)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+        );
+    }
 
     public function is_recipe_favorited_by_user(int $id_user, int $id_rec): bool {
         $db = config::getConnexion();
 
         try {
-            $query = $db->prepare("SELECT 1 FROM choisir WHERE id_user = :id_user AND id_rec = :id_rec LIMIT 1");
+            $this->ensure_recipe_favorite_table($db);
+            $query = $db->prepare("SELECT 1 FROM recipe_favorite WHERE id_user = :id_user AND id_rec = :id_rec LIMIT 1");
             $query->execute([
                 'id_user' => $id_user,
                 'id_rec' => $id_rec,
@@ -25,7 +36,8 @@ class Controller_menu {
         $db = config::getConnexion();
 
         try {
-            $existsQuery = $db->prepare("SELECT 1 FROM choisir WHERE id_user = :id_user AND id_rec = :id_rec LIMIT 1");
+            $this->ensure_recipe_favorite_table($db);
+            $existsQuery = $db->prepare("SELECT 1 FROM recipe_favorite WHERE id_user = :id_user AND id_rec = :id_rec LIMIT 1");
             $existsQuery->execute([
                 'id_user' => $id_user,
                 'id_rec' => $id_rec,
@@ -35,7 +47,7 @@ class Controller_menu {
                 return true;
             }
 
-            $insertQuery = $db->prepare("INSERT INTO choisir (id_user, id_rec) VALUES (:id_user, :id_rec)");
+            $insertQuery = $db->prepare("INSERT INTO recipe_favorite (id_user, id_rec) VALUES (:id_user, :id_rec)");
             return $insertQuery->execute([
                 'id_user' => $id_user,
                 'id_rec' => $id_rec,
@@ -50,7 +62,8 @@ class Controller_menu {
         $db = config::getConnexion();
 
         try {
-            $query = $db->prepare("DELETE FROM choisir WHERE id_user = :id_user AND id_rec = :id_rec");
+            $this->ensure_recipe_favorite_table($db);
+            $query = $db->prepare("DELETE FROM recipe_favorite WHERE id_user = :id_user AND id_rec = :id_rec");
             return $query->execute([
                 'id_user' => $id_user,
                 'id_rec' => $id_rec,

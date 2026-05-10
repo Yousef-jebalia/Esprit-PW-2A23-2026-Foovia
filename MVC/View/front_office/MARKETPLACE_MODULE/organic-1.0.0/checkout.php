@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../../../Model/MARKETPLACE_MODULE/url_helper.php';
+require_once __DIR__ . '/../../../../Model/MARKETPLACE_MODULE/config.php';
 $appBaseUrl = foovia_app_base_url();
 
 if (!isset($_SESSION['user_id'])) {
@@ -13,10 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 $userName = $_SESSION['user_name'] ?? '';
 $subscriptionUser = 'normal';
 try {
-    $userDb = new PDO('mysql:host=localhost;dbname=foovia_db;charset=utf8mb4', 'root', '', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
+    $userDb = Database::getConnection();
     $userStatement = $userDb->prepare('SELECT subscription_user FROM user WHERE id_user = :id_user LIMIT 1');
     $userStatement->execute(['id_user' => (int) $_SESSION['user_id']]);
     $subscriptionUser = strtolower(trim((string) ($userStatement->fetchColumn() ?: 'normal')));
