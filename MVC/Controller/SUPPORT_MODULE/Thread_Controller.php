@@ -146,7 +146,11 @@ class Thread_Controller
     public function get_messages(int $thread_id): array
     {
         $db  = config::getConnexion();
-        $sql = 'SELECT * FROM thread_message WHERE id_thread = :id ORDER BY sent_at ASC';
+        $sql = 'SELECT m.*, u.name_user AS author_name
+                FROM thread_message m
+                LEFT JOIN user u ON u.id_user = m.id_user
+                WHERE m.id_thread = :id
+                ORDER BY m.sent_at ASC';
         try {
             $stmt = $db->prepare($sql);
             $stmt->execute(['id' => $thread_id]);

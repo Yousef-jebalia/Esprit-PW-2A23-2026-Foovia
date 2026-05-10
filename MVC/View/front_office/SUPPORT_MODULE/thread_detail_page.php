@@ -121,6 +121,13 @@ $messages = $controller->get_messages($id);
     }
     :root[data-theme="dark"] .msg-bubble { background: #1a2a1a; border-color: #2d4a2d; }
     .msg-bubble .msg-body  { font-size: .95rem; white-space: pre-wrap; word-break: break-word; }
+    .msg-author {
+      font-size: .82rem;
+      font-weight: 700;
+      color: #2E4A28;
+      margin-bottom: 8px;
+    }
+    :root[data-theme="dark"] .msg-author { color: #8fd18f; }
     .msg-bubble .msg-meta  { font-size: .78rem; color: #64748b; margin-top: 8px; }
     .msg-delete-btn {
       position: absolute;
@@ -166,20 +173,18 @@ $messages = $controller->get_messages($id);
 </defs></svg>
 
 <nav>
-  <a href="#" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height:50px;width:auto;">
+  <a href="../foovia.php" class="nav-logo">
+    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
     FOOVIA
   </a>
   <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#how">How it works</a></li>
     <li><a href="../marketplace-gateway.php">Marketplace</a></li>
     <li><a href="#community">Community</a></li>
     <li><a href="support_rec_page.php">Support</a></li>
     <li><a href="threads_page.php" style="color:#4BAE52;font-weight:700">Threads</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="../back_office/thread_admin_page.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -244,6 +249,9 @@ $messages = $controller->get_messages($id);
             <input type="hidden" name="id_message" value="<?php echo (int) $m['id_message']; ?>">
             <button type="submit" class="msg-delete-btn" title="Delete reply">✕</button>
           </form>
+          <div class="msg-author">
+            <?php echo htmlspecialchars($m['author_name'] ?? ('User #' . (int) $m['id_user'])); ?>
+          </div>
           <div class="msg-body"><?php echo htmlspecialchars($m['body']); ?></div>
           <div class="msg-meta">
             <?php echo date('M j, Y H:i', strtotime($m['sent_at'])); ?>

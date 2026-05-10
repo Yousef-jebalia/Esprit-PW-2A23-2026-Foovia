@@ -17,6 +17,9 @@ $is_logged_in = isset($_SESSION['user_id']);
 $logged_in_user_id = (int) ($_SESSION['user_id'] ?? 0);
 $logged_in_user_name = trim((string) ($_SESSION['user_name'] ?? ''));
 
+$chatbot_subscription_raw = strtolower(trim((string) ($_SESSION['subscription_user'] ?? $_SESSION['sunscription_user'] ?? 'normal')));
+$chatbot_subscription_plan = ($chatbot_subscription_raw === 'premium' || $chatbot_subscription_raw === 'elite') ? 'premium' : 'normal';
+
 $error = "";
 $success = "";
 
@@ -318,7 +321,7 @@ if (!empty($reclamations)) {
       </defs>
     </svg>
     <nav>
-  <a href="#" class="nav-logo">
+  <a href="../foovia.php" class="nav-logo">
     <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
     FOOVIA
   </a>
@@ -1329,6 +1332,26 @@ if (!empty($reclamations)) {
         transform: scale(1.05);
         box-shadow: 0 4px 12px rgba(46, 74, 40, 0.4);
       }
+      /* Microphone button (premium only) */
+      .mic-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+      }
+
+      .mic-btn.active {
+        box-shadow: 0 6px 20px rgba(217, 119, 6, 0.45);
+        transform: scale(1.08);
+      }
+
 
       .send-btn:active {
         transform: scale(0.95);
@@ -1459,6 +1482,13 @@ if (!empty($reclamations)) {
       <!-- Input Area -->
       <div class="chat-input-area">
         <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." autocomplete="off">
+        <?php if ($user_subscription === 'premium' || $user_subscription === 'elite'): ?>
+          <button class="mic-btn" id="micBtn" aria-pressed="false" aria-label="Start voice input" title="Voice input (premium)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zM11 19.93V22h2v-2.07A8.001 8.001 0 0 0 20 12h-2a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.93z"/>
+            </svg>
+          </button>
+        <?php endif; ?>
         <button class="send-btn" id="sendBtn" aria-label="Send message">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -1470,7 +1500,7 @@ if (!empty($reclamations)) {
     <!--
       Hybrid Wilson + claim flow:
       1) successfulBotReplies increments after each successful Wilson reply (chatbot-handler.php).
-      2) Right after the 4th Wilson reply is shown: two static bot bubbles (link, then yes/no) and wilsonDisabled=true.
+      2) Right after the configured plan reply limit is reached: two static bot bubbles (link, then yes/no) and wilsonDisabled=true.
       3) awaiting_yesno / awaiting_description: no general Wilson. Claim: chatbot-claim-handler.php (AI classifies type only).
       4) If wilsonDisabled and claimAssistState is null (e.g. after "no"), only static hints — no Wilson API.
     -->
@@ -1485,14 +1515,80 @@ if (!empty($reclamations)) {
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         const typingIndicator = document.getElementById('typingIndicator');
+        const micBtn = document.getElementById('micBtn');
+
+        // SpeechRecognition (premium-only mic) setup
+        let recognition = null;
+        let recognizing = false;
+        if (micBtn) {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (SpeechRecognition) {
+            try {
+              recognition = new SpeechRecognition();
+              recognition.lang = navigator.language || 'en-US';
+              recognition.interimResults = false;
+              recognition.maxAlternatives = 1;
+
+              recognition.onstart = function() {
+                recognizing = true;
+                micBtn.classList.add('active');
+                micBtn.setAttribute('aria-pressed', 'true');
+                micBtn.title = 'Listening...';
+              };
+
+              recognition.onend = function() {
+                recognizing = false;
+                micBtn.classList.remove('active');
+                micBtn.setAttribute('aria-pressed', 'false');
+                micBtn.title = 'Voice input (premium)';
+              };
+
+              recognition.onerror = function(evt) {
+                console.error('SpeechRecognition error', evt);
+                if (evt && evt.error) {
+                  alert('Voice recognition error: ' + evt.error);
+                }
+              };
+
+              recognition.onresult = function(event) {
+                const transcript = Array.from(event.results).map(r => r[0].transcript).join(' ');
+                if (chatInput.value && chatInput.value.trim()) {
+                  chatInput.value = chatInput.value.trim() + ' ' + transcript;
+                } else {
+                  chatInput.value = transcript;
+                }
+                chatInput.focus();
+              };
+
+              micBtn.addEventListener('click', function() {
+                if (recognizing) {
+                  try { recognition.stop(); } catch (e) { console.error(e); }
+                } else {
+                  try { recognition.start(); } catch (e) { console.error(e); }
+                }
+              });
+            } catch (e) {
+              console.error('SpeechRecognition setup failed', e);
+            }
+          } else {
+            // Browser doesn't support SpeechRecognition
+            micBtn.addEventListener('click', function() {
+              alert('Voice recognition is not available in this browser. Try Chrome or Edge.');
+            });
+          }
+        }
 
         const CHATBOT_ENDPOINT = '../../../Controller/SUPPORT_MODULE/chatbot-handler.php';
         const CHATBOT_CLAIM_ENDPOINT = '../../../Controller/SUPPORT_MODULE/chatbot-claim-handler.php';
         const CLAIM_PAGE_URL = 'add_rec_page.php';
         const CAN_CREATE_CLAIMS = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
-
+        const WILSON_REPLIES_NORMAL_PLAN = 2;
+        const WILSON_REPLIES_PREMIUM_PLAN = 4;
+        const CHATBOT_SUBSCRIPTION_PLAN = <?php echo json_encode(($user_subscription === 'premium' || $user_subscription === 'elite') ? 'premium' : 'normal'); ?>;
         /** After this many successful Wilson replies, show claim UI and disable general Wilson. */
-        const WILSON_REPLIES_BEFORE_CLAIM_FLOW = 3;
+        const WILSON_REPLIES_BEFORE_CLAIM_FLOW = CHATBOT_SUBSCRIPTION_PLAN === 'premium'
+          ? WILSON_REPLIES_PREMIUM_PLAN
+          : WILSON_REPLIES_NORMAL_PLAN;
         /** Successful Wilson replies in this page load (assignment: no cross-tab persistence). */
         let successfulBotReplies = 0;
         /** True once the claim link + yes/no UI has been shown. */

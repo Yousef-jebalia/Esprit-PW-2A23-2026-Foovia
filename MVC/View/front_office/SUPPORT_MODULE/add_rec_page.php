@@ -1,14 +1,15 @@
 
 <?php
-include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Reclamtion_Controller.php';
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Reclamtion_Controller.php';
+include_once __DIR__ . '/../../../Controller/Controller_user.php';
 $is_logged_in = isset($_SESSION['user_id']);
 $logged_in_user_id = (int) ($_SESSION['user_id'] ?? 0);
 $logged_in_user_name = trim((string) ($_SESSION['user_name'] ?? ''));
+$authDebugInfo = null;
 
 if (! $is_logged_in) {
     header('Location: ../foovia-signin.php?redirect=support');
@@ -43,6 +44,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 exit;
             } catch (Exception $e) {
                 $error = 'Database error: ' . $e->getMessage();
+                if (stripos($e->getMessage(), 'Missing authenticated user') !== false) {
+                  $authDebugInfo = [
+                    'session_user_id' => $_SESSION['user_id'] ?? null,
+                    'session_user_name' => $_SESSION['user_name'] ?? null,
+                    'session_user_email' => $_SESSION['user_email'] ?? null,
+                    'session_id_user' => $_SESSION['id_user'] ?? null,
+                    'session_id' => $_SESSION['id'] ?? null,
+                  ];
+                }
             }
         } else {
             $error = "All fields are required.";
@@ -381,6 +391,12 @@ $reclamations = $controller->get_reclamations();
                 <div class="alert alert-danger" role="alert">
                     <?php echo $error; ?>
                 </div>
+              <?php if (!empty($authDebugInfo)): ?>
+                <div class="alert alert-warning" role="alert">
+                  <strong>Auth debug:</strong> the session does not contain a usable user id for claim creation.
+                  <pre class="mb-0 mt-2"><?php echo htmlspecialchars(json_encode($authDebugInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8'); ?></pre>
+                </div>
+              <?php endif; ?>
             <?php endif; ?>
             <?php if (!empty($success)): ?>
                 <div class="alert alert-success" role="alert">

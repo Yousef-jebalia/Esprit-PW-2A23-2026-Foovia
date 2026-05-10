@@ -145,7 +145,17 @@ $resolvedType = claim_classify_description($description, $geminiModel);
 $resolvedType = claim_normalize_fallback($resolvedType);
 
 if (empty($_SESSION['user_id']) || empty($_SESSION['user_name'])) {
-    echo json_encode(['error' => 'Please sign in before creating a claim.']);
+    $out = ['error' => 'Please sign in before creating a claim.'];
+    if ($chatbotDebug) {
+        $out['debug'] = [
+            'session_user_id' => $_SESSION['user_id'] ?? null,
+            'session_user_name' => $_SESSION['user_name'] ?? null,
+            'session_user_email' => $_SESSION['user_email'] ?? null,
+            'session_id_user' => $_SESSION['id_user'] ?? null,
+            'session_id' => $_SESSION['id'] ?? null,
+        ];
+    }
+    echo json_encode($out);
     exit;
 }
 
