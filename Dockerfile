@@ -1,14 +1,19 @@
-# Use the official PHP image with Apache
 FROM php:8.2-apache
 
-# Install any PHP extensions you might need (e.g., for MySQL)
+# Install database extensions
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Copy all your project files into the Apache web root
+# 1. Enable Apache rewrite module (Necessary for MVC routing)
+RUN a2enmod rewrite
+
+# 2. Copy your project files
 COPY . /var/www/html/
 
-# Tell Apache to listen on the port Render provides
+# 3. Allow .htaccess to override Apache defaults
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# 4. Handle Render's dynamic Port
 RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# Set permissions so Apache can read your files
+# 5. Set permissions
 RUN chown -R www-data:www-data /var/www/html
