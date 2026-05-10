@@ -4,6 +4,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Reclamtion_Controller.php';
+include_once __DIR__ . '/../../../Controller/Controller_user.php';
+
+$user_subscription = 'free';
+if (isset($_SESSION['user_id'])) {
+    $userController = new Controller_user();
+    $userData = $userController->get_user($_SESSION['user_id']);
+    $user_subscription = $userData['subscription_user'] ?? 'free';
+}
 
 $is_logged_in = isset($_SESSION['user_id']);
 $logged_in_user_id = (int) ($_SESSION['user_id'] ?? 0);
@@ -220,6 +228,32 @@ if (!empty($reclamations)) {
         background-color: var(--surface);
         border-color: rgba(255, 255, 255, 0.08);
       }
+      /* Premium Badge Navigation Component */
+      .premium-badge-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+        border-radius: 50%;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+        margin-left: 10px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 2px solid #fff;
+        flex-shrink: 0;
+      }
+      .premium-badge-nav:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+      }
+      .premium-icon-nav {
+        width: 22px;
+        height: 22px;
+        filter: brightness(0) invert(1);
+      }
     </style>
   </head>
   <body class="support-rec-body">
@@ -317,6 +351,11 @@ if (!empty($reclamations)) {
     <?php else: ?>
       <a href="../foovia-signin.php?redirect=support" class="nav-btn nav-signin">Sign In</a>
       <a href="../foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
+    <?php endif; ?>
+    <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
+      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../foovia-premium.php'">
+        <img src="../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+      </div>
     <?php endif; ?>
   </div>
 </nav>
