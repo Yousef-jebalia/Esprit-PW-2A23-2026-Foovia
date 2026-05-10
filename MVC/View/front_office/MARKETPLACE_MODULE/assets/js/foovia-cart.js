@@ -735,13 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const showPremiumMessage = (button) => {
     if (!button) return;
-    if (button.closest('[data-cart-modal]')) {
-      showCheckoutMessage(button, premiumOnlyMessage);
-      return;
-    }
-    if (typeof showReserveBubble === 'function') {
-      showReserveBubble(button, premiumOnlyMessage);
-    }
+    window.location.href = '../../foovia-premium.php';
   };
 
   const applySubscriptionRules = () => {

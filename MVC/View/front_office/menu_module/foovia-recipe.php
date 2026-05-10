@@ -250,6 +250,10 @@ if ($recipe) {
 }
 
 $isRecipeFavorite = $recipe && $userId > 0 ? $controller->is_recipe_favorited_by_user($userId, (int)$recipe['id_rec']) : false;
+
+$userController = new Controller_user();
+$userData = $userController->get_user($userId);
+$userSubscription = $userData['subscription_user'] ?? 'free';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -260,6 +264,34 @@ $isRecipeFavorite = $recipe && $userId > 0 ? $controller->is_recipe_favorited_by
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="foovia-recipe.css?v=market-badge-size-1">
+<style>
+  /* Premium Badge Navigation Component */
+  .premium-badge-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid #fff;
+    flex-shrink: 0;
+  }
+  .premium-badge-nav:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+  }
+  .premium-icon-nav {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+  }
+</style>
 </head>
 <body>
 
@@ -274,6 +306,11 @@ $isRecipeFavorite = $recipe && $userId > 0 ? $controller->is_recipe_favorited_by
     Back to Recipes
   </a>
   <a href="#" class="nav-cta">Log Meal</a>
+  <?php if ($is_logged_in && ($userSubscription === 'premium' || $userSubscription === 'elite')): ?>
+    <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../foovia-premium.php'">
+      <img src="../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+    </div>
+  <?php endif; ?>
 </nav>
 
 <!-- HERO -->

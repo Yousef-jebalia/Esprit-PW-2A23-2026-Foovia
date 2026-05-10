@@ -327,6 +327,35 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
         </defs>
     </svg>
 
+<style>
+  /* Premium Badge Navigation Component */
+  .premium-badge-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid #fff;
+    flex-shrink: 0;
+  }
+  .premium-badge-nav:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+  }
+  .premium-icon-nav {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+  }
+</style>
+
     <header class="foovia-topbar">
         <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php" class="foovia-brand">
             <img src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/assets/Plan%20de%20travail%201%20no%20bg%20(3)%20(1).png" alt="FOOVIA Logo" class="foovia-logo-img">
@@ -361,6 +390,11 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
                     <li><a class="dropdown-item" href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/logout.php">Logout</a></li>
                 </ul>
             </div>
+            <?php if (str_contains($subscriptionUser, 'premium') || str_contains($subscriptionUser, 'premuim')): ?>
+              <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../../foovia-premium.php'">
+                <img src="../../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+              </div>
+            <?php endif; ?>
         </div>
     </header>
 

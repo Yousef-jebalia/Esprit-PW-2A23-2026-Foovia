@@ -1,3 +1,16 @@
+<?php
+session_start();
+include_once(__DIR__ . '/../../Controller/Controller_user.php');
+$is_logged_in = isset($_SESSION['user_id']);
+$user_name = $_SESSION['user_name'] ?? '';
+$user_subscription = 'free';
+
+if ($is_logged_in) {
+    $controller = new Controller_user();
+    $user_data = $controller->get_user($_SESSION['user_id']);
+    $user_subscription = $user_data['subscription_user'] ?? 'free';
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,9 +19,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FOOVIA — Go Premium</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+  <link rel="stylesheet" href="foovia.css">
   <style>
     :root {
       --yellow: #F5C842;
@@ -23,6 +36,20 @@
       --gold: #E8B84B;
       --gold-light: #FFF0B3;
       --gold-dark: #A07820;
+
+      /* Nav specific variables from foovia.css */
+      --page-text: var(--dark);
+      --page-bg: var(--off-white);
+      --nav-bg: rgba(253,248,238,.85);
+      --nav-border: rgba(75,174,82,.18);
+    }
+
+    :root[data-theme="dark"] {
+      --page-bg: #0f0f0b;
+      --page-text: #fdf8ee;
+      --nav-bg: rgba(15,15,11,.85);
+      --nav-border: rgba(245,200,66,.18);
+      --dark: #0f0f0b;
     }
 
     *,
@@ -44,40 +71,147 @@
       overflow-x: hidden;
     }
 
-    /* ── NAV ── */
+    /* ── NAV (from foovia.css) ── */
     nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
+      position: fixed; top: 0; left: 0; width: 100%;
       z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 52px;
-      background: rgba(17, 16, 8, .8);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(255, 255, 255, .07);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1.5px solid var(--nav-border);
+      transition: background-color .3s ease, border-color .3s ease;
     }
-
     .nav-logo {
-      font-family: 'Boldonse', system-ui;
-      font-size: 1.35rem;
-      color: var(--yellow);
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.5rem;
+      letter-spacing: .04em;
+      color: var(--page-text);
       text-decoration: none;
     }
-
-    .nav-back {
-      font-size: .85rem;
-      color: rgba(255, 255, 255, .5);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .nav-logo-img {
+      height: 50px;
+      width: auto;
+    }
+    .nav-links {
+      display: flex; gap: 36px; list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links a {
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem; font-weight: 500;
+      color: var(--page-text); text-decoration: none;
       transition: color .2s;
     }
+    .nav-links a:hover { color: var(--green); }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .nav-btn {
+      border-radius: 100px;
+      padding: 9px 18px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .84rem;
+      letter-spacing: .01em;
+      text-decoration: none;
+      transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .15s ease;
+    }
+    .nav-signin {
+      background: transparent;
+      color: var(--page-text);
+      border: 1.5px solid var(--nav-border);
+    }
+    .nav-signin:hover {
+      background: var(--page-text);
+      color: var(--page-bg);
+      transform: translateY(-1px);
+    }
+    .nav-backoffice {
+      background: #2f6df6;
+      color: #fff;
+      border: 1.5px solid transparent;
+    }
+    .nav-backoffice:hover {
+      background: #1f56cd;
+      transform: translateY(-1px);
+    }
+    .nav-signup {
+      background: var(--green);
+      color: #fff;
+      border: 1.5px solid transparent;
+    }
+    .nav-signup:hover {
+      background: var(--forest);
+      transform: translateY(-1px);
+    }
+    .theme-toggle {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1.5px solid var(--nav-border);
+      background: transparent;
+      color: var(--page-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color .2s ease, color .2s ease, transform .15s ease, border-color .2s ease;
+    }
+    .theme-toggle:hover {
+      background: var(--page-text);
+      color: var(--page-bg);
+      transform: scale(1.05);
+    }
+    .theme-toggle svg {
+      width: 18px; height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
+    .theme-toggle .icon-moon { display: none; }
+    :root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+    
+    /* Premium Badge Navigation Component */
+    .premium-badge-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+      border-radius: 50%;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+      margin-left: 10px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid #fff;
+      flex-shrink: 0;
+    }
+    .premium-badge-nav:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+    }
+    .premium-icon-nav {
+      width: 22px;
+      height: 22px;
+      filter: brightness(0) invert(1);
+    }
 
-    .nav-back:hover {
+    /* Custom adjustment for Premium page - make sure it doesn't break body */
+    body {
+      transition: background-color .3s ease, color .3s ease;
+    }
+    :root[data-theme="dark"] body {
+      background: var(--dark);
       color: #fff;
     }
 
@@ -1119,8 +1253,48 @@
 
   <!-- NAV -->
   <nav>
-    <a href="foovia.html" class="nav-logo">🌿 FOOVIA</a>
-    <a href="foovia.html" class="nav-back">← Back to home</a>
+    <a href="foovia.php" class="nav-logo">
+      <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-img">
+      FOOVIA
+    </a>
+    <ul class="nav-links">
+      <li><a href="foovia.php#features">Features</a></li>
+      <li><a href="foovia.php#how">How it works</a></li>
+      <li><a href="marketplace-gateway.php">Marketplace</a></li>
+      <li><a href="SUPPORT_MODULE/support_rec_page.php">Support & Community</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+      <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 1 0 11.5 11.5z"></path>
+        </svg>
+      </button>
+      <?php if ($is_logged_in): ?>
+        <div class="dropdown">
+          <a href="#" class="nav-btn dropdown-toggle" role="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            Welcome, <?php echo htmlspecialchars($user_name); ?>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+            <li><a class="dropdown-item" href="profile.php">My Account</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
+          </ul>
+        </div>
+      <?php else: ?>
+        <a href="foovia-signin.php" class="nav-btn nav-signin">Sign In</a>
+        <a href="../back_office/USER_MODULE/foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
+      <?php endif; ?>
+      <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
+        <div class="premium-badge-nav" title="Premium Member" onclick="window.location.reload()">
+          <img src="assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+        </div>
+      <?php endif; ?>
+    </div>
   </nav>
 
   <!-- HERO -->
@@ -1201,7 +1375,9 @@
             <div class="feat-check no">✕</div>Community rewards
           </li>
         </ul>
-        <button class="plan-cta cta-free" onclick="choosePlan('free')">Current plan</button>
+        <button class="plan-cta cta-free" onclick="choosePlan('free')">
+          <?php echo ($user_subscription === 'free' || $user_subscription === 'normal') ? 'Current plan' : 'Select Free'; ?>
+        </button>
       </div>
 
       <!-- PREMIUM -->
@@ -1240,7 +1416,9 @@
             <div class="feat-check gold">★</div>Marketplace delivery system
           </li>
         </ul>
-        <button class="plan-cta cta-premium" onclick="choosePlan('premium')">Start Premium →</button>
+        <button class="plan-cta cta-premium" onclick="choosePlan('premium')">
+          <?php echo ($user_subscription === 'premium') ? 'Current plan' : 'Start Premium →'; ?>
+        </button>
       </div>
 
 
@@ -1435,6 +1613,20 @@
   </footer>
 
   <!-- SUCCESS MODAL -->
+  <div id="success-modal"
+    style="display:none;position:fixed;inset:0;background:rgba(17,16,8,.8);z-index:600;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);">
+    <div
+      style="background:var(--off-white);border-radius:32px;padding:60px 40px;max-width:440px;width:100%;text-align:center;animation:modalIn .5s cubic-bezier(.34,1.56,.64,1) both;box-shadow:0 20px 50px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);">
+      <div style="font-size:5rem;margin-bottom:24px;filter:drop-shadow(0 10px 10px rgba(0,0,0,.1));" id="success-icon">🎉</div>
+      <h2 style="font-family:'Boldonse',system-ui;font-size:2.2rem;margin-bottom:12px;color:var(--dark);background:linear-gradient(135deg,var(--gold-dark),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+        id="success-title">Congratulations!</h2>
+      <p style="font-size:1rem;color:#444;margin-bottom:32px;line-height:1.6;" id="success-body">You've successfully updated your plan. Welcome to the next level of Foovia!</p>
+      <button onclick="window.location.reload()"
+        style="width:100%;background:linear-gradient(135deg,var(--green),#3d8e43);color:white;border:none;border-radius:16px;padding:18px;font-family:'Boldonse',system-ui;font-size:1.05rem;cursor:pointer;font-weight:bold;box-shadow:0 10px 20px rgba(75,174,82,.3);">Great, let's go! →</button>
+    </div>
+  </div>
+
+  <!-- PLAN MODAL -->
   <div id="plan-modal"
     style="display:none;position:fixed;inset:0;background:rgba(17,16,8,.7);z-index:500;align-items:center;justify-content:center;padding:20px;">
     <div
@@ -1444,7 +1636,7 @@
         id="modal-title">Upgrade to Premium</h2>
       <p style="font-size:.9rem;color:#666;margin-bottom:28px;line-height:1.65;" id="modal-body">You're about to unlock
         unlimited recipes, AI meal plans, and so much more.</p>
-      <button onclick="closeModal()"
+      <button id="confirm-upgrade-btn" onclick="confirmUpgrade()"
         style="width:100%;background:linear-gradient(135deg,var(--gold),var(--yellow-mid));color:var(--dark);border:none;border-radius:14px;padding:15px;font-family:'Boldonse',system-ui;font-size:.95rem;cursor:pointer;margin-bottom:10px;">Confirm
         & upgrade →</button>
       <button onclick="closeModal()"
@@ -1494,15 +1686,83 @@
       premium: { icon: '👑', title: 'Upgrade to Premium', body: 'You\'re about to unlock unlimited recipes, AI meal plans, ingredient scanning, and full marketplace access.' },
       elite: { icon: '🔥', title: 'Go Elite', body: 'You\'re about to unlock everything in Premium plus a personal dietitian, weekly reports, 1-on-1 coaching, and more.' },
     };
+    let selectedPlan = '';
     function choosePlan(plan) {
+      selectedPlan = plan;
       const d = PLAN_DATA[plan];
       document.getElementById('modal-icon').textContent = d.icon;
       document.getElementById('modal-title').textContent = d.title;
       document.getElementById('modal-body').textContent = d.body;
       const modal = document.getElementById('plan-modal');
       modal.style.display = 'flex';
+      
+      // Update button text and behavior based on plan
+      const btn = document.getElementById('confirm-upgrade-btn');
+      if (plan === 'free') {
+          btn.textContent = 'Stay on Free';
+      } else {
+          btn.textContent = 'Confirm & upgrade →';
+      }
     }
+
+    function confirmUpgrade() {
+        if (!selectedPlan) return;
+        
+        const btn = document.getElementById('confirm-upgrade-btn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        fetch('../../Controller/update_subscription.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ subscription: selectedPlan }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal();
+                showSuccessModal(selectedPlan);
+            } else {
+                if (data.message === 'User not logged in') {
+                    window.location.href = 'foovia-signin.php';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            closeModal();
+        });
+    }
+
     function closeModal() { document.getElementById('plan-modal').style.display = 'none'; }
+    function showSuccessModal(plan) {
+        const modal = document.getElementById('success-modal');
+        const title = document.getElementById('success-title');
+        const body = document.getElementById('success-body');
+        const icon = document.getElementById('success-icon');
+        
+        if (plan === 'free') {
+            icon.textContent = '🌱';
+            title.textContent = 'Plan Updated';
+            body.textContent = 'You are now on the Free plan. You can upgrade back to Premium anytime to regain full access!';
+        } else {
+            icon.textContent = plan === 'elite' ? '🔥' : '👑';
+            title.textContent = 'Congratulations!';
+            body.textContent = `You've successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)}. Welcome to the next level of Foovia!`;
+        }
+        
+        modal.style.display = 'flex';
+    }
     document.getElementById('plan-modal').addEventListener('click', e => { if (e.target === document.getElementById('plan-modal')) closeModal(); });
 
     // ── FAQ ──
@@ -1512,7 +1772,34 @@
       document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
       if (!wasOpen) item.classList.add('open');
     }
+
+    // ── THEME TOGGLE (from foovia.php) ──
+    (function() {
+      const root = document.documentElement;
+      const toggle = document.querySelector('.theme-toggle');
+
+      const setTheme = (theme) => {
+        const isDark = theme === 'dark';
+        root.setAttribute('data-theme', theme);
+        root.style.colorScheme = theme;
+        toggle.setAttribute('aria-pressed', String(isDark));
+        toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      };
+
+      const stored = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = stored || (prefersDark ? 'dark' : 'light');
+      setTheme(initialTheme);
+
+      toggle.addEventListener('click', () => {
+        const currentTheme = root.getAttribute('data-theme') || 'light';
+        const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', nextTheme);
+        setTheme(nextTheme);
+      });
+    })();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

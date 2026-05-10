@@ -60,6 +60,35 @@ if ($product === null) {
         <symbol xmlns="http://www.w3.org/2000/svg" id="cart-icon" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8.5 19.5a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 0 0 0-2.5Zm8 0a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 0 0 0-2.5ZM3 4h1.2a1 1 0 0 1 .97.757L5.8 7.3m0 0l1.17 6.1a1 1 0 0 0 .98.81h7.96a1 1 0 0 0 .96-.73l1.44-4.92A1 1 0 0 0 17.35 7.3Z"/><path stroke-linecap="round" d="M7.5 17h9.5"/></g></symbol>
     </svg>
 
+<style>
+  /* Premium Badge Navigation Component */
+  .premium-badge-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid #fff;
+    flex-shrink: 0;
+  }
+  .premium-badge-nav:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+  }
+  .premium-icon-nav {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+  }
+</style>
+
     <header class="foovia-topbar">
         <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php" class="foovia-brand">
             <img src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/assets/Plan%20de%20travail%201%20no%20bg%20(3)%20(1).png" alt="FOOVIA Logo" class="foovia-logo-img">
@@ -92,6 +121,11 @@ if ($product === null) {
                     <li><a class="dropdown-item" href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/logout.php">Logout</a></li>
                 </ul>
             </div>
+            <?php if (str_contains($subscriptionUser, 'premium') || str_contains($subscriptionUser, 'premuim')): ?>
+              <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../../foovia-premium.php'">
+                <img src="../../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+              </div>
+            <?php endif; ?>
         </div>
     </header>
 

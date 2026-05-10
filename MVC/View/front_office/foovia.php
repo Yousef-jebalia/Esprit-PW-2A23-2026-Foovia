@@ -1,7 +1,15 @@
 <?php
 session_start();
+include_once(__DIR__ . '/../../Controller/Controller_user.php');
 $is_logged_in = isset($_SESSION['user_id']);
 $user_name = $_SESSION['user_name'] ?? '';
+$user_subscription = 'free';
+
+if ($is_logged_in) {
+    $controller = new Controller_user();
+    $user_data = $controller->get_user($_SESSION['user_id']);
+    $user_subscription = $user_data['subscription_user'] ?? 'free';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,6 +20,34 @@ $user_name = $_SESSION['user_name'] ?? '';
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+<style>
+  /* Premium Badge Navigation Component */
+  .premium-badge-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid #fff;
+    flex-shrink: 0;
+  }
+  .premium-badge-nav:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+  }
+  .premium-icon-nav {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+  }
+</style>
 
 </head><link rel="stylesheet" href="foovia.css">
 <body>
@@ -53,6 +89,11 @@ $user_name = $_SESSION['user_name'] ?? '';
     <?php else: ?>
       <a href="foovia-signin.php" class="nav-btn nav-signin">Sign In</a>
       <a href="../back_office/USER_MODULE/foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
+    <?php endif; ?>
+    <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
+      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='foovia-premium.php'">
+        <img src="assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+      </div>
     <?php endif; ?>
   </div>
 </nav>

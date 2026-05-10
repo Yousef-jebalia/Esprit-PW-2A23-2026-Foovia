@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../Controller/menu_module/controle_Menu.php';
 
 require_once __DIR__ . '/../../../Controller/menu_module/controle_categ_rec.php';
 require_once __DIR__ . '/../../../Controller/menu_module/controle_ingrediant.php';
+require_once __DIR__ . '/../../../Controller/Controller_user.php';
 
 $controller = new Controller_menu();
 $recipes = $controller->list_recipe();
@@ -112,6 +113,10 @@ try {
   $favoriteRecipeIds = [];
 }
 $favoriteRecipeSet = array_fill_keys($favoriteRecipeIds, true);
+
+$userController = new Controller_user();
+$userData = $userController->get_user($userId);
+$userSubscription = $userData['subscription_user'] ?? 'free';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -139,9 +144,35 @@ $favoriteRecipeSet = array_fill_keys($favoriteRecipeIds, true);
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+      .premium-badge-nav {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #E8B84B, #F0A830);
+        color: #111008;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+        margin-left: 12px;
+        cursor: default;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        flex-shrink: 0;
+      }
+      .premium-badge-nav:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+      }
+      .premium-icon-nav {
+        width: 22px;
+        height: 22px;
+        filter: brightness(0) invert(1);
+      }
+    </style>
 
 </head>
-  <body>
+  <body data-user-subscription="<?php echo htmlspecialchars($userSubscription); ?>">
 
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
       <defs>
@@ -289,7 +320,12 @@ $favoriteRecipeSet = array_fill_keys($favoriteRecipeIds, true);
       <a href="../foovia-signin.php" class="nav-btn nav-signin">Sign In</a>
       <a href="../../back_office/USER_MODULE/foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
     <?php endif; ?>
+    <?php if ($is_logged_in && ($userSubscription === 'premium' || $userSubscription === 'elite')): ?>
+      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../foovia-premium.php'">
+        <img src="../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
       </div>
+    <?php endif; ?>
+  </div>
     </nav>
     
     <section class="top-cta-section" aria-label="Quick action">
@@ -298,7 +334,7 @@ $favoriteRecipeSet = array_fill_keys($favoriteRecipeIds, true);
            By ingredients
           <span class="top-cta-count" id="ingredientCountBadge">0</span>
         </button>
-        <a href="foovia-planner.php" class="top-cta-button" style="text-decoration:none; background:var(--green); color:#fff; border-color:var(--green); display:flex; align-items:center; gap:8px;">
+        <a href="<?php echo ($userSubscription === 'premium' || $userSubscription === 'elite') ? 'foovia-planner.php' : '../foovia-premium.php'; ?>" class="top-cta-button" style="text-decoration:none; background:var(--green); color:#fff; border-color:var(--green); display:flex; align-items:center; gap:8px;">
           <span>🥗</span> Go to Planner
         </a>
       </div>
@@ -1239,7 +1275,12 @@ $favoriteRecipeSet = array_fill_keys($favoriteRecipeIds, true);
         };
 
         openButton.addEventListener('click', () => {
-          setModalOpen(true);
+          const subscription = body.dataset.userSubscription;
+          if (subscription === 'premium' || subscription === 'elite') {
+            setModalOpen(true);
+          } else {
+            window.location.href = '../foovia-premium.php';
+          }
         });
 
         if (closeButton) {

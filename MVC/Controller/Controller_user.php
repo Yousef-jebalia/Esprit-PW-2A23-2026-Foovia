@@ -597,6 +597,21 @@ class Controller_user {
         }
     }
 
+    public function update_user_subscription(int $id_user, string $subscription): bool {
+        $sql = "UPDATE user SET subscription_user = :subscription WHERE id_user = :id_user";
+        $db = config::getConnexion();
+        try {
+            $query = $db->prepare($sql);
+            return $query->execute([
+                'subscription' => $subscription,
+                'id_user' => $id_user
+            ]);
+        } catch (Exception $e) {
+            error_log('Error updating user subscription: ' . $e->getMessage());
+            return false;
+        }
+    }
+
 }  
 
 ?>

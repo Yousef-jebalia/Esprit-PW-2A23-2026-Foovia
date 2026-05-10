@@ -4,14 +4,14 @@ if (!isset($_SESSION['user_id'])) {
   header('Location: ../foovia-signin.php');
   exit;
 }
+require_once '../../../Controller/Controller_user.php';
+$userController = new Controller_user();
 $userId = $_SESSION['user_id'];
+$userData = $userController->get_user($userId);
+$user_subscription = $userData['subscription_user'] ?? 'free';
 $is_logged_in = true;
 $user_name = $_SESSION['user_name'] ?? 'User';
-?>
 
-
-<?php
-session_start();
 require_once '../../../Controller/tracking/ObjectifLongTerme_Controller.php';
 require_once '../../../Controller/tracking/ObjectifHebdomadaire_Controller.php';
 require_once '../../../Controller/menu_module/controle_Menu.php';
@@ -483,6 +483,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link id="foovia-style" rel="stylesheet" href="./styleT.css?v=20260426">
 <style>
+  /* Premium Badge Navigation Component */
+  .premium-badge-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #E8B84B 0%, #F0A830 100%);
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid #fff;
+    flex-shrink: 0;
+  }
+  .premium-badge-nav:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(232, 184, 75, 0.4);
+  }
+  .premium-icon-nav {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+  }
+
   /* Improved AI result panel styling */
   .ai-result-panel {
     display: none;
@@ -721,6 +748,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
     <?php else: ?>
       <a href="../foovia-signin.php" class="nav-btn nav-signin">Sign In</a>
       <a href="../../back_office/USER_MODULE/foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
+    <?php endif; ?>
+    <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
+      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../foovia-premium.php'">
+        <img src="../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+      </div>
     <?php endif; ?>
   </div>
 </nav>
@@ -3220,6 +3252,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 
     if (weeklyMealUploadBtn && weeklyMealImageInput) {
       weeklyMealUploadBtn.addEventListener('click', () => {
+        const sub = <?php echo json_encode($user_subscription); ?>;
+        if (sub !== 'premium' && sub !== 'elite') {
+          window.location.href = '../foovia-premium.php';
+          return;
+        }
         weeklyMealImageInput.click();
       });
     }
@@ -3646,6 +3683,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   let cameraStream = null;
 
   function openCameraModal() {
+    const sub = <?php echo json_encode($user_subscription); ?>;
+    if (sub !== 'premium' && sub !== 'elite') {
+      window.location.href = '../foovia-premium.php';
+      return;
+    }
     const modal = document.getElementById('camera-modal-backdrop');
     modal.classList.add('open');
     document.getElementById('camera-video').style.display = 'block';
