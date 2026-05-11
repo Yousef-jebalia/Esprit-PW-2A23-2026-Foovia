@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
         try {
             $db = config::getConnexion();
             // Search with case-insensitive email
-            $sql = "SELECT id_user, name_user, email_user, password_user FROM user WHERE LOWER(email_user) = :email";
+            $sql = "SELECT id_user, name_user, email_user, password_user, role_user FROM user WHERE LOWER(email_user) = :email";
             $query = $db->prepare($sql);
             $query->execute(['email' => $email]);
             $user = $query->fetch();
@@ -26,13 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
             if (!$user) {
                 $error_message = 'Username or password is false';
             } else {
-                // Compare plain text passwords
-                if ($password === $user['password_user']) {
+                $role = strtolower(trim((string) ($user['role_user'] ?? '')));
+                if ($role !== 'admin') {
+                    $error_message = 'Access denied. This area is for admin users only.';
+                } elseif ($password === $user['password_user']) {
                     $controller->increment_user_login_count((int) $user['id_user']);
                     // Password is correct
                     $_SESSION['user_id'] = $user['id_user'];
                     $_SESSION['user_name'] = $user['name_user'];
                     $_SESSION['user_email'] = $user['email_user'];
+                    $_SESSION['user_role'] = $user['role_user'];
                     $success_message = 'Connected successfully! Redirecting...';
                     header('refresh:2;url=backoffice_work.php');
                     exit;
