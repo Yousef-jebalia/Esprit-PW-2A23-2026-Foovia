@@ -1,4 +1,5 @@
 ﻿<?php
+ob_start();
 session_start();
 include(__DIR__ . '/../../../Controller/Controller_user.php');
 
@@ -82,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['survey_submit'])) {
         $error_message = 'An error occurred: ' . $e->getMessage();
     }
 }
+ob_end_flush();
 ?>
 
 <!DOCTYPE html>
