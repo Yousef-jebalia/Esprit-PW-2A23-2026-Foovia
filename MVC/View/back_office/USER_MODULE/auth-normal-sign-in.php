@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                     $_SESSION['user_name'] = $user['name_user'];
                     $_SESSION['user_email'] = $user['email_user'];
                     $success_message = 'Connected successfully! Redirecting...';
-                    header('refresh:2;url=index.php');
+                    header('refresh:2;url=backoffice_work.php');
                     exit;
                 } else {
                     $error_message = 'Username or password is false';
@@ -200,9 +200,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                                     </div>
                                     <hr/>
 
-                                        <div class="col-md-2">
+                                    <div class="row m-t-20">
+                                        <div class="col-md-10"></div>
+                                        <div class="col-md-2 text-right">
                                             <img src="assets/images/auth/Logo-small-bottom.png" alt="small-logo.png">
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                             </div>

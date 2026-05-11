@@ -1,6 +1,4 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<?php
+﻿<?php
 session_start();
 include_once(__DIR__ . '/../../../Controller/Controller_user.php');
 
