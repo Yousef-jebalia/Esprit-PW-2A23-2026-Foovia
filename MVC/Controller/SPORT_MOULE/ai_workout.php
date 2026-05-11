@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../Model/config.php';
 
 function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') {
-    $keyFilePath = 'C:\\API keys\\foovia_api_keys.txt';//****************************************************************************************************** */
+    $keyFilePath = '/../../../sport_api';//****************************************************************************************************** */
     if (empty($workoutName) || empty($targetMuscles)) return null;
 
     // Fetch exercises from database
