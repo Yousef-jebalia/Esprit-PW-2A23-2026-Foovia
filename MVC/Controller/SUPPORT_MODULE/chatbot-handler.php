@@ -6,7 +6,7 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 
 // 1. Load the secure API key (Model layer)
-$configPath = __DIR__ . '/../../../etc/secrets/support_api';
+$configPath = __DIR__ . '/../../../../etc/secrets/support_api';
 if (!is_readable($configPath)) {
     echo json_encode([
         'error' => 'Chatbot configuration file is missing or not readable.',
