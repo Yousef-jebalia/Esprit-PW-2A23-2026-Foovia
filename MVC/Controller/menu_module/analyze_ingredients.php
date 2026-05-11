@@ -69,7 +69,7 @@ if ($apiKey === '' && function_exists('apache_getenv')) {
 
 // XAMPP fallback: read key from a local file outside the project repo.
 if ($apiKey === '') {
-  $localKeyPath = 'C:/xampp/htdocs/gemini_api_key.txt';
+  $localKeyPath = '/etc/secrets/ingrediant_api';
   if (is_readable($localKeyPath)) {
     $fileKey = trim((string)@file_get_contents($localKeyPath));
     if ($fileKey !== '') {
