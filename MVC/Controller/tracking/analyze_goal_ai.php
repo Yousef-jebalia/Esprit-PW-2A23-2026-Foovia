@@ -33,7 +33,7 @@ $endDate = trim((string) ($payload['end_date'] ?? 'not specified'));
 $sportConsistency = trim((string) ($payload['sport_consistency'] ?? 'not specified'));
 $dietConsistency = trim((string) ($payload['diet_consistency'] ?? 'not specified'));
 
-$apiKeyPath = dirname(__DIR__, 5) . DIRECTORY_SEPARATOR . 'api tracking.txt';
+$apiKeyPath = dirname(__DIR__, 5) . DIRECTORY_SEPARATOR . '/../../../tracking_api';
 $apiKey = read_api_key_from_file($apiKeyPath);
 if ($apiKey === '') {
   send_json_response(['success' => false, 'error' => 'AI API key is missing.'], 500);
