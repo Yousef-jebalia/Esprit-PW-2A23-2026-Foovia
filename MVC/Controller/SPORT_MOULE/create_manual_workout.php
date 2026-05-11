@@ -28,21 +28,21 @@ if (!is_array($exercises) || empty($exercises)) {
 
 try {
     $db = config::getConnexion();
-    
+
     // 1) Insert into workout table
     $insertWorkout = $db->prepare(
-        "INSERT INTO workout (name_work, pic_work, cal_work, duree_work, id_user, id_cat) 
+        "INSERT INTO workout (name_work, pic_work, cal_work, duree_work, id_user, id_cat)
          VALUES (?, ?, ?, ?, ?, ?)"
     );
     $insertWorkout->execute([$name, $pic_work, $cal_work, $duree_work, $id_user, $id_cat]);
     $workoutId = $db->lastInsertId();
-    
+
     // 2) Insert exercises into belong table
     $insertBelong = $db->prepare(
-        "INSERT INTO belong (id_work, id_ex, sets, weight, `time`) 
+        "INSERT INTO belong (id_work, id_ex, sets, weight, `time`)
          VALUES (?, ?, ?, ?, ?)"
     );
-    
+
     foreach ($exercises as $ex) {
         // Handle if exercise is just an ID or an object with details
         if (is_array($ex)) {
@@ -56,7 +56,7 @@ try {
             $weight = 0;
             $time = 30;
         }
-        
+
         $insertBelong->execute([
             $workoutId,
             $ex_id,
@@ -65,15 +65,14 @@ try {
             $time
         ]);
     }
-    
+
     echo json_encode([
         'ok' => true,
         'id_work' => $workoutId,
         'message' => 'Workout created successfully'
     ]);
-    
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
 }
-

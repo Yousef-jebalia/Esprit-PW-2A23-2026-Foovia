@@ -80,7 +80,6 @@ class controle_workout
         }
     }
 
-    
 function replace_belong_for_workout(int $workoutId, array $selectedExercises)
 {
     $db = config::getConnexion();
@@ -131,8 +130,6 @@ function replace_belong_for_workout(int $workoutId, array $selectedExercises)
     }
 }
 
-
-
 function compute_workout_calories(array $selectedExercises): int
 {
     $exerciseIds = array_values(array_unique(array_filter(array_map(
@@ -172,11 +169,7 @@ function compute_workout_calories(array $selectedExercises): int
     return (int) round($totalCalories);
 }
 
-
 }//end of class controle_workout
-
-
-
 
 // ── Handling POST Requests ──────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -228,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<script>alert('Error: " . addslashes((string)$resolvedCategoryId) . "');</script>";
         exit;
     }
-    
+
     // Handle File Upload
     $pic = null;
     if (isset($_FILES['work_picture']) && $_FILES['work_picture']['error'] === UPLOAD_ERR_OK) {

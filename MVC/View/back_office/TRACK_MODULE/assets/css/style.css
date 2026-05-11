@@ -17,7 +17,6 @@ File: style.css
 		-	Loader page, Invoice, Tasklist, Task detail, Range-slider, Counter, Maintenance, Color, FAQ, Progress, Panels & wells, Contact card, Auth pages, Flag, Gallery, Products pages, Widget, Email, Social timeline, Datatable, Chat, Blog, Wizard, CRM dashboard, Task board, Issue list, Chartlist, X-editable, Home chat, Dashboard 1-2-3-4, Responsive media class
 ============= */
 
-
 /**  =====================
       Custom css start
 ==========================  **/
@@ -112,9 +111,7 @@ code {
 	padding-right: 20px;
 }
 
-
 /**====== Custom css end ======**/
-
 
 /**  =====================
       Main-body css start
@@ -126,9 +123,7 @@ code {
 	transition: all ease-in 0.3s;
 }
 
-
 /**====== Main-body css end ======**/
-
 
 /**  =====================
       Card-Layout css start
@@ -142,7 +137,6 @@ code {
 .filter-bar .navbar .navbar-nav .dropdown-menu {
 	position: absolute;
 }
-
 
 /*====== Ready to use Css Start ======*/
 
@@ -172,7 +166,6 @@ code {
 	transform: translateY(-1px);
 	color: #fff;
 }
-
 
 /*====== Ready to use Css End ======*/
 
@@ -510,9 +503,7 @@ code {
 	color: #2c3e50;
 }
 
-
 /**======  Card-Layout css end ======**/
-
 
 /*======= Typography css start ========*/
 
@@ -567,9 +558,7 @@ code {
 	float: left;
 }
 
-
 /*======= Typography css end ========*/
-
 
 /**  =====================
       Modal css start
@@ -606,9 +595,7 @@ code {
 	top: 23px;
 }
 
-
 /**====== Modal css end ======**/
-
 
 /**  =====================
       Notification css start
@@ -669,9 +656,7 @@ button.close {
 	margin-bottom: 0;
 }
 
-
 /**====== Notification css end ======**/
-
 
 /**  =====================
       Accordion css start
@@ -765,9 +750,7 @@ a.bg-danger:hover {
 	color: #fff;
 }
 
-
 /**====== Accordion css end ======**/
-
 
 /**  =====================
       Tabs css start
@@ -983,9 +966,7 @@ a.bg-danger:hover {
 	border: none !important;
 }
 
-
 /**====== Tabs css end ======**/
-
 
 /**  =====================
       Table css start
@@ -1089,9 +1070,7 @@ a.bg-danger:hover {
 	border-bottom-style: double;
 }
 
-
 /**====== Table css end ======**/
-
 
 /**  =====================
       User-card css start
@@ -1317,9 +1296,7 @@ img.comment-img {
 	margin-bottom: 20px;
 }
 
-
 /*====== User-card End ======*/
-
 
 /**  =====================
       Session Timeout css start
@@ -1328,7 +1305,6 @@ img.comment-img {
 #sessionTimeout-dialog .close {
 	display: none;
 }
-
 
 /*====== Session Timeout css ends ======= */
 
@@ -2292,7 +2268,6 @@ img.comment-img {
 	}
 }
 
-
 /*====== Warning css starts ======= */
 
 .ie-warning {
@@ -2349,13 +2324,11 @@ img.comment-img {
 	background-color: #eee;
 }
 
-
 /*====== Warning css ends ======= */
 
 .image-cropper-container {
 	margin-top: 10px;
 }
-
 
 /*====== Json form css start =======*/
 
@@ -2363,9 +2336,7 @@ img.comment-img {
 	width: 250px;
 }
 
-
 /*====== Json form css ends =======*/
-
 
 /*====== Sticky css start =======*/
 
@@ -2379,16 +2350,13 @@ img.comment-img {
 	}
 }
 
-
 /*====== Sticky css ends =======*/
-
 
 /*====== Ready to use css start ======*/
 
 .j-pro .j-label {
 	font-weight: 500;
 }
-
 
 /*====== Ready to use css ends ======*/
 
@@ -2522,7 +2490,6 @@ img.comment-img {
 	margin-top: 15px;
 	margin-bottom: 15px;
 }
-
 
 /**  =====================
       Theme-preloader css start
@@ -2998,7 +2965,6 @@ select.form-control:not([size]):not([multiple]) {
 	}
 }
 
-
 /**  =====================
       Generic-class css start
 ========================== **/
@@ -3023,7 +2989,6 @@ select.form-control:not([size]):not([multiple]) {
 	display: block;
 	margin: 10px auto 20px;
 }
-
 
 /*====== Padding css starts ======*/
 
@@ -3071,9 +3036,7 @@ select.form-control:not([size]):not([multiple]) {
 	padding: 50px;
 }
 
-
 /*====== Padding css ends ======*/
-
 
 /*====== Padding-top css starts ======*/
 
@@ -3121,9 +3084,7 @@ select.form-control:not([size]):not([multiple]) {
 	padding-top: 50px !important;
 }
 
-
 /*====== Padding-top css ends ======*/
-
 
 /*====== Padding-bottom css starts ======*/
 
@@ -3171,9 +3132,7 @@ select.form-control:not([size]):not([multiple]) {
 	padding-bottom: 50px !important;
 }
 
-
 /*====== Padding-bottom css ends ======*/
-
 
 /*====== Padding-left css starts ======*/
 
@@ -3221,9 +3180,7 @@ select.form-control:not([size]):not([multiple]) {
 	padding-left: 50px;
 }
 
-
 /*====== Padding-left css ends ======*/
-
 
 /*====== Padding-right css starts ======*/
 
@@ -3271,9 +3228,7 @@ select.form-control:not([size]):not([multiple]) {
 	padding-right: 50px;
 }
 
-
 /*====== Padding-right css ends ======*/
-
 
 /*====== Margin css starts ======*/
 
@@ -3321,9 +3276,7 @@ select.form-control:not([size]):not([multiple]) {
 	margin: 50px;
 }
 
-
 /*====== Margin css ends ======*/
-
 
 /*====== Margin-top css starts ======*/
 
@@ -3371,9 +3324,7 @@ select.form-control:not([size]):not([multiple]) {
 	margin-top: 50px;
 }
 
-
 /*====== Margin-top css ends ======*/
-
 
 /*====== Margin-Bottom css starts ======*/
 
@@ -3421,9 +3372,7 @@ select.form-control:not([size]):not([multiple]) {
 	margin-bottom: 50px;
 }
 
-
 /*====== Margin-Bottom css ends ======*/
-
 
 /*====== Margin-left css starts ======*/
 
@@ -3471,9 +3420,7 @@ select.form-control:not([size]):not([multiple]) {
 	margin-left: 50px;
 }
 
-
 /*====== Margin-left css ends ======*/
-
 
 /*====== Margin-right css starts ======*/
 
@@ -3521,9 +3468,7 @@ select.form-control:not([size]):not([multiple]) {
 	margin-right: 50px;
 }
 
-
 /*====== Margin-right css ends ======*/
-
 
 /*====== Display css starts ======*/
 
@@ -3541,9 +3486,7 @@ select.form-control:not([size]):not([multiple]) {
 	display: inline-flex;
 }
 
-
 /*====== display css ends ======*/
-
 
 /*====== Border-radius css starts ======*/
 
@@ -3559,9 +3502,7 @@ select.form-control:not([size]):not([multiple]) {
 	border-radius: 10px !important;
 }
 
-
 /*====== Border-radius css ends ======*/
-
 
 /*====== Font-size css starts ======*/
 
@@ -3709,9 +3650,7 @@ select.form-control:not([size]):not([multiple]) {
 	font-size: 80px;
 }
 
-
 /*====== Font-size css ends ======*/
-
 
 /*====== Font-weight css starts ======*/
 
@@ -3743,9 +3682,7 @@ select.form-control:not([size]):not([multiple]) {
 	font-weight: 500;
 }
 
-
 /*====== Font-weight css ends ======*/
-
 
 /*====== Font-style css starts ======*/
 
@@ -3769,9 +3706,7 @@ select.form-control:not([size]):not([multiple]) {
 	font-style: inherit;
 }
 
-
 /*====== Font-style css ends ======*/
-
 
 /*====== Text-align css starts ======*/
 
@@ -3787,9 +3722,7 @@ select.form-control:not([size]):not([multiple]) {
 	text-align: right;
 }
 
-
 /*====== Text-align css ends ======*/
-
 
 /*====== Text-Transform css starts ======*/
 
@@ -3805,9 +3738,7 @@ select.form-control:not([size]):not([multiple]) {
 	text-transform: lowercase;
 }
 
-
 /*====== Text-Transform css ends ======*/
-
 
 /*====== Text-Decoration css starts ======*/
 
@@ -3823,9 +3754,7 @@ select.form-control:not([size]):not([multiple]) {
 	text-decoration: underline;
 }
 
-
 /*====== Text-Decoration css ends ======*/
-
 
 /*====== Vertical-Align css starts ======*/
 
@@ -3869,9 +3798,7 @@ select.form-control:not([size]):not([multiple]) {
 	vertical-align: inherit;
 }
 
-
 /*====== Vertical-Align css ends ======*/
-
 
 /*====== Position css starts ======*/
 
@@ -3899,9 +3826,7 @@ select.form-control:not([size]):not([multiple]) {
 	position: inherit;
 }
 
-
 /*====== Position css ends ======*/
-
 
 /*====== Float css starts ======*/
 
@@ -3917,9 +3842,7 @@ select.form-control:not([size]):not([multiple]) {
 	float: none;
 }
 
-
 /*====== Float css ends ======*/
-
 
 /*====== Overflow css starts ======*/
 
@@ -3935,9 +3858,7 @@ select.form-control:not([size]):not([multiple]) {
 	overflow: auto;
 }
 
-
 /*====== Overflow css ends ======*/
-
 
 /*====== Image-sizes css starts ======*/
 
@@ -3977,9 +3898,7 @@ select.form-control:not([size]):not([multiple]) {
 	width: 100px;
 }
 
-
 /*====== Image-sizes css ends ======*/
-
 
 /*======= Text css starts ===========*/
 
@@ -4031,9 +3950,7 @@ select.form-control:not([size]):not([multiple]) {
 	color: #78909c !important;
 }
 
-
 /*======= Text css ends ===========*/
-
 
 /*======= Label-color css starts  ======= */
 
@@ -4078,9 +3995,7 @@ select.form-control:not([size]):not([multiple]) {
 	color: #fff;
 }
 
-
 /*======= Label-color css starts  ======= */
-
 
 /*======= Badge-color css starts  ======= */
 
@@ -4112,9 +4027,7 @@ select.form-control:not([size]):not([multiple]) {
 	background: #00bcd4;
 }
 
-
 /*======= Badge-color css end  ======= */
-
 
 /*======= Background-color css starts  ======= */
 
@@ -4169,9 +4082,7 @@ select.form-control:not([size]):not([multiple]) {
 	color: #fff;
 }
 
-
 /*======= Background-color css end  ======= */
-
 
 /*======= Button-color css starts  ======= */
 
@@ -4203,9 +4114,7 @@ select.form-control:not([size]):not([multiple]) {
 	background-color: #00bcd4;
 }
 
-
 /*======= Button-color css ends  ======= */
-
 
 /*======= Nestable-color css starts  ======= */
 
@@ -4251,9 +4160,7 @@ select.form-control:not([size]):not([multiple]) {
 	color: #fff !important;
 }
 
-
 /*======= Nestable-color css ends  ======= */
-
 
 /*======= Table-Border-Bottom-color css starts  ======= */
 
@@ -4299,9 +4206,7 @@ table tbody .border-bottom-info td {
 	border-bottom: 1px solid #00bcd4;
 }
 
-
 /*======= Table-Border-Bottom-color css ends  ======= */
-
 
 /*======= Table styling css starts  ======= */
 
@@ -4396,9 +4301,7 @@ table tbody .border-bottom-info td {
 	border: 3px solid #008fa1;
 }
 
-
 /*======= Table styling css ends  ======= */
-
 
 /*======= Card-Border-Top-color css starts  ======= */
 
@@ -4430,9 +4333,7 @@ table tbody .border-bottom-info td {
 	border-top: 4px solid #00bcd4;
 }
 
-
 /*======= Card-Border-Top-color css ends  ======= */
-
 
 /*======= Panels-wells-color css starts  ======= */
 
@@ -4464,9 +4365,7 @@ table tbody .border-bottom-info td {
 	border-color: #00bcd4;
 }
 
-
 /*======= Panels-wells-color css ends  ======= */
-
 
 /*======= All-Borders-color css starts  ======= */
 
@@ -4630,9 +4529,7 @@ table tbody .border-bottom-info td {
 	border: 1px solid #d6d6d6;
 }
 
-
 /*======= All-Borders-color css ends  ======= */
-
 
 /*======= All-color css start  ======= */
 
@@ -4780,9 +4677,7 @@ table tbody .border-bottom-info td {
 	color: #536dfe;
 }
 
-
 /*======= All-color css ends  ======= */
-
 
 /**====== Generic-class css end ======**/
 
@@ -4839,7 +4734,6 @@ table tbody .border-bottom-info td {
 .pcoded[nav-type="st2"] .pcoded-item.pcoded-left-item>li>a>.pcoded-micon b {
 	display: none;
 }
-
 
 /**  =====================
       Left-side-menu css start
@@ -4949,7 +4843,6 @@ table tbody .border-bottom-info td {
 	margin: -5px;
 	line-height: 1;
 }
-
 
 /**  =====================
       Main-header css start
@@ -5307,7 +5200,6 @@ table tbody .border-bottom-info td {
 		opacity: 0;
 	}
 }
-
 
 /*======= Main-header css end ======*/
 
@@ -6745,7 +6637,6 @@ body.menu-bottom #collapse-menu {
 	background-color: #38a9f9;
 }
 
-
 /**  =====================
       Theme-Buttons css start
 ==========================  **/
@@ -6958,7 +6849,6 @@ body.menu-bottom #collapse-menu {
 	text-align: center;
 	border-bottom: 1px solid #0275d8;
 }
-
 
 /**====== Basic-Buttons css Start ======**/
 
@@ -7186,9 +7076,7 @@ body.menu-bottom #collapse-menu {
 	transition: all ease-in 0.3s;
 }
 
-
 /**====== Basic-Buttons css end ======**/
-
 
 /**====== Outline-Buttons css Start ======**/
 
@@ -7243,9 +7131,7 @@ body.menu-bottom #collapse-menu {
 	background-color: #fff;
 }
 
-
 /**====== Outline-Buttons css end ======**/
-
 
 /**====== matrialized-Buttons css Start ======**/
 
@@ -7335,9 +7221,7 @@ body.menu-bottom #collapse-menu {
 	background-color: #0764ff;
 }
 
-
 /**====== matrialized css end ======**/
-
 
 /**====== Button-Size css start ======**/
 
@@ -7371,9 +7255,7 @@ body.menu-bottom #collapse-menu {
 	font-size: 10px;
 }
 
-
 /**====== Button-Size css end ======**/
-
 
 /**====== Badges-button css start ======**/
 
@@ -7404,9 +7286,7 @@ body.menu-bottom #collapse-menu {
 	background-color: #fff;
 }
 
-
 /**====== Badges-button css end ======**/
-
 
 /**====== Social-Buttons css start ======**/
 
@@ -7493,9 +7373,7 @@ body.menu-bottom #collapse-menu {
 	background-color: #00ACED;
 }
 
-
 /**====== Social-Buttons css end ======**/
-
 
 /**====== Drop-down-Buttons css start ======**/
 
@@ -7541,12 +7419,9 @@ body.menu-bottom #collapse-menu {
 	color: #fff;
 }
 
-
 /**====== Drop-down-Buttons css end ======**/
 
-
 /**====== Theme-Buttons css end ======**/
-
 
 /**  =====================
       Basic form elements css start
@@ -7630,7 +7505,6 @@ body.menu-bottom #collapse-menu {
 	cursor: not-allowed;
 	opacity: 0.5;
 }
-
 
 /*===== Border Inputs start =====*/
 
@@ -7759,7 +7633,6 @@ body.menu-bottom #collapse-menu {
 .input-group-info .form-control {
 	border-color: #00bcd4;
 }
-
 
 /*===== Form Input-Text start =====*/
 
@@ -7909,7 +7782,6 @@ body.menu-bottom #collapse-menu {
 .form-txt-info::-webkit-input-placeholder {
 	color: #00bcd4;
 }
-
 
 /*===== Form Background-inputs start =====*/
 
@@ -8088,7 +7960,6 @@ body.menu-bottom #collapse-menu {
 	color: #fff;
 }
 
-
 /*===== Form Validation states start =====*/
 
 .has-success .col-form-label {
@@ -8114,7 +7985,6 @@ body.menu-bottom #collapse-menu {
 .has-danger .form-control-success {
 	border-color: #ff5252;
 }
-
 
 /*===== Form-icon css starts =====*/
 
@@ -8157,12 +8027,9 @@ body.menu-bottom #collapse-menu {
 	margin-right: 0;
 }
 
-
 /*===== Form-icon css ends =====*/
 
-
 /*===== Basic form elements ends =====*/
-
 
 /**  =====================
       Form group-add-on css start
@@ -8198,9 +8065,7 @@ body.menu-bottom #collapse-menu {
 	margin-bottom: 0;
 }
 
-
 /*===== Form group-add-on ends =====*/
-
 
 /**  =====================
       Switches css start
@@ -8211,9 +8076,7 @@ body.menu-bottom #collapse-menu {
 	vertical-align: inherit;
 }
 
-
 /*===== Switches css ends =====*/
-
 
 /**  =====================
       Radio-button css start
@@ -8569,9 +8432,7 @@ body.menu-bottom #collapse-menu {
 	}
 }
 
-
 /*===== Radio Button css ends =====*/
-
 
 /*===== Border-checkbox css start =====*/
 
@@ -8726,7 +8587,6 @@ body.menu-bottom #collapse-menu {
 .border-checkbox-section .border-checkbox-group-info .border-checkbox:checked+.border-checkbox-label:after {
 	border-color: #00bcd4;
 }
-
 
 /*===== zoom Fade-in-checkbox css start =====*/
 
@@ -8962,7 +8822,6 @@ body.menu-bottom #collapse-menu {
 	color: #00bcd4;
 }
 
-
 /*===== Color-checkbox css start =====*/
 
 .checkbox-color {
@@ -9088,9 +8947,7 @@ body.menu-bottom #collapse-menu {
 	background-color: #00bcd4;
 }
 
-
 /*===== Form-wizard forms css end =====*/
-
 
 /*Form control start*/
 
@@ -9429,7 +9286,6 @@ select.form-control:hover {
 	box-shadow: none;
 }
 
-
 /* form controll end*/
 
 .md-input-file input[type=file] {
@@ -9472,7 +9328,6 @@ select.form-control:hover {
 	padding-left: 0;
 	top: 0;
 }
-
 
 /**  =====================
       Label-Badges css start
@@ -9639,7 +9494,6 @@ span.badge {
 .icofont.icofont-envelope {
 	font-size: 20px;
 }
-
 
 /*===== Label and Badges css end =====*/
 
@@ -10515,7 +10369,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	z-index: 2;
 }
 
-
 /**  =====================
       Alert css start
 ==========================  **/
@@ -10546,7 +10399,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	font-size: 16px;
 	margin-top: 5px;
 }
-
 
 /*===== Primary alert ===== */
 
@@ -10585,7 +10437,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	border-color: #ff5252;
 	color: #ff5252;
 }
-
 
 /*===== Border alert ===== */
 
@@ -10643,7 +10494,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	color: #ff5252;
 }
 
-
 /*===== Solid-background alert ===== */
 
 .background-default {
@@ -10694,9 +10544,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	margin-left: 10px;
 }
 
-
 /*======= Alert css ends ===========*/
-
 
 /* =======================================
       Authentication-page css start
@@ -10755,7 +10603,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	bottom: 0;
 	width: 100%;
 }
-
 
 /**  =====================
       Breadcrumb css start
@@ -10865,9 +10712,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	background-color: #11c15b;
 }
 
-
 /**====== Breadcrumb css end ======**/
-
 
 /**  =====================
       Chart css start
@@ -10913,9 +10758,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	border: 1px solid #ccc;
 }
 
-
 /**====== Chart css end ======**/
-
 
 /* =======================
    Start Color-page Css
@@ -10958,7 +10801,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	color: #fff;
 	margin-bottom: 0;
 }
-
 
 /**====== Accent-red-color css start ======**/
 
@@ -11074,9 +10916,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#fdb3b3";
 }
 
-
 /**====== Accent-red-color css end ======**/
-
 
 /**====== Accent-pink-color css start ======**/
 
@@ -11192,9 +11032,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#f8bad6";
 }
 
-
 /**====== Accent-pink-color css end ======**/
-
 
 /**====== Accent-purple-color css start ======**/
 
@@ -11310,9 +11148,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#f3dbff";
 }
 
-
 /**====== Accent-purple-color css end ======**/
-
 
 /**====== Deep-purple-color css start ======**/
 
@@ -11428,9 +11264,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#dec7fe";
 }
 
-
 /**====== Deep-purple-color css end ======**/
-
 
 /**====== Indigo-color css start ======**/
 
@@ -11546,9 +11380,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#e6e9ff";
 }
 
-
 /**====== Indigo-color css end ======**/
-
 
 /**====== Blue-accent-color css start ======**/
 
@@ -11664,9 +11496,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#e0e8ff";
 }
 
-
 /**====== Blue-accent-color css end ======**/
-
 
 /**====== Light-blue-color css start ======**/
 
@@ -11782,9 +11612,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#c7e9fe";
 }
 
-
 /**====== Light-blue-color css end ======**/
-
 
 /**====== Cyan-color css start ======**/
 
@@ -11900,9 +11728,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#b2f3fd";
 }
 
-
 /**====== Cyan-color css start ======**/
-
 
 /**====== Teal-color css start ======**/
 
@@ -12018,9 +11844,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#9ffcef";
 }
 
-
 /**====== Teal-color css end ======**/
-
 
 /**====== Green-color css start ======**/
 
@@ -12136,9 +11960,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#a7fdcb";
 }
 
-
 /**====== Green-color css end ======**/
-
 
 /**====== Light-Green-color css start ======**/
 
@@ -12254,9 +12076,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#e3fad4";
 }
 
-
 /**====== Light-Green-color css end ======**/
-
 
 /**====== Lime-color css start ======**/
 
@@ -12372,9 +12192,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#f0fec7";
 }
 
-
 /**====== Lime-color css end ======**/
-
 
 /**====== Yellow-color css start ======**/
 
@@ -12490,9 +12308,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#fff3b8";
 }
 
-
 /**====== Yellow-color css end ======**/
-
 
 /**====== Amber-color css start ======**/
 
@@ -12608,9 +12424,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#ffe7b8";
 }
 
-
 /**====== Amber-color css end ======**/
-
 
 /**====== Orange-color css start ======**/
 
@@ -12726,9 +12540,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#ffeadb";
 }
 
-
 /**====== Orange-color css start ======**/
-
 
 /**====== Deep-Orange-color css start ======**/
 
@@ -12844,9 +12656,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#fdc8bb";
 }
 
-
 /**====== Deep-Orange-color css end ======**/
-
 
 /**====== Brown-color css start ======**/
 
@@ -12962,9 +12772,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#ede2e0";
 }
 
-
 /**====== Brown-color css end ======**/
-
 
 /**====== Grey-color css start ======**/
 
@@ -13080,9 +12888,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#d8d8d8";
 }
 
-
 /**====== Grey-color css end ======**/
-
 
 /**====== Blue-color css start ======**/
 
@@ -13198,9 +13004,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#e1e7e9";
 }
 
-
 /**====== Blue-color css end ======**/
-
 
 /**====== Primary-color css start ======**/
 
@@ -13316,9 +13120,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#b7f5e9";
 }
 
-
 /**====== Primary-color css end ======**/
-
 
 /**====== Success-color css start ======**/
 
@@ -13434,9 +13236,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#9fe9bf";
 }
 
-
 /**====== Success-color css end ======**/
-
 
 /**====== Info-color css start ======**/
 
@@ -13552,9 +13352,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#add6f1";
 }
 
-
 /**====== Info-color css end ======**/
-
 
 /**====== Warning-color css start ======**/
 
@@ -13670,9 +13468,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#f9e596";
 }
 
-
 /**====== Warning-color css end ======**/
-
 
 /**====== Danger-color css start ======**/
 
@@ -13788,12 +13584,9 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 	content: "#f7c1bb";
 }
 
-
 /**====== Danger-color css end ======**/
 
-
 /**====== Color-color css end ======**/
-
 
 /**====== Mail-pages css end ======**/
 
@@ -13809,7 +13602,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 #address-search .input-group {
 	margin-bottom: 0;
 }
-
 
 /**  =====================
       Progress-bar css start
@@ -13882,7 +13674,6 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
 .progress-bar-emrald {
 	background-color: #2ecc71;
 }
-
 
 /**====== Progress-bar css end ======**/
 

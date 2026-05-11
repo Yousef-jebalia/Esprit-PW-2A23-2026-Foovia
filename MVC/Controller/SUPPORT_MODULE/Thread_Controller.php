@@ -35,7 +35,7 @@ class Thread_Controller
     public function get_threads(): array
     {
         $db  = config::getConnexion();
-        $sql = 'SELECT t.*, 
+        $sql = 'SELECT t.*,
                        (SELECT COUNT(*) FROM thread_message m WHERE m.id_thread = t.id_thread) AS reply_count
                 FROM thread t
                 ORDER BY t.published_at DESC';

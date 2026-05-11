@@ -26,4 +26,3 @@ $fb_login_url = null;
 if ($fb_app_id !== '') {
 	$fb_login_url = "https://www.facebook.com/v19.0/dialog/oauth?client_id=" . $fb_app_id . "&redirect_uri=" . urlencode($fb_redirect_uri) . "&scope=email,public_profile";
 }
-

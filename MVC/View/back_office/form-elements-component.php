@@ -114,22 +114,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             $selectedCategoryName = implode(', ', $selectedCategoryNames);
-            
+
             // Handle image file upload
             if (empty($error) && isset($_FILES['imag_rec']) && $_FILES['imag_rec']['error'] == 0) {
                 $uploadDir = 'assets/images/recipes/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
-                
+
                 $fileName = basename($_FILES['imag_rec']['name']);
                 $fileExt = pathinfo($fileName, PATHINFO_EXTENSION);
                 $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                
+
                 if (in_array(strtolower($fileExt), $allowedExts)) {
                     $newFileName = uniqid('recipe_') . '.' . $fileExt;
                     $uploadPath = $uploadDir . $newFileName;
-                    
+
                     if (move_uploaded_file($_FILES['imag_rec']['tmp_name'], $uploadPath)) {
                         $imagePath = $uploadPath;
                     } else {
@@ -139,7 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $error = "Invalid image file format. Only JPG, PNG, GIF, WebP allowed.";
                 }
             }
-            
+
             if (empty($error)) {
                 $recipe = new Recipe(
                     0,

@@ -42,7 +42,6 @@ if (strlen($description) > 4000) {
     exit;
 }
 
-
 function claim_classify_description(string $description, string $geminiModel): string
 {
     $system = 'You are a strict classifier for Foovia support claims. '

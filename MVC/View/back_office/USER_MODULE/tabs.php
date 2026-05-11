@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $lastname = trim($_POST['lastname_user'] ?? $currentUser['lastname_user']);
           $email = trim($_POST['email_user'] ?? $currentUser['email_user']);
           $phone = trim($_POST['phone_user'] ?? $currentUser['phone_user']);
-          
+
           if (strlen($name) < 3 || strlen($lastname) < 3) {
             $errorMessage = 'Name and lastname must be at least 3 characters long.';
           } elseif (strpos($email, '@gmail.com') === false) {
@@ -875,5 +875,3 @@ if (!empty($users)) {
   </script>
 </body>
 </html>
-
-

@@ -8,7 +8,7 @@ class Workout {
     private int $duree_work;
     private int $id_user;
     private int $id_cat;
-    
+
     public function __construct(string $name_work, ?string $pic_work, int $cal_work, int $duree_work, int $id_user, int $id_cat) {
         $this->name_work = $name_work;
         $this->pic_work = $pic_work;

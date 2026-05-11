@@ -29,8 +29,6 @@ $recipe_map_json = json_encode(array_reduce($recipes, function($acc, $r) {
     return $acc;
 }, []));
 
-
-
 $controller = new ObjectifLongTerme_Controller();
 $hebdo_controller = new ObjectifHebdomadaire_Controller();
 
@@ -711,7 +709,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 </head>
 <body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?><?php echo $weekly_has_record ? ' data-weekly-has-record="1" data-weekly-id="' . htmlspecialchars((string) $weekly_today_objectif['id_suiv']) . '"' : ' data-weekly-has-record="0"'; ?> data-has-long-term-goal="<?php echo !empty($current_user_goal) ? '1' : '0'; ?>" data-long-term-edit-mode="<?php echo $long_term_edit_mode ? '1' : '0'; ?>">
 
-
 <nav>
   <a href="../foovia.php" class="nav-logo">
     <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
@@ -1362,7 +1359,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       </style>
     <?php endif; ?>
   </div>
-  
 
 </section>
 
@@ -2113,7 +2109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
       const baseDate = new Date();
       let displayedMonth = baseDate.getMonth();
       let displayedYear = baseDate.getFullYear();
-      
+
       const goalStartDateStr = document.body.getAttribute('data-goal-start-date');
       const goalEndDateStr = document.body.getAttribute('data-goal-end-date');
       let goalStartDate = null;
@@ -2157,7 +2153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
             cellDate.getDate() === baseDate.getDate() &&
             cellDate.getMonth() === baseDate.getMonth() &&
             cellDate.getFullYear() === baseDate.getFullYear();
-          
+
           const isBeforeStart = goalStartDate && cellDate < goalStartDate;
           const isInGoalRange = goalStartDate && goalEndDate && cellDate >= goalStartDate && cellDate <= goalEndDate;
           const isClickable = isToday && !isBeforeStart;

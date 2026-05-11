@@ -554,7 +554,7 @@ function logMeal(dayKey, slotKey) {
   if (!item || !item.id) return;
   const r = RECIPE_MAP[item.id];
   const key = `${dayKey}-${slotKey}`;
-  
+
   if (loggedMeals[key]) {
     fetch('../../../Controller/menu_module/log_meal_handler.php', {
       method: 'POST',
@@ -672,7 +672,7 @@ function loadLogsForWeek() {
         data.logs.forEach(log => {
           // 1. Try exact slot label match
           let slot = SLOTS.find(s => s.label === log.meal_type);
-          
+
           // 2. If no match, try to find a planned slot with this recipe ID for this day
           if (!slot && plan[log.date]) {
             const slotKey = Object.keys(plan[log.date]).find(sk => plan[log.date][sk] && plan[log.date][sk].id === log.id_rec);
@@ -784,7 +784,7 @@ function hasCondition(matchers) {
 function getSlotTargets(dayKey) {
   const targets = {};
   const disabled = disabledSlots[dayKey] || [];
-  
+
   let activeRatioSum = 0;
   Object.keys(SLOT_RATIOS).forEach(slotKey => {
     if (!disabled.includes(slotKey)) {
@@ -956,7 +956,7 @@ function recalculateNextMeals(dayKey, changedSlotKey) {
     }
     const ratio = SLOT_RATIOS[slotKey] || 0;
     const proportion = ratio / remainingRatioSum;
-    
+
     const target = {
       kcal: remainingGoals.kcal * proportion,
       prot: remainingGoals.prot * proportion,
@@ -985,7 +985,7 @@ async function requestAiPlan() {
     const response = await fetch(AI_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         slots: SLOTS.filter(s => !(disabledSlots[activeDay] || []).includes(s.key)).map(slot => slot.key),
         avoid_ids: avoidIds
       }),
@@ -1039,7 +1039,7 @@ async function autoFillDay() {
   }
 
   const aiPlan = await requestAiPlan();
-  
+
   if (btn) {
     btn.innerHTML = oldText;
     btn.disabled = false;
@@ -1058,11 +1058,11 @@ async function autoFillDay() {
 }
 
 // ── REMOVE MEAL ──
-function removeMeal(dayKey, slotKey) { 
-  plan[dayKey][slotKey] = null; 
+function removeMeal(dayKey, slotKey) {
+  plan[dayKey][slotKey] = null;
   recalculateNextMeals(dayKey, slotKey);
-  render(); 
-  showToast('🗑️ Meal removed'); 
+  render();
+  showToast('🗑️ Meal removed');
 }
 
 function toggleSlot(dayKey, slotKey) {
@@ -1163,14 +1163,14 @@ function selectSwapRecipe(id) {
   swapSelectedId = id;
   renderSwapList();
   const r = RECIPE_MAP[id];
-  
+
   if (swapContext) {
     const target = getSlotTargets()[swapContext.slotKey];
     const M = (target && target.kcal > 0 && r.kcal > 0) ? target.kcal / r.kcal : 0;
     const optimalQty = Math.max(0, Math.round(M * 100));
     document.getElementById('swap-qty-input').value = optimalQty;
   }
-  
+
   document.getElementById('modal-qty-wrap').style.display = 'block';
 
   const btn = document.getElementById('btn-confirm-swap');
@@ -1180,10 +1180,10 @@ function selectSwapRecipe(id) {
 
 function confirmSwap() {
   if (!swapSelectedId || !swapContext) return;
-  
+
   const r = RECIPE_MAP[swapSelectedId];
   if (!r) return;
-  
+
   let qty = parseInt(document.getElementById('swap-qty-input').value, 10);
   if (isNaN(qty) || qty <= 0) {
     const target = getSlotTargets()[swapContext.slotKey];
@@ -1193,9 +1193,9 @@ function confirmSwap() {
 
   plan[swapContext.dayKey][swapContext.slotKey] = { id: swapSelectedId, qty: qty };
   closeSwapModal();
-  
+
   recalculateNextMeals(swapContext.dayKey, swapContext.slotKey);
-  
+
   render();
   showToast(`🔄 Swapped to ${r.name}`);
 }
@@ -1256,10 +1256,10 @@ function quickAdd(id) {
   initDay(activeDay);
   const slot = SLOTS.find(s => !plan[activeDay][s.key]);
   if (!slot) { showToast('⚠️ No empty slots today'); return; }
-  
+
   const r = RECIPE_MAP[id];
   if (!r) return;
-  
+
   const target = getSlotTargets()[slot.key];
   const M = (target && target.kcal > 0 && r.kcal > 0) ? target.kcal / r.kcal : 0;
   const qty = Math.max(0, Math.round(M * 100));
@@ -1295,7 +1295,7 @@ function render() {
   if (!activeDay || !dates.find(d => getDayKey(d) === activeDay)) {
     activeDay = getDayKey(dates.find(d => getDayKey(d) === todayKey) || dates[0]);
   }
-  
+
   const isPast = activeDay < todayKey;
   const isToday = activeDay === todayKey;
 
@@ -1347,7 +1347,7 @@ function render() {
     const r   = rid ? RECIPE_MAP[rid] : null;
     const isLogged = !!logged;
     const isDeviation = logged && planItem && logged.id !== planItem.id;
-    
+
     let sKcal = 0, sProt = 0, sCarb = 0, sFat = 0;
     if (r) {
       const M = qty / 100;
@@ -1520,7 +1520,7 @@ function getDayTotals(dayKey) {
   const totals = SLOTS.reduce((acc, s) => {
     const planItem = plan[dayKey][s.key];
     const logged = loggedMeals[`${dayKey}-${s.key}`];
-    
+
     // Prioritize logged meal for totals
     const item = logged || planItem;
     if (item && item.id) {

@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
     } else {
         try {
             $db = config::getConnexion();
-            
+
             $sql = "SELECT id_user, name_user, email_user, password_user FROM user WHERE LOWER(email_user) = :email";
             $query = $db->prepare($sql);
             $query->execute(['email' => $email]);
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
             if (!$user) {
                 $error_message = 'Username or password is false';
             } else {
-                
+
                 if ($password === $user['password_user']) {
                     $controller->increment_user_login_count((int) $user['id_user']);
                     // Password is correct
@@ -212,5 +212,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
     </script>
 </body>
 </html>
-
-

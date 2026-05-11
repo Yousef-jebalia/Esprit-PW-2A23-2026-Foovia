@@ -245,11 +245,9 @@ function showValid(fieldId, errorId) {
     return true;
 }
 
-
 document.getElementById('phone').addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0, 8);
 });
-
 
 document.getElementById('name').addEventListener('blur', validateName);
 document.getElementById('email').addEventListener('blur', validateEmail);
@@ -266,7 +264,7 @@ function validateName() {
 
 function validateEmail() {
     const val = document.getElementById('email').value.trim();
-    
+
     return /^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(val)
         ? showValid('email', 'email-error')
         : showError('email', 'email-error');
@@ -274,7 +272,7 @@ function validateEmail() {
 
 function validatePhone() {
     const val = document.getElementById('phone').value.trim();
-    
+
     return /^\d{8}$/.test(val)
         ? showValid('phone', 'phone-error')
         : showError('phone', 'phone-error');
@@ -294,7 +292,6 @@ function validateConfirm() {
         ? showValid('confirm-password', 'confirm-password-error')
         : showError('confirm-password', 'confirm-password-error');
 }
-
 
 document.getElementById('signupForm').addEventListener('submit', function (e) {
     const nameOk    = validateName();
@@ -365,4 +362,3 @@ confirmPasswordToggle.addEventListener('click', () => togglePasswordVisibility('
 </script>
 </body>
 </html>
-

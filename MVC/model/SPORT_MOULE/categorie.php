@@ -30,4 +30,3 @@ class Categorie
 		$this->name_cat = $name_cat;
 	}
 }
-

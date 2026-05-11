@@ -157,13 +157,13 @@ if ($is_logged_in) {
 <!-- HERO -->
 <section class="hero">
   <div class="hero-text">
-    
+
     <h1 class="hero-title">
       Eat smart.<br>
       Train <span class="accent">better.</span><br>
       Waste <span class="accent2">nothing.</span>
     </h1>
-    
+
     <div class="hero-actions">
       <a href="#" class="btn-primary">Start for free</a>
       <a href="#features" class="btn-secondary">Explore features ↓</a>
@@ -250,7 +250,7 @@ if ($is_logged_in) {
         <h3>Body-mapped workouts</h3>
         <p>Select the body part you want to train on an interactive mannequin. Get plans tailored to your injuries, fitness level, and ambitions.</p>
         <span class="feat-tag">Injury-aware</span>
-         <a href="SPORT_MOULE/Exercice.php" class="feat-btn">Build Workout</a> 
+         <a href="SPORT_MOULE/Exercice.php" class="feat-btn">Build Workout</a>
       </div>
     </div>
 
@@ -432,4 +432,3 @@ if ($is_logged_in) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

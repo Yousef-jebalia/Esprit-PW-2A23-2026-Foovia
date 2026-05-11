@@ -67,4 +67,3 @@ if (!isset($_SESSION['user_id']) || strtolower($_SESSION['user_role'] ?? '') !==
   </div>
 </body>
 </html>
-

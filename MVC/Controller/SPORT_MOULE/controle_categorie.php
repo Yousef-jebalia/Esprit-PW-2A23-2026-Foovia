@@ -159,4 +159,3 @@ class controle_categorie_workout
 		return 'Please select a workout category or create a new one.';
 	}
 }
-

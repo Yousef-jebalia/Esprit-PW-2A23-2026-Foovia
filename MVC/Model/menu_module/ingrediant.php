@@ -1,6 +1,6 @@
 <?php
 class Ingrediant{
-    
+
     private int $id_ing;
     private string $name_ing;
     private float $prot_ing;
@@ -23,7 +23,7 @@ class Ingrediant{
     //getters
     public function getIdIng(){
         return $this->id_ing;
-    } 
+    }
     public function getNameIng(){
         return $this->name_ing;
     }

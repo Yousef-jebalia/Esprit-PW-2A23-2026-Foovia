@@ -34,7 +34,7 @@ try {
         if ($workoutName === '') $missing[] = 'workoutName';
         if ($userId === null || $userId === '') $missing[] = 'userId';
         if (empty($targetMuscles)) $missing[] = 'targetMuscles';
-        
+
         echo json_encode([
             'error' => 'Missing required fields: ' . implode(', ', $missing),
             'debug' => [

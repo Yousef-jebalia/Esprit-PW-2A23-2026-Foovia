@@ -7,7 +7,6 @@ $('.carousel-nav').owlCarousel({
     nav:true
 });
 
-
 $('.carousel-dot').owlCarousel({
     items:1,
     loop:true,

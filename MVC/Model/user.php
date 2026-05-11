@@ -23,7 +23,6 @@ class User
     private string $account_state_user;
     private string $duration_user;
 
-    
     public function __construct(
         int $id_user,
         string $name_user,
@@ -68,13 +67,11 @@ class User
         $this->duration_user = $duration_user;
     }
 
-   
     public function __destruct()
     {
-       
+
     }
 
-    
     public function getIdUser(): int { return $this->id_user; }
     public function getNameUser(): string { return $this->name_user; }
     public function getLastnameUser(): string { return $this->lastname_user; }
@@ -96,7 +93,6 @@ class User
     public function getAccountStateUser(): string { return $this->account_state_user; }
     public function getDurationUser(): string { return $this->duration_user; }
 
-    
     public function setIdUser(int $id_user): void { $this->id_user = $id_user; }
     public function setNameUser(string $name_user): void { $this->name_user = $name_user; }
     public function setLastnameUser(string $lastname_user): void { $this->lastname_user = $lastname_user; }

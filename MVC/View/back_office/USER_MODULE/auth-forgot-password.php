@@ -44,11 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
-                    
+
                     $env = parse_ini_file(__DIR__ . '/../../../../.env');
-                    $mail->Username   = $env['SMTP_USERNAME']; 
-                    $mail->Password   = $env['SMTP_PASSWORD']; 
-                    
+                    $mail->Username   = $env['SMTP_USERNAME'];
+                    $mail->Password   = $env['SMTP_PASSWORD'];
+
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                             <strong>Success:</strong> <?php echo htmlspecialchars($success_message); ?>
                         </div>
                     <?php endif; ?>
-                    
+
                     <form class="md-float-material form-material" method="POST" action="" id="forgotForm" novalidate>
                         <div class="text-center">
                             <img src="assets/images/logo.png" alt="logo.png">
@@ -168,4 +168,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
     </script>
 </body>
 </html>
-

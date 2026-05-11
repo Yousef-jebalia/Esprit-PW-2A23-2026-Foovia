@@ -69,8 +69,6 @@ foreach ($workouts as $workout) {
 }
 ?>
 
-
-
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
@@ -176,8 +174,6 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
   </div>
 </nav>
 
-
-
 <!-- WORKOUT PAGE -->
 <section class="workout-page">
   <div class="workout-header">
@@ -193,7 +189,7 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
     <?php $catWorkouts = array_filter($workouts, fn($w) => (int)$w['id_cat'] === (int)$category['id_cat']); ?>
     <div class="category-section">
       <h2 class="category-title"><?php echo htmlspecialchars($category['name_cat']); ?></h2>
-      
+
       <?php if (empty($catWorkouts)): ?>
         <div class="empty-cat">No workouts in this category</div>
       <?php else: ?>

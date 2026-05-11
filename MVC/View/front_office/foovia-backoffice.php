@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signin_submit'])) {
 
           if ($password === $user['password_user'] && $role === 'admin') {
             $controller->reset_failed_login_attempts((int) $user['id_user']);
-            
+
             $_SESSION['user_id'] = $user['id_user'];
             $_SESSION['user_name'] = $user['name_user'];
             $_SESSION['user_email'] = $user['email_user'];
@@ -179,5 +179,3 @@ document.getElementById('backofficeForm').addEventListener('submit', function(e)
 </script>
 </body>
 </html>
-
-

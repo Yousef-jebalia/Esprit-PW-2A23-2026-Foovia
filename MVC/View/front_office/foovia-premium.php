@@ -178,7 +178,7 @@ if ($is_logged_in) {
     .theme-toggle .icon-moon { display: none; }
     :root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
     :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
-    
+
     /* Premium Badge Navigation Component */
     .premium-badge-nav {
       display: flex;
@@ -1421,7 +1421,6 @@ if ($is_logged_in) {
         </button>
       </div>
 
-
     </div>
   </section>
 
@@ -1695,7 +1694,7 @@ if ($is_logged_in) {
       document.getElementById('modal-body').textContent = d.body;
       const modal = document.getElementById('plan-modal');
       modal.style.display = 'flex';
-      
+
       // Update button text and behavior based on plan
       const btn = document.getElementById('confirm-upgrade-btn');
       if (plan === 'free') {
@@ -1707,7 +1706,7 @@ if ($is_logged_in) {
 
     function confirmUpgrade() {
         if (!selectedPlan) return;
-        
+
         const btn = document.getElementById('confirm-upgrade-btn');
         const originalText = btn.textContent;
         btn.disabled = true;
@@ -1750,7 +1749,7 @@ if ($is_logged_in) {
         const title = document.getElementById('success-title');
         const body = document.getElementById('success-body');
         const icon = document.getElementById('success-icon');
-        
+
         if (plan === 'free') {
             icon.textContent = '🌱';
             title.textContent = 'Plan Updated';
@@ -1760,7 +1759,7 @@ if ($is_logged_in) {
             title.textContent = 'Congratulations!';
             body.textContent = `You've successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)}. Welcome to the next level of Foovia!`;
         }
-        
+
         modal.style.display = 'flex';
     }
     document.getElementById('plan-modal').addEventListener('click', e => { if (e.target === document.getElementById('plan-modal')) closeModal(); });

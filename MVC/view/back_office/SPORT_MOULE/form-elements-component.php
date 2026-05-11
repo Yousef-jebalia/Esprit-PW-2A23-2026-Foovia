@@ -43,11 +43,6 @@ foreach ($workoutExerciseRows as $row) {
 }
 ?>
 
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -87,7 +82,6 @@ foreach ($workoutExerciseRows as $row) {
     <link rel="stylesheet" type="text/css" href="assets/css/dashboard-layout.css">
 
 </head>
-
 
 <script>
 let selectedWorkoutExercises = [];
@@ -216,8 +210,6 @@ function validateForm() {//exercise form validation
     return true;
 }
 
-
-
 function validateWorkoutForm() {
     const name = document.getElementById('work_name').value.trim();
     const duree = Number(document.getElementById('work_duree').value);
@@ -289,8 +281,8 @@ function submitNewWorkoutCategory() {
     }
 
     const categoryName = input.value.trim();
-    if (!validateWorkoutCategoryName(categoryName)) 
-        
+    if (!validateWorkoutCategoryName(categoryName))
+
         {
         input.focus();
         return;
@@ -473,7 +465,6 @@ function resetWorkoutExerciseSelection() {
     }
 }
 
-
 function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     document.getElementById('form-action').value = 'update';
     document.getElementById('edit-id').value = id;
@@ -493,11 +484,6 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     document.getElementById('exercise-form').scrollIntoView({ behavior: 'smooth' });
 }
 </script>
-
-
-
-
-
 
 <body>
     <!-- Pre-loader start -->
@@ -823,10 +809,10 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
     <?php else: ?>
         <?php foreach ($workouts as $wk): ?>
             <div id="card-<?= $wk['id_work'] ?>" class="workout-card" style="background: white; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px;">
-                
+
                 <!-- Image -->
                 <?php if (!empty($wk['pic_work'])): ?>
-                    <img src="data:image/jpeg;base64,<?= base64_encode($wk['pic_work']) ?>" 
+                    <img src="data:image/jpeg;base64,<?= base64_encode($wk['pic_work']) ?>"
                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
                 <?php else: ?>
                     <i class="ti-image" style="color: #aaa; font-size: 24px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;"></i>
@@ -855,7 +841,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                 <!-- Delete button & edit button -->
                 <form method="POST" action="../../../Controller/SPORT_MOULE/controle_workout.php" style="margin: 0; display: flex; gap: 5px;">
                     <input type="hidden" name="delete_id" value="<?= (int)$wk['id_work'] ?>">
-                    
+
                     <!-- Delete button -->
                     <button type="submit" name="action" value="delete"
                         style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px;"
@@ -880,7 +866,7 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
 
                         <!-- RIGHT SIDE: WORKOUT FORM -->
                         <div style="flex: 0 0 480px; max-width: 480px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;">
-                            
+
                             <form onsubmit="return validateWorkoutForm()" class="workout-form" id="workout-form" action="../../../Controller/SPORT_MOULE/controle_workout.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
 
                                 <input type="hidden" name="action" id="work-form-action" value="add">
@@ -1202,12 +1188,10 @@ function fillEditForm(id, name, type, muscle, cal, fatigue, description) {
                         </div>
                     </div>
 
-                    
                 </div>
             </div>
         </div>
     </div>
-
 
     <!-- Warning Section Starts -->
     <!-- Older IE warning message -->

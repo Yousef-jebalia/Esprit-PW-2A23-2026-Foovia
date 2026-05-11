@@ -12,7 +12,7 @@ $reclamations = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'delete_traitement' && !empty($_POST['id_traitement'])) {
         $deleteTraitement = new Traitements(
-            (int)$_POST['id_traitement'], 
+            (int)$_POST['id_traitement'],
             0,
             '',
             '',
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $success = 'Treatment deleted successfully.';
     } elseif ($_POST['action'] === 'delete_reclamation' && !empty($_POST['id_reclamation'])) {
         $deleteReclamation = new Reclamations(
-            $_POST['id_reclamation'], 
+            $_POST['id_reclamation'],
             0,
             '',
             '',
@@ -128,7 +128,7 @@ $reclamations = $reclamationController->get_reclamations();
             </div>
         </div>
     </div>
-    
+
     <!-- Pre-loader end -->
     <div id="pcoded" class="pcoded">
         <div class="pcoded-overlay-box"></div>
@@ -151,7 +151,7 @@ $reclamations = $reclamationController->get_reclamations();
                             </div>
                         </div>
                         <a href="index.html">
-                           
+
                         </a>
                         <a class="mobile-options waves-effect waves-light">
                             <i class="ti-more"></i>
@@ -169,7 +169,7 @@ $reclamations = $reclamationController->get_reclamations();
                             </li>
                         </ul>
                         <ul class="nav-right">
-                            
+
                             </li>
                             <li class="user-profile header-notification">
                                 <a href="#!" class="waves-effect waves-light">
@@ -328,7 +328,7 @@ $reclamations = $reclamationController->get_reclamations();
                   <div class="page-shell">
     <div class="hero">
                     </nav>
-                    
+
                     <div class="pcoded-content">
                         <!-- Page-header start -->
                         <div class="page-header">

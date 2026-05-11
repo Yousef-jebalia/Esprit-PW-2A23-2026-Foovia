@@ -150,15 +150,15 @@ if(form) {
     form.addEventListener('submit', function(e) {
       const p1 = document.getElementById('password').value;
       const p2 = document.getElementById('confirm_password').value;
-      
+
       const validPassword = validate('password', v => v.length >= 8, 'err-password');
-      
+
       const validConfirm = p1 === p2;
       const cInput = document.getElementById('confirm_password');
       const cErr = document.getElementById('err-confirm-password');
       cInput.classList.toggle('error', !validConfirm);
       cErr.classList.toggle('visible', !validConfirm);
-      
+
       if (!validPassword || !validConfirm) {
         e.preventDefault();
       }
@@ -167,5 +167,3 @@ if(form) {
 </script>
 </body>
 </html>
-
-

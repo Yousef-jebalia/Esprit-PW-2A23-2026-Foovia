@@ -5,7 +5,6 @@ include_once(__DIR__ . '/../Model/user.php');
 
 class Controller_user {
 
-    
     public function add_user(User $user) {
         $birthday = trim($user->getBirthdayUser());
         $birthday = $birthday !== '' ? $birthday : null;
@@ -105,7 +104,6 @@ class Controller_user {
             throw $e;
         }
     }
-
 
     public function list_users() {
 
@@ -455,7 +453,6 @@ class Controller_user {
         }
     }
 
-
     public function delete_user($id) {
 
         $sql = "DELETE FROM user WHERE id_user = :id";
@@ -469,8 +466,6 @@ class Controller_user {
         }
     }
 
-
-    
     public function get_user($id) {
 
         $sql = "SELECT * FROM user WHERE id_user = :id";
@@ -485,8 +480,6 @@ class Controller_user {
         }
     }
 
-
-    
     public function update_user(User $user, $id) {
         $birthday = trim($user->getBirthdayUser());
         $birthday = $birthday !== '' ? $birthday : null;
@@ -620,6 +613,6 @@ class Controller_user {
         }
     }
 
-}  
+}
 
 ?>

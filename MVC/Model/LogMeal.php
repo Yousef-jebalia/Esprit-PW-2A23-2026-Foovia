@@ -6,8 +6,6 @@ class LogMeal
     private string meal_time;
     private string meal_type;
     private string meal_image;
-    
-
 
     // Constructor
     public function __construct(int $id_rec, int $id_suiv, string $meal_time, string $meal_type, string $meal_image)
@@ -62,7 +60,7 @@ class LogMeal
     public function setMealType(string $meal_type): void
     {
         $this->meal_type = $meal_type;
-    }   
+    }
     public function setMealImage(string $meal_image): void
     {
         $this->meal_image = $meal_image;

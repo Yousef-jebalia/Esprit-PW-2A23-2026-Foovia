@@ -3,7 +3,7 @@ require_once __DIR__ . '/env.php';
 
 //Connection file to project database the database name must be foovia_db
 class config
-{ 
+{
         private static $pdo = null;
     public static function getConnexion()
     {

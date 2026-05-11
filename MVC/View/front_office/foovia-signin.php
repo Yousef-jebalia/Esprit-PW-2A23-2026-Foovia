@@ -45,7 +45,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') == 'POST' && isset($_POST['signin_subm
               if ($banState['is_banned']) {
                 $error_message = 'Your account is banned. Try again in ' . $banState['remaining'] . '.';
               } else {
-                
+
                 if ($password === $user['password_user']) {
                   $controller->increment_user_login_count((int) $user['id_user']);
                   $controller->reset_failed_login_attempts((int) $user['id_user']);
@@ -55,7 +55,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') == 'POST' && isset($_POST['signin_subm
                   $_SESSION['user_id'] = (int) $user['id_user'];
                   $_SESSION['user_name'] = (string) $user['name_user'];
                   $_SESSION['user_email'] = (string) $user['email_user'];
-                  
+
                   // Redirect immediately instead of using refresh to preserve session
                   header('Location: ' . $redirectUrl, true, 302);
                   exit;
@@ -102,7 +102,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') == 'POST' && isset($_POST['signin_subm
 <div id="wa-modal" class="wa-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:var(--panel-bg, #fff); padding:30px; border-radius:16px; width:100%; max-width:400px; text-align:center;">
     <h2 style="font-family:'Syne', sans-serif; margin-bottom:10px;">WhatsApp Login</h2>
-    
+
     <div id="wa-step-1">
       <p style="margin-bottom:20px; color:var(--page-muted, #666);">Enter your phone number to receive a secure login code.</p>
       <input type="text" id="wa-phone" placeholder="+1234567890" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:20px; font-size:16px;">
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function requestWaCode() {
   const phone = document.getElementById('wa-phone').value;
   if(!phone) { alert("Please enter a phone number"); return; }
-  
+
   fetch('whatsapp-request.php', {
     method: 'POST',
     credentials: 'same-origin',
@@ -280,7 +280,7 @@ function requestWaCode() {
 function verifyWaCode() {
   const code = document.getElementById('wa-code').value;
   if(code.length !== 4) { alert("Please enter the 4-digit code"); return; }
-  
+
   fetch('whatsapp-verify.php', {
     method: 'POST',
     credentials: 'same-origin',
@@ -299,5 +299,3 @@ function verifyWaCode() {
 </script>
 </body>
 </html>
-
-

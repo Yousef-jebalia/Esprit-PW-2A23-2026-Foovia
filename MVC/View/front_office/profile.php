@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $confirm_pass = $_POST['confirm_password'] ?? '';
 
     $user_record = $controller->get_user($_SESSION['user_id']);
-    
+
     // Check if the current password is correct
     if ($current_pass !== $user_record['password_user']) {
         $pwd_error = "Current password is incorrect.";
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
     $current = $controller->get_user($_SESSION['user_id']);
     $email = $_POST['email_user'] ?? $current['email_user'];
-    
+
     if (strpos($email, '@gmail.com') === false) {
         $error_message = 'Email must be in the format: example@gmail.com';
     } else {
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
     $controller->update_user($user, $_SESSION['user_id']);
     $saved = true;
     }
-    
+
     // Update session names if they changed
     $_SESSION['user_name'] = $_POST['name_user'] ?? $current['name_user'];
 }
@@ -113,7 +113,7 @@ $user_name = $_SESSION['user_name'] ?? '';
         .field-error  { color: var(--red); font-size: 12px; margin-top: 4px; display: none; }
         .form-control.invalid { border-color: var(--red) !important; }
         .form-control.valid   { border-color: var(--green) !important; }
-        
+
         .profile-container {
             max-width: 800px;
             margin: 40px auto;
@@ -127,21 +127,21 @@ $user_name = $_SESSION['user_name'] ?? '';
             margin-bottom: 20px;
         }
         .profile-card h3 { font-family: 'Syne', sans-serif; margin-bottom: 20px; font-weight: 600; }
-        .profile-card p.mb-1, .profile-card p.mb-1 strong { 
-            font-family: 'DM Sans', sans-serif; 
-            font-size: 0.9rem; 
-            font-weight: normal !important; 
-            color: var(--page-text); 
-            margin-bottom: 4px !important; 
-        }
-        .profile-card .field-value { 
+        .profile-card p.mb-1, .profile-card p.mb-1 strong {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem; 
-            font-weight: normal; 
-            color: var(--page-muted); 
+            font-size: 0.9rem;
+            font-weight: normal !important;
+            color: var(--page-text);
+            margin-bottom: 4px !important;
+        }
+        .profile-card .field-value {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: normal;
+            color: var(--page-muted);
         }
         .profile-card .form-control, .profile-card .form-select { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; background-color: var(--page-bg); color: var(--page-text); border-color: var(--surface-border); }
-        
+
         .nav-logo-img { height: 32px; margin-right: 8px; }
 
         /* Modal fixes */
@@ -439,7 +439,7 @@ $user_name = $_SESSION['user_name'] ?? '';
             root.style.colorScheme = theme;
             toggle.setAttribute('aria-pressed', String(isDark));
             toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-            
+
             // Fix modal close button colors
             document.querySelectorAll('.btn-close').forEach(btn => {
                 if (isDark) {
@@ -599,4 +599,3 @@ $user_name = $_SESSION['user_name'] ?? '';
 </script>
 </body>
 </html>
-

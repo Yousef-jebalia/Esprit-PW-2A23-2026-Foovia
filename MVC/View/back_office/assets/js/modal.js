@@ -81,7 +81,6 @@ $(document).ready(function () {
 		});
 	};
 
-
 		$('#openBtn').on('click',function () {
 			$('#myModal').modal({
 				show: true
@@ -96,4 +95,3 @@ $(document).ready(function () {
 			}, 0);
 		});
 	});
-  

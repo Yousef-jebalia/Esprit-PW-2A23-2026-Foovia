@@ -16,7 +16,6 @@ class ObjectifLongTerme
     private float $obj_fat_obj;
     private float $obj_prot_obj;
     private float $obj_carb_obj;
-    
 
     // Constructor
     public function __construct(int $id_obj, int $id_user,string $type_obj, float $val_cible_obj, float $val_init_obj, string $date_deb_obj, string $date_fin_obj, string $status_obj, int $frequency_rappel_obj, int $consistancy_sport_obj, int $consistency_alim_obj, float $obj_cal_obj, float $obj_fat_obj, float $obj_prot_obj, float $obj_carb_obj)
@@ -37,8 +36,6 @@ class ObjectifLongTerme
         $this->obj_prot_obj = $obj_prot_obj;
         $this->obj_carb_obj = $obj_carb_obj;
 
-        
-        
     }
 
     // Destructor

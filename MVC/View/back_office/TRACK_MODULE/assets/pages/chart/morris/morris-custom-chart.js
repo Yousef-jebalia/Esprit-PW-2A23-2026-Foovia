@@ -11,7 +11,7 @@ $(document).ready(function() {
         window.areaChart.redraw();
         window.donutChart.redraw();
     });
-    
+
 });
 
 /*Line chart*/
@@ -158,7 +158,6 @@ Morris.Area({
             ipad: 10,
             itouch: 10
         }
-
 
     ],
     lineColors: ['#fb9678', '#7E81CB', '#01C0C8'],

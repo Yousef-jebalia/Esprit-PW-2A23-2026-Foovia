@@ -81,7 +81,7 @@ class Controller_menu {
     }
 
     public function list_recipe() {
-        $sql = "SELECT r.id_rec, r.name_rec, COALESCE(GROUP_CONCAT(DISTINCT c.nom_categ ORDER BY c.nom_categ SEPARATOR ', '), '') AS categorie_rec, r.description_rec, r.prot_rec, r.fat_rec, r.carb_rec, r.cal_rec, r.instruction_rec, r.origin_rec, r.img_rec 
+        $sql = "SELECT r.id_rec, r.name_rec, COALESCE(GROUP_CONCAT(DISTINCT c.nom_categ ORDER BY c.nom_categ SEPARATOR ', '), '') AS categorie_rec, r.description_rec, r.prot_rec, r.fat_rec, r.carb_rec, r.cal_rec, r.instruction_rec, r.origin_rec, r.img_rec
             FROM recipe r
             LEFT JOIN affecter_categ_rec a ON a.id_rec = r.id_rec
             LEFT JOIN categorie_recipe c ON c.id_categ_rec = a.id_categ_rec
@@ -99,7 +99,7 @@ class Controller_menu {
     }
 
     public function add_recipe(Recipe $recipe) {
-        $sql = "INSERT INTO recipe (id_rec, name_rec, description_rec, prot_rec, fat_rec, carb_rec, cal_rec, instruction_rec, origin_rec, img_rec) 
+        $sql = "INSERT INTO recipe (id_rec, name_rec, description_rec, prot_rec, fat_rec, carb_rec, cal_rec, instruction_rec, origin_rec, img_rec)
             VALUES (:id_recipe, :nom, :description, :prot, :fat, :carb, :cal, :instructions, :origin, :imag)";
         $db = config::getConnexion();
         try {
@@ -165,7 +165,7 @@ class Controller_menu {
     }
 
     public function update_recipe(Recipe $recipe) {
-        $sql = "UPDATE recipe SET name_rec = :nom, description_rec = :description, prot_rec = :prot, fat_rec = :fat, carb_rec = :carb, cal_rec = :cal, instruction_rec = :instructions, origin_rec = :origin, img_rec = :imag 
+        $sql = "UPDATE recipe SET name_rec = :nom, description_rec = :description, prot_rec = :prot, fat_rec = :fat, carb_rec = :carb, cal_rec = :cal, instruction_rec = :instructions, origin_rec = :origin, img_rec = :imag
             WHERE id_rec = :id_recipe";
         $db = config::getConnexion();
         try {
@@ -238,9 +238,6 @@ class Controller_menu {
             echo 'Error: ' . $e->getMessage();
         }
     }
-
-    
-    
 
     // Add other methods like list_reclamations, delete_reclamation, etc. as needed
 }

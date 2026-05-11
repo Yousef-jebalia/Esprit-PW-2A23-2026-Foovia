@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             }
-            
+
             if (empty($error)) {
                 $ingrediant = new Ingrediant(
                     0,
@@ -180,7 +180,7 @@ $ingrediants = array_slice($allIngrediants, $offset, $itemsPerPage);
                   <i class="ti-home"></i> Welcome page
                 </a>
               </li>
-        
+
                         </ul>
                     </div>
                 </div>

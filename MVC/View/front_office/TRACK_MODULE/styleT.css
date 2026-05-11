@@ -3049,7 +3049,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     display: block;
     font-family: 'Boldonse', system-ui;
     font-size: 0.72rem;
-    
+
   }
 
   .weekly-tracker-field.sleep label { color: #7c6fcd; }
@@ -4352,4 +4352,3 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   font-weight: 700;
   border: 1px solid rgba(192, 56, 26, 0.18);
 }
-

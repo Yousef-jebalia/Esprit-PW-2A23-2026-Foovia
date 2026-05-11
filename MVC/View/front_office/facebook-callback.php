@@ -5,28 +5,28 @@ include_once(__DIR__ . '/../../Model/config.php');
 if (isset($_GET['code'])) {
     // 1. Exchange code for access token
     $token_url = "https://graph.facebook.com/v19.0/oauth/access_token?client_id=" . $fb_app_id . "&redirect_uri=" . urlencode($fb_redirect_uri) . "&client_secret=" . $fb_app_secret . "&code=" . $_GET['code'];
-    
+
     // We use stream context to ignore errors if Facebook rejects the code
     $context = stream_context_create([
         'http' => [
             'ignore_errors' => true
         ]
     ]);
-    
+
     $response = file_get_contents($token_url, false, $context);
     $params = json_decode($response, true);
-    
+
     if (isset($params['access_token'])) {
         $access_token = $params['access_token'];
-        
+
         // 2. Get user info
         $graph_url = "https://graph.facebook.com/me?fields=id,name,email&access_token=" . $access_token;
         $user_info = json_decode(file_get_contents($graph_url));
-        
+
         $email = $user_info->email ?? '';
         $name = $user_info->name ?? 'Facebook User';
         $fb_id = $user_info->id ?? '';
-        
+
         // If the Facebook account was created with a phone number instead of an email,
         // or the user declined to share it, we generate a secure fallback email.
         if (empty($email) && !empty($fb_id)) {
@@ -45,7 +45,7 @@ if (isset($_GET['code'])) {
             $query = $db->prepare($sql);
             $query->execute(['email' => strtolower($email)]);
             $user = $query->fetch();
-            
+
             if (!$user) {
                 // First login, create user and redirect to password set
                 $random_password = bin2hex(random_bytes(8));
@@ -53,7 +53,7 @@ if (isset($_GET['code'])) {
                 $stmt = $db->prepare($insert);
                 $stmt->execute(['name' => $name, 'email' => strtolower($email), 'password' => $random_password]);
                 $user_id = $db->lastInsertId();
-                
+
                 $token = bin2hex(random_bytes(32));
                 $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
                 $updateSql = "UPDATE user SET reset_token = :token, reset_token_expires_at = :expires_at WHERE id_user = :id_user";
@@ -83,4 +83,3 @@ if (isset($_GET['code'])) {
     header("Location: foovia-signin.php");
     exit;
 }
-

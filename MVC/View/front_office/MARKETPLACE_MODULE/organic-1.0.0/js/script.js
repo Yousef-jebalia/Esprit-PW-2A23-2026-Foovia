@@ -13,7 +13,6 @@
     });
   }
 
-
 	var initChocolat = function() {
 		Chocolat(document.querySelectorAll('.image-link'), {
 		  imageSize: 'contain',
@@ -83,7 +82,6 @@
       });
 
     });
-
 
     // product single page
     var thumb_slider = new Swiper(".product-thumbnail-slider", {

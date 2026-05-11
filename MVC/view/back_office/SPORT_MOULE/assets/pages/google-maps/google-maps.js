@@ -27,7 +27,6 @@
           }
       });
 
-
       /*Overlays map*/
       var mapOverlay;
       mapOverlay = new GMaps({
@@ -103,7 +102,6 @@
           url: 'http://api.flickr.com/services/feeds/geo/?g=322338@N20&lang=en-us&format=feed-georss'
       });
       georssLayer.setMap(georssmap);
-
 
       var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 6,

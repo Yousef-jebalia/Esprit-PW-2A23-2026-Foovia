@@ -21,9 +21,6 @@ $userData = $userController->get_user($userId);
 $userSubscription = $userData['subscription_user'] ?? 'free';
 ?>
 
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -113,8 +110,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
   </div>
 </nav>
 
-
-
 <!-- EXERCISE PAGE -->
 <section class="exercise-page">
   <div class="exercise-header">
@@ -190,8 +185,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 
 </script>
 
-
-
       <div class="exercise-grid-wrapper">
         <?php if (empty($exercises)): ?>
           <div class="empty-state">No Exercises Yet</div>
@@ -226,7 +219,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
                       aria-label="Exercise info">
                       i
                     </button>
-                    
+
                   </div>
                 </div>
               </article>
@@ -405,7 +398,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
               .map((item) => item.trim())
               .filter(Boolean);
             const uniqueMuscles = Array.from(new Set(muscles));
-            
+
             // Store muscles for info window
             currentExerciseMuscles = uniqueMuscles;
 
@@ -604,7 +597,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-
 
 </body>
 </html>

@@ -548,7 +548,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
   </div>
 <?php endif; ?>
 
-
 <!-- FOOTER -->
 <footer style="background:var(--dark);color:rgba(255,255,255,.45);padding:32px 64px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
   <span style="font-family:'Boldonse',system-ui;color:#F5C842;font-size:1.1rem;">FOOVIA</span>

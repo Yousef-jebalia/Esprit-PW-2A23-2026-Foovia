@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Generate a random 4-digit code
     $code = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-    
+
     // Store in session for verification
     $_SESSION['whatsapp_login_phone'] = $phone;
     $_SESSION['whatsapp_login_code'] = $code;
     $_SESSION['whatsapp_login_expires'] = time() + 300; // 5 minutes expiry
-    
+
     // Force write the session to disk immediately to prevent locking or loss
     session_write_close();
 
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sid = $env['TWILIO_ACCOUNT_SID'] ?? '';
     $token = $env['TWILIO_AUTH_TOKEN'] ?? '';
     $twilio_number = $env['TWILIO_WHATSAPP_NUMBER'] ?? ''; // Format: "whatsapp:+14155238886"
-    
+
     if (empty($sid) || empty($token)) {
         echo json_encode(['success' => false, 'message' => 'Twilio API keys not configured in .env']);
         exit;
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $to_number = "whatsapp:" . $phone;
     $url = "https://api.twilio.com/2010-04-01/Accounts/$sid/Messages.json";
-    
+
     $post_data = [
         'From' => $twilio_number,
         'To' => $to_number,
@@ -57,17 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($http_code === 201) {
         echo json_encode([
-            'success' => true, 
+            'success' => true,
             'message' => 'Code sent to WhatsApp.'
         ]);
     } else {
         $error_data = json_decode($response, true);
         echo json_encode([
-            'success' => false, 
+            'success' => false,
             'message' => 'Twilio Error: ' . ($error_data['message'] ?? 'Unknown error')
         ]);
     }
     exit;
 }
 echo json_encode(['success' => false, 'message' => 'Invalid request']);
-

@@ -69,10 +69,8 @@
 
       $(".delete_todolist").on("click", function() {
 
-
           $(this).parent().parent().fadeOut();
       });
-
 
       /*3rd todo list code*/
       $(".save_btn").on("click", function() {

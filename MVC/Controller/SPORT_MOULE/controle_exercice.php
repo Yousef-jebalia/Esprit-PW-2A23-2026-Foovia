@@ -6,7 +6,6 @@ error_reporting(E_ALL);
 include_once __DIR__ . '/../../Model/SPORT_MOULE/exercice.php';
 include_once __DIR__ . '/../../Model/config.php';
 
-
 class controle_exercice
 {
     function add_exercise($exercise) {
@@ -75,7 +74,6 @@ class controle_exercice
     }
 
 } // end of class
-
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 

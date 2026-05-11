@@ -44,4 +44,3 @@ if ($clientID !== '' && $clientSecret !== '') {
 	$client->addScope("profile");
 	$client->setPrompt("select_account");
 }
-

@@ -90,7 +90,7 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_
                             <strong>Success:</strong> <?php echo htmlspecialchars($success_message); ?>
                         </div>
                     <?php endif; ?>
-                    
+
                     <?php if ($token_valid): ?>
                     <form class="md-float-material form-material" method="POST" action="" id="resetForm" novalidate>
                         <div class="text-center">
@@ -152,4 +152,3 @@ if ($token_valid && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_
     </script>
 </body>
 </html>
-

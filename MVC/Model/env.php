@@ -53,4 +53,3 @@ if (!function_exists('foovia_env')) {
         return $value === false ? $default : $value;
     }
 }
-

@@ -113,7 +113,7 @@ if (!$suivi) {
         'nb_pas_suiv' => 0,
         'id_user' => $userId
     ];
-    
+
     $ok = $hebdoController->save_objectif_hebdo($dailyData);
     if (!$ok) {
         echo json_encode(['success' => false, 'error' => 'Failed to initialize daily tracking.']);
@@ -143,7 +143,7 @@ foreach ($mealsToLog as $m) {
     $id_rec = (int)$m['id_rec'];
     $type = $m['meal_type'] ?: 'Planned Meal';
     $qty = isset($m['quantity']) ? (int)$m['quantity'] : (isset($m['qty']) ? (int)$m['qty'] : 100);
-    
+
     // Check if already logged to avoid duplicates
     $check = $db->prepare("SELECT 1 FROM log_meal WHERE id_suiv = :id_suiv AND id_rec = :id_rec AND meal_type = :type LIMIT 1");
     $check->execute(['id_suiv' => $id_suiv, 'id_rec' => $id_rec, 'type' => $type]);
@@ -151,7 +151,7 @@ foreach ($mealsToLog as $m) {
 
     // We try to insert with quantity if it exists, else fallback to standard
     try {
-        $sql = "INSERT INTO log_meal (id_rec, id_suiv, meal_time, meal_type, quantity) 
+        $sql = "INSERT INTO log_meal (id_rec, id_suiv, meal_time, meal_type, quantity)
                 VALUES (:id_rec, :id_suiv, :meal_time, :meal_type, :qty)";
         $query = $db->prepare($sql);
         $ok = $query->execute([
@@ -162,7 +162,7 @@ foreach ($mealsToLog as $m) {
             'qty' => $qty
         ]);
     } catch (Exception $e) {
-        $sql = "INSERT INTO log_meal (id_rec, id_suiv, meal_time, meal_type) 
+        $sql = "INSERT INTO log_meal (id_rec, id_suiv, meal_time, meal_type)
                 VALUES (:id_rec, :id_suiv, :meal_time, :meal_type)";
         $query = $db->prepare($sql);
         $ok = $query->execute([

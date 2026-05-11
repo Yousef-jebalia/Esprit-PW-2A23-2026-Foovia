@@ -99,6 +99,4 @@ class Recipe{
         $this->imag_rec=$imag_rec;
     }
 
-
-
 }

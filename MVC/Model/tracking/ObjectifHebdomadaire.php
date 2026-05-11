@@ -10,13 +10,11 @@ class ObjectifHebdomadaire
     private float $val_prot_suiv;
     private float $val_carb_suiv;
     private string $note_suiv;
-    private string $status_obj_quot_suiv; 
+    private string $status_obj_quot_suiv;
     private int $nb_verre_eau_suiv;
     private string $nb_h_sommeil_suiv;
     private int $nb_pas_suiv;
     private int $id_user;
-    
-
 
     // Constructor
     public function __construct(int $id_suiv, int $id_obj, string $date_suiv, float $val_cal_suiv, float $poids_suiv, float $val_fat_suiv, float $val_prot_suiv, float $val_carb_suiv, string $note_suiv, string $status_obj_quot_suiv, int $nb_verre_eau_suiv, string $nb_h_sommeil_suiv, int $nb_pas_suiv, int $id_user)
@@ -35,7 +33,6 @@ class ObjectifHebdomadaire
         $this->nb_h_sommeil_suiv = $nb_h_sommeil_suiv;
         $this->nb_pas_suiv = $nb_pas_suiv;
         $this->id_user = $id_user;
-
 
     }
 
@@ -99,7 +96,7 @@ class ObjectifHebdomadaire
     public function getNbVerreEauSuiv(): int
     {
         return $this->nb_verre_eau_suiv;
-    }   
+    }
 
     public function getNbHSommeilSuiv(): string
     {
@@ -116,8 +113,6 @@ class ObjectifHebdomadaire
         return $this->id_user;
     }
 
-
-    
     // Setters
     public function setIdSuiv(int $id_suiv): void
     {
@@ -188,6 +183,6 @@ class ObjectifHebdomadaire
     {
         $this->id_user = $id_user;
     }
-    
+
 }
 ?>

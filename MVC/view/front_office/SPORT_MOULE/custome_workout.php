@@ -102,12 +102,6 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
   </div>
 </nav>
 
-
-
-
-
-
-
 <!-- MAIN PAGE -->
 <div class="cw-page">
 
@@ -158,9 +152,6 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
   </div>
 
 </div>
-
-
-
 
 <!-- AI WORKOUT FORM OVERLAY -->
 <div class="ai-form-overlay" id="aiFormOverlay" onclick="closeOnOverlay(event)">
@@ -237,7 +228,6 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
   </div>
 </div>
 
-
 <script>
   // Get user ID from PHP session
   const userId = <?php echo json_encode($userId); ?>;
@@ -273,28 +263,28 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
   function showCopyModal(title, message) {
     const modalOverlay = document.createElement('div');
     modalOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
-    
+
     const modalBox = document.createElement('div');
     modalBox.style.cssText = 'background:#fff;padding:30px;border-radius:12px;max-width:500px;max-height:70vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3);';
-    
+
     const titleEl = document.createElement('h2');
     titleEl.textContent = title;
     titleEl.style.cssText = 'margin-top:0;margin-bottom:15px;color:#333;';
-    
+
     const messageEl = document.createElement('pre');
     messageEl.textContent = message;
     messageEl.style.cssText = 'background:#f5f5f5;padding:15px;border-radius:8px;overflow:auto;max-height:300px;color:#d32f2f;font-size:13px;margin:0 0 15px 0;word-wrap:break-word;white-space:pre-wrap;';
-    
+
     const buttonContainer = document.createElement('div');
     buttonContainer.style.cssText = 'display:flex;gap:10px;';
-    
+
     const closeBtn = document.createElement('button');
     closeBtn.textContent = 'Close';
     closeBtn.style.cssText = 'flex:1;padding:10px 15px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;';
     closeBtn.addEventListener('click', () => {
       modalOverlay.remove();
     });
-    
+
     const copyBtn = document.createElement('button');
     copyBtn.textContent = 'Copy & Close';
     copyBtn.style.cssText = 'flex:1;padding:10px 15px;background:#1976d2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;';
@@ -306,14 +296,14 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
         alert('Failed to copy: ' + err.message);
       });
     });
-    
+
     buttonContainer.appendChild(closeBtn);
     buttonContainer.appendChild(copyBtn);
-    
+
     modalBox.appendChild(titleEl);
     modalBox.appendChild(messageEl);
     modalBox.appendChild(buttonContainer);
-    
+
     modalOverlay.appendChild(modalBox);
     document.body.appendChild(modalOverlay);
   }
@@ -508,12 +498,12 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
     .then(text => {
       btn.disabled = false;
       btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Generate My Workout';
-      
+
       console.log('Response:', text);
-      
+
       try {
         const data = JSON.parse(text);
-        
+
         if (data.error) {
           showCopyModal('Workout Error', data.error);
           return;
@@ -546,8 +536,6 @@ $user_subscription = $userData['subscription_user'] ?? 'free';
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-
-
 
 </body>
 </html>

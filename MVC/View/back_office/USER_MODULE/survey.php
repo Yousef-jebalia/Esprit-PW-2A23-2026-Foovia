@@ -221,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
     <script type="text/javascript" src="assets/js/common-pages.js"></script>
 
     <script>
-    
+
     function showError(fieldId, errorId) {
         const field = document.getElementById(fieldId);
         const error = document.getElementById(errorId);
@@ -237,13 +237,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
         return true;
     }
 
-    
     document.getElementById('lastname').addEventListener('input', function () {
-        
+
         this.value = this.value.replace(/[^a-zA-ZÃ€-Ã¿\s\-]/g, '');
     });
 
-   
     (function () {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -251,7 +249,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
         document.getElementById('birthday').setAttribute('max', today.toISOString().split('T')[0]);
     })();
 
-   
     document.getElementById('lastname').addEventListener('blur', validateLastname);
     document.getElementById('birthday').addEventListener('blur', validateBirthday);
 
@@ -290,7 +287,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
         return value >= 10 && value <= 300;
     }
 
-   
     function calcBMI() {
         const height = parseFloat(document.getElementById('height').value);
         const weight = parseFloat(document.getElementById('weight').value);
@@ -302,7 +298,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
             const bmi = (weight / (heightM * heightM)).toFixed(1);
             bmiField.value = bmi;
 
-            
             let category = '';
             let color = '';
             if      (bmi < 18.5) { category = 'Underweight'; color = '#3498db'; }
@@ -322,7 +317,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
     document.getElementById('height').addEventListener('input', calcBMI);
     document.getElementById('weight').addEventListener('input', calcBMI);
 
-    
     document.getElementById('surveyForm').addEventListener('submit', function (e) {
         const lastnameOk = validateLastname();
         const birthdayOk = validateBirthday();
@@ -338,4 +332,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['survey_submit'])) {
     </script>
 </body>
 </html>
-

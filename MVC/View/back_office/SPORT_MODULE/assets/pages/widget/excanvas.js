@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // Known Issues: (From VML version)
 //
 // * Patterns are not implemented.
@@ -35,7 +34,6 @@
 //   not work corerctly because the transform is done to the whole path (ie
 //   transform, lineTo, lineTo)
 // * Patterns are not yet implemented.
-
 
 // only add this code if we do not already have a canvas implementation
 if (!window.CanvasRenderingContext2D) {
@@ -83,7 +81,6 @@ if (!window.CanvasRenderingContext2D) {
         }
       }
     },
-
 
     /**
      * Public initializes a canvas element so that it can be used as canvas
@@ -270,7 +267,6 @@ if (!window.CanvasRenderingContext2D) {
     slategrey: '#708090'
   };
 
-
   function getRgbHslContent(styleString) {
     var start = styleString.indexOf('(', 3);
     var end = styleString.indexOf(')', start + 1);
@@ -438,7 +434,6 @@ if (!window.CanvasRenderingContext2D) {
     this.globalAlpha = 1;
     this.canvas = surfaceElement;
   };
-
 
   var contextPrototype = CanvasRenderingContext2D_.prototype;
 

@@ -84,7 +84,6 @@
 
     });
 
-
     // product single page
     var thumb_slider = new Swiper(".product-thumbnail-slider", {
       slidesPerView: 5,
@@ -120,10 +119,10 @@
   var initProductQty = function(){
 
     $('.product-qty').each(function(){
-      
+
       var $el_product = $(this);
       var quantity = 0;
-      
+
       $el_product.find('.quantity-right-plus').click(function(e){
         e.preventDefault();
         quantity = parseInt($el_product.find('#quantity').val());
@@ -153,7 +152,7 @@
 
   // document ready
   $(document).ready(function() {
-    
+
     initPreloader();
     initSwiper();
     initProductQty();

@@ -19,7 +19,7 @@ class ObjectifHebdomadaire_Controller {
             throw new InvalidArgumentException('Macronutrients must be strictly positive and no greater than 9999.');
         }
 
-        $sql = "INSERT INTO objectifhebdomadaire (id_suiv, id_obj, date_suiv, val_cal_suiv, poids_suiv, val_fat_suiv, val_prot_suiv, val_carb_suiv, note_suiv, status_obj_quot_suiv, nb_verre_eau_suiv, nb_h_sommeil_suiv, nb_pas_suiv, id_user) 
+        $sql = "INSERT INTO objectifhebdomadaire (id_suiv, id_obj, date_suiv, val_cal_suiv, poids_suiv, val_fat_suiv, val_prot_suiv, val_carb_suiv, note_suiv, status_obj_quot_suiv, nb_verre_eau_suiv, nb_h_sommeil_suiv, nb_pas_suiv, id_user)
             VALUES (:id_suiv, :id_obj, :date_suiv, :val_cal_suiv, :poids_suiv, :val_fat_suiv, :val_prot_suiv, :val_carb_suiv, :note_suiv, :status_obj_quot_suiv, :nb_verre_eau_suiv, :nb_h_sommeil_suiv, :nb_pas_suiv, :id_user)";
         $db = config::getConnexion();
         try {
@@ -40,7 +40,6 @@ class ObjectifHebdomadaire_Controller {
                 'nb_pas_suiv' => $objHebdo->getNbPasSuiv(),
                 'id_user' => $objHebdo->getIdUser()
 
-                
             ]);
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
@@ -171,7 +170,7 @@ class ObjectifHebdomadaire_Controller {
             }
 
             $new_id_suiv = $this->get_next_suivi_id();
-            
+
             $sql = "INSERT INTO objectifhebdomadaire (
                         id_suiv,
                         id_obj,
@@ -230,7 +229,7 @@ class ObjectifHebdomadaire_Controller {
         $db = config::getConnexion();
         try {
             $db->prepare("DELETE FROM log_meal WHERE id_suiv = :id_suiv")->execute(['id_suiv' => $id_suiv]);
-            
+
             if (empty($meals)) {
                 return true;
             }
@@ -270,7 +269,6 @@ class ObjectifHebdomadaire_Controller {
             return false;
         }
     }
-    
 
     // Add other methods like list_objHebdo, delete_objHebdo, etc. as needed
 }

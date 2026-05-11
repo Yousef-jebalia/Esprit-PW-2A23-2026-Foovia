@@ -199,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                                         </div>
                                     </div>
                                     <hr/>
-                                    
+
                                         <div class="col-md-2">
                                             <img src="assets/images/auth/Logo-small-bottom.png" alt="small-logo.png">
                                         </div>
@@ -285,5 +285,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
 </body>
 
 </html>
-
-

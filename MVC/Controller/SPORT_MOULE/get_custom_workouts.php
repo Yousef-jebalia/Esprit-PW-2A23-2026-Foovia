@@ -5,10 +5,10 @@ header('Content-Type: application/json');
 
 try {
     $db = config::getConnexion();
-    
+
     // Get all workouts with exercise counts
     $stmt = $db->prepare("
-        SELECT 
+        SELECT
             w.id_work,
             w.name_work,
             w.cal_work,
@@ -22,7 +22,7 @@ try {
     ");
     $stmt->execute();
     $workouts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     echo json_encode([
         'workouts' => $workouts
     ]);

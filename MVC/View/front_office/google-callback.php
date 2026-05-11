@@ -5,7 +5,7 @@ session_start();
 }
 include_once(__DIR__ . '/../../Model/config.php');
 include_once(__DIR__ . '/../../Controller/Controller_user.php');
-//zedha chichi famechi mayekhdem el 
+//zedha chichi famechi mayekhdem el
 if (!isset($client) || !is_object($client)) {
         $_SESSION['error_message'] = 'Google sign-in is not configured correctly.';
         header('Location: foovia-signin.php');
@@ -26,11 +26,11 @@ if (isset($_GET['code'])) {
     $context = stream_context_create($opts);
     $user_info_json = file_get_contents('https://www.googleapis.com/oauth2/v2/userinfo', false, $context);
     $google_account_info = json_decode($user_info_json);
-    
+
     $email =  $google_account_info->email;
     $name =  $google_account_info->name;
     $google_id = $google_account_info->id;
-    
+
     try {
         $db = config::getConnexion();
         $controller = new Controller_user();
@@ -38,7 +38,7 @@ if (isset($_GET['code'])) {
         $query = $db->prepare($sql);
         $query->execute(['email' => strtolower($email)]);
         $user = $query->fetch();
-        
+
         if (!$user) {
             // Create user if they don't exist
             $random_password = bin2hex(random_bytes(8));
@@ -54,7 +54,7 @@ if (isset($_GET['code'])) {
                 'duration' => '00:00:00'
             ]);
             $user_id = $db->lastInsertId();
-            
+
             // Generate a reset token to force them to set a password
             $token = bin2hex(random_bytes(32));
             $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));

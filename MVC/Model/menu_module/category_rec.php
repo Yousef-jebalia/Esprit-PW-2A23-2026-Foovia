@@ -1,6 +1,6 @@
 <?php
 class categ_rec{
-    
+
     private int $id_cat_rec;
     private string $name_cat_rec;
     private string $img_cat_rec;
@@ -17,7 +17,7 @@ class categ_rec{
     //getters
     public function getIdCatRec(){
         return $this->id_cat_rec;
-    } 
+    }
     public function getNameCatRec(){
         return $this->name_cat_rec;
     }

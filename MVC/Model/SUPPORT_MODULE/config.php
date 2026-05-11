@@ -4,7 +4,7 @@ require_once __DIR__ . '/../env.php';
 
 //Connection file to project database the database name must be foovia_db
 class config
-{ 
+{
         private static $pdo = null;
     public static function getConnexion()
     {
@@ -22,7 +22,7 @@ class config
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false
             ]);
-            
+
             } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
             }

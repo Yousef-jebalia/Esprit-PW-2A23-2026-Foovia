@@ -766,7 +766,7 @@
     .workouts-section { padding: 56px 28px; }
     .workouts-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
   }
-  
+
   .workout-toast {
     position: fixed;
     right: 24px;

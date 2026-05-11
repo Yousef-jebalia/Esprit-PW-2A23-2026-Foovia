@@ -4,7 +4,7 @@ include_once __DIR__ . '/../../Model/SUPPORT_MODULE/traitements.php';
 
 class Controller_traitement {
     public function add_traitement(Traitements $traitement) {
-        $sql = "INSERT INTO traitement (id_reclam, comment_trait, status_trait, date__trait, id_user) 
+        $sql = "INSERT INTO traitement (id_reclam, comment_trait, status_trait, date__trait, id_user)
                 VALUES (:id_reclam, :comment, :status, :date_trait, :id_user)";
         $db = config::getConnexion();
         try {
@@ -35,7 +35,7 @@ class Controller_traitement {
     }
 
     public function update_traitement(Traitements $traitement) {
-        $sql = "UPDATE traitement SET 
+        $sql = "UPDATE traitement SET
                 id_reclam = :id_reclam, comment_trait = :comment, status_trait = :status, date__trait = :date_trait, id_user = :id_user
                 WHERE id_traitement = :id_traitement";
         $db = config::getConnexion();

@@ -2,7 +2,6 @@
 include_once __DIR__ . '/../../Model/config.php';
 include_once __DIR__ . '/../../Model/SUPPORT_MODULE/reclamation.php';
 
-
 class Controller_reclamation {
     //Ajout reclamation
 
@@ -79,7 +78,7 @@ class Controller_reclamation {
 
     //Chnagement reclamation
     public function update_reclamation(Reclamations $reclamation): bool {
-        $sql = "update reclamation set  
+        $sql = "update reclamation set
         description_reclam = :description, etat_reclam = :etat, type_reclam = :type
         where id_reclam = :id_reclamation";
         $db = config::getConnexion();

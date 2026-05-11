@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             }
-            
+
             if (empty($error)) {
                 $ingrediant = new Ingrediant(
                     0,

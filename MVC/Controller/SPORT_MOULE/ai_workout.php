@@ -9,7 +9,7 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
     $db = config::getConnexion();
     $stmt = $db->query("SELECT id_ex, name_ex, cal_ex, type_ex, muscle_ex FROM exercice");
     $exercises = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (empty($exercises)) {
         return ['error' => 'Database error: No exercises found in database'];
     }
@@ -17,19 +17,19 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
     // Build exercise list for AI
     $exerciseList = "Available exercises:\n";
     $calorieMap = [];
-    
+
     foreach ($exercises as $ex) {
         $id = $ex['id_ex'];
         $name = $ex['name_ex'];
         $cal = $ex['cal_ex'];
         $muscle = $ex['muscle_ex'];
-        
+
         $exerciseList .= "- ID: $id, Name: $name, Muscle: $muscle\n";
         $calorieMap[$id] = (float)$cal;
     }
 
     $muscles = implode(', ', $targetMuscles);
-    
+
     // Build prompt
     $prompt = "Create workout targeting: $muscles\n\n$exerciseList\n";
     $prompt .= "Return JSON with duration_minutes (20-120) and exercises array with: exercise_id, sets, reps, weight, time\n";
@@ -119,12 +119,12 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
     }
 
     $text = trim($data['candidates'][0]['content']['parts'][0]['text']);
-    
+
     // Remove markdown if present
     if (strpos($text, '```') === 0) {
         $text = preg_replace('/```json?\n?/', '', $text);
     }
-    
+
     $json = json_decode($text, true);
     if (!$json) {
         $start = strpos($text, '{');
@@ -139,7 +139,7 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
             return ['error' => "JSON parsing failed. AI response: " . substr($text, 0, 300)];
         }
     }
-    
+
     if (!isset($json['duration_minutes']) || !isset($json['exercises'])) {
         return ['error' => "JSON missing required fields. Got: " . json_encode(array_keys($json))];
     }
@@ -188,13 +188,13 @@ function getAIWorkoutCategoryId(PDO $db): int {
 
 function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     require_once __DIR__ . '/../../Model/SPORT_MOULE/workout.php';
-    
+
     if (!$aiOutput || empty($aiOutput['exercises'])) return null;
-    
+
     $db = config::getConnexion();
     $aiCategoryId = getAIWorkoutCategoryId($db);
     $picWork = $picWork ?? '';
-    
+
     // Create workout object
     $workout = new Workout(
         $workoutName,
@@ -204,9 +204,9 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
         $userId,
         $aiCategoryId
     );
-    
+
     // Insert workout
-    $stmt = $db->prepare("INSERT INTO workout (name_work, pic_work, cal_work, duree_work, id_user, id_cat) 
+    $stmt = $db->prepare("INSERT INTO workout (name_work, pic_work, cal_work, duree_work, id_user, id_cat)
                          VALUES (:name, :pic, :cal, :duree, :user, :cat)");
     $stmt->bindValue(':name', $workout->getNameWork());
     $stmt->bindValue(':pic', $workout->getPicWork(), PDO::PARAM_LOB);
@@ -215,13 +215,13 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     $stmt->bindValue(':user', $workout->getIdUser(), PDO::PARAM_INT);
     $stmt->bindValue(':cat', $workout->getIdCat(), PDO::PARAM_INT);
     $stmt->execute();
-    
+
     $workoutId = $db->lastInsertId();
-    
+
     // Insert exercises into belong table
-    $stmt = $db->prepare("INSERT INTO belong (id_work, id_ex, sets, weight, time, reps) 
+    $stmt = $db->prepare("INSERT INTO belong (id_work, id_ex, sets, weight, time, reps)
                          VALUES (:work, :ex, :sets, :weight, :time, :reps)");
-    
+
     foreach ($aiOutput['exercises'] as $ex) {
         $stmt->execute([
             ':work' => $workoutId,
@@ -232,7 +232,7 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
             ':reps' => $ex['reps'] ?? 0
         ]);
     }
-    
+
     return [
         'id_work' => $workoutId,
         'name_work' => $workoutName,

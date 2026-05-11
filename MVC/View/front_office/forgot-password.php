@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
-                    
+
                     // Load credentials from .env
                   $envFile = __DIR__ . '/../../../.env';
                   $env = is_file($envFile) ? parse_ini_file($envFile) : [];
@@ -51,9 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                     throw new Exception('SMTP credentials are not configured in .env.');
                   }
 
-                  $mail->Username   = $mailUsername; 
-                  $mail->Password   = $mailPassword; 
-                    
+                  $mail->Username   = $mailUsername;
+                  $mail->Password   = $mailPassword;
+
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
 
 <div class="right-panel" style="width: 100%;">
   <a href="foovia.php" class="left-logo" style="position: absolute; top: 40px; left: 40px; color: var(--green); text-decoration: none; font-family: 'Boldonse', sans-serif; font-size: 1.5rem;">🌿 FOOVIA</a>
-  
+
   <h1 class="form-title">Forgot Password</h1>
   <p class="form-sub">Enter your email address to receive a password reset link.</p>
 
@@ -138,10 +138,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
           <span class="field-error" id="err-email">Email must be in format: example@gmail.com</span>
       </div>
     </div>
-    
+
     <button type="submit" name="forgot_submit" class="btn-submit">Send Reset Link</button>
   </form>
-  
+
   <div class="back-link">
     <a href="foovia-signin.php">← Back to Sign In</a>
   </div>
@@ -167,5 +167,3 @@ document.getElementById('forgotForm').addEventListener('submit', function (e) {
 
 </body>
 </html>
-
-
