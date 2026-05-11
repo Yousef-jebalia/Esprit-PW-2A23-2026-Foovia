@@ -11,7 +11,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 const CLAIM_TYPES = ['Authentication', 'Subscription', 'Other','Bugs','Delivery','Payement'];
 
-$configPath = __DIR__ . '/etc/secrets/support_api';
+$configPath = __DIR__ . '/../../../etc/secrets/support_api';
 if (!is_readable($configPath)) {
     echo json_encode(['error' => 'Chatbot configuration is missing.']);
     exit;
