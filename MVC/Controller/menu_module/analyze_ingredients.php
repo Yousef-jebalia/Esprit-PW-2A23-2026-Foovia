@@ -44,38 +44,11 @@ if (strpos($mimeType, 'image/') !== 0) {
   exit;
 }
 
-$apiKey = trim((string)getenv('GEMINI_API_KEY'));
-if ($apiKey === '' && isset($_SERVER['GEMINI_API_KEY'])) {
-  $apiKey = trim((string)$_SERVER['GEMINI_API_KEY']);
-}
-if ($apiKey === '' && isset($_ENV['GEMINI_API_KEY'])) {
-  $apiKey = trim((string)$_ENV['GEMINI_API_KEY']);
-}
-if ($apiKey === '' && isset($_SERVER['REDIRECT_GEMINI_API_KEY'])) {
-  $apiKey = trim((string)$_SERVER['REDIRECT_GEMINI_API_KEY']);
-}
-if ($apiKey === '' && function_exists('apache_getenv')) {
-  $apacheEnvLocal = apache_getenv('GEMINI_API_KEY');
-  if ($apacheEnvLocal !== false && trim((string)$apacheEnvLocal) !== '') {
-    $apiKey = trim((string)$apacheEnvLocal);
-  }
-}
-if ($apiKey === '' && function_exists('apache_getenv')) {
-  $apacheEnvTop = apache_getenv('GEMINI_API_KEY', true);
-  if ($apacheEnvTop !== false && trim((string)$apacheEnvTop) !== '') {
-    $apiKey = trim((string)$apacheEnvTop);
-  }
-}
-
-// XAMPP fallback: read key from a local file outside the project repo.
-if ($apiKey === '') {
-  $localKeyPath = '/../../../ingrediant_api';
-  if (is_readable($localKeyPath)) {
-    $fileKey = trim((string)@file_get_contents($localKeyPath));
-    if ($fileKey !== '') {
-      $apiKey = $fileKey;
-    }
-  }
+// Read API key from root ingrediant_api file
+$apiKey = '';
+$keyFilePath = realpath(__DIR__ . '/../../../ingrediant_api');
+if ($keyFilePath && is_readable($keyFilePath)) {
+  $apiKey = trim((string)@file_get_contents($keyFilePath));
 }
 
 if (!$apiKey) {
