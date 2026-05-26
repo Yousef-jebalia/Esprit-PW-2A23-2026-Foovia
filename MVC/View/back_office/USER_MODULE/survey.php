@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 include(__DIR__ . '/../../../Controller/Controller_user.php');
 
