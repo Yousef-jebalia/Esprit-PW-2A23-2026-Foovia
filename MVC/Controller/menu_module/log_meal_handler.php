@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../../Model/config.php';
 require_once __DIR__ . '/../tracking/ObjectifHebdomadaire_Controller.php';
 require_once __DIR__ . '/../tracking/ObjectifLongTerme_Controller.php';
+require_once __DIR__ . '/../../Model/tracking/ObjectifLongTerme.php';
 
 header('Content-Type: application/json');
 
@@ -92,8 +93,61 @@ if (!$suivi) {
     }
 
     if (!$userLtGoal) {
-        echo json_encode(['success' => false, 'error' => 'No active goal found. Please set a goal in the Tracker first.']);
-        exit;
+        // Auto-create a minimal long-term goal for the user so meal logging can proceed.
+        $newId = $ltController->get_next_objectif_id();
+        $today = date('Y-m-d');
+        $endDate = date('Y-m-d', strtotime('+31 days'));
+
+        $val_init = 70.0;
+        // Use reasonable default macros
+        $obj_cal = 2000.0;
+        $obj_prot = 150.0;
+        $obj_carb = 200.0;
+        $obj_fat = 65.0;
+
+        $objectif = new ObjectifLongTerme(
+            $newId,
+            $userId,
+            'maintien_de_poids',
+            $val_init,
+            $val_init,
+            $today,
+            $endDate,
+            'en_cours',
+            1,
+            0,
+            0,
+            $obj_cal,
+            $obj_fat,
+            $obj_prot,
+            $obj_carb
+        );
+
+        $dataForAdd = [
+            'id_obj' => $newId,
+            'type_obj' => 'maintien_de_poids',
+            'val_cible_obj' => $val_init,
+            'val_init_obj' => $val_init,
+            'date_deb_obj' => $today,
+            'date_fin_obj' => $endDate,
+            'status_obj' => 'en_cours',
+            'frequency_rappel_obj' => 1,
+            'consistancy_sport_obj' => 0,
+            'consistency_alim_obj' => 0,
+            'obj_cal_obj' => $obj_cal,
+            'obj_fat_obj' => $obj_fat,
+            'obj_prot_obj' => $obj_prot,
+            'obj_carb_obj' => $obj_carb,
+        ];
+
+        $added = $ltController->add_objectif($objectif, $dataForAdd);
+        if (!$added) {
+            echo json_encode(['success' => false, 'error' => 'Failed to auto-create a default long-term goal.']);
+            exit;
+        }
+
+        // Refresh user's goal
+        $userLtGoal = $ltController->get_objectif_by_id($newId);
     }
 
     // Create a minimal daily entry
