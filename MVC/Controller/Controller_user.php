@@ -1,8 +1,6 @@
 <?php
-
 include_once(__DIR__ . '/../Model/config.php');
 include_once(__DIR__ . '/../Model/user.php');
-
 class Controller_user {
 
     public function add_user(User $user) {

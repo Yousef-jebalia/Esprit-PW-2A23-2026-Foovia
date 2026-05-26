@@ -1,5 +1,4 @@
 <?php
-
 class User
 {
     private int $id_user;
@@ -114,4 +113,4 @@ class User
     public function setAccountStateUser(string $account_state_user): void { $this->account_state_user = $account_state_user; }
     public function setDurationUser(string $duration_user): void { $this->duration_user = $duration_user; }
 }
-}
+?>
