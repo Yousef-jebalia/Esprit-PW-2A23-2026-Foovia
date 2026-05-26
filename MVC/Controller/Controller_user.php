@@ -614,5 +614,4 @@ class Controller_user {
     }
 
 }
-
 ?>
