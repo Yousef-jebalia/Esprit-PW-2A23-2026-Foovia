@@ -7,3 +7,4 @@ RewriteCond %{REQUEST_FILENAME} !-d
 
 # Send all other requests to index.php or index.html
 RewriteRule ^ index.php [L]
+php_value output_buffering On

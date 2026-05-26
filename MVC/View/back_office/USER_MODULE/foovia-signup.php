@@ -1,8 +1,17 @@
 ﻿<?php
+// 1. Turn on full error reporting to catch the hidden culprit
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// 2. Start buffering early
 ob_start();
+
 if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+    // 3. Put an @ symbol to suppress the loop error, so we can see the real issue
+    @session_start(); 
 }
+
 include_once(__DIR__ . '/../../../Controller/Controller_user.php');
 
 $error_message = '';
