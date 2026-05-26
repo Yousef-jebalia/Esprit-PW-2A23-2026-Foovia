@@ -557,6 +557,15 @@ function logMeal(dayKey, slotKey) {
   const r = RECIPE_MAP[item.id];
   const key = `${dayKey}-${slotKey}`;
 
+  const handleJsonResponse = (res) => {
+    if (!res.ok) {
+      return res.text().then(text => {
+        throw new Error(text || `HTTP ${res.status}`);
+      });
+    }
+    return res.json();
+  };
+
   if (loggedMeals[key]) {
     fetch(LOG_MEAL_ENDPOINT, {
       method: 'POST',
@@ -578,7 +587,7 @@ function logMeal(dayKey, slotKey) {
       }
     })
     .catch(err => {
-      showToast('⚠️ Request failed');
+      showToast(`⚠️ Request failed: ${err.message || 'network error'}`);
       console.error(err);
     });
     return;
@@ -592,7 +601,7 @@ function logMeal(dayKey, slotKey) {
       meals: [{ id_rec: item.id, meal_type: SLOTS.find(s => s.key === slotKey)?.label, qty: item.qty || 100 }]
     })
   })
-  .then(res => res.json())
+  .then(handleJsonResponse)
   .then(data => {
     if (data.success) {
       loggedMeals[key] = {
@@ -607,7 +616,7 @@ function logMeal(dayKey, slotKey) {
     }
   })
   .catch(err => {
-    showToast('⚠️ Request failed');
+    showToast(`⚠️ Request failed: ${err.message || 'network error'}`);
     console.error(err);
   });
 }
@@ -627,7 +636,7 @@ function logAllMeals(dayKey) {
     return;
   }
 
-  fetch('../../../Controller/menu_module/log_meal_handler.php', {
+  fetch(LOG_MEAL_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -635,7 +644,14 @@ function logAllMeals(dayKey) {
       meals: mealsToLog
     })
   })
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) {
+      return res.text().then(text => {
+        throw new Error(text || `HTTP ${res.status}`);
+      });
+    }
+    return res.json();
+  })
   .then(data => {
     if (data.success) {
       mealsToLog.forEach(m => {
@@ -655,7 +671,7 @@ function logAllMeals(dayKey) {
     }
   })
   .catch(err => {
-    showToast('⚠️ Request failed');
+    showToast(`⚠️ Request failed: ${err.message || 'network error'}`);
     console.error(err);
   });
 }
