@@ -30,11 +30,24 @@ body {
   gap: 24px;
 }
 .topbar-logo {
-  font-family: 'Boldonse', system-ui;
-  font-size: 1.3rem; color: var(--dark);
-  text-decoration: none; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: .04em;
+  color: var(--dark);
+  text-decoration: none;
+  flex-shrink: 0;
 }
-.topbar-logo span { color: var(--green); }
+.topbar-logo-img {
+  height: 50px;
+  width: auto;
+  max-width: 50px;
+  object-fit: contain;
+  display: block;
+}
 
 /* progress bar */
 .progress-wrap { flex: 1; max-width: 480px; }

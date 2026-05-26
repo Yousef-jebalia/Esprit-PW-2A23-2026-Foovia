@@ -93,14 +93,17 @@ ob_end_flush();
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FOOVIA — Your Health Profile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="foovia-survey.css">
+<link href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="foovia-survey.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
 <!-- TOP BAR -->
 <div class="topbar">
-  <a href="../../front_office/foovia.php" class="topbar-logo">🌿 FOOV<span>IA</span></a>
+  <a href="../../front_office/foovia.php" class="topbar-logo">
+    <img src="../../front_office/assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="topbar-logo-img">
+    FOOVIA
+  </a>
   <div class="progress-wrap">
     <div class="progress-labels">
       <span id="pl-1" class="active">Profile</span>

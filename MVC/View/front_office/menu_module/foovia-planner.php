@@ -280,7 +280,7 @@ $illnessLabel = $illnesses ? implode(', ', $illnesses) : 'None';
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FOOVIA — Meal Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="foovia-planner.css?v=<?php echo time(); ?>">
 <style>
   /* Premium Badge Navigation Component */

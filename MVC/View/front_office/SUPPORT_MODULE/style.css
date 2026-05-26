@@ -83,6 +83,11 @@ nav {
   color: var(--page-text);
   text-decoration: none;
 }
+.nav-logo-img {
+  height: 50px;
+  width: auto;
+  display: block;
+}
 .nav-logo svg { width: 36px; height: 36px; }
 .nav-links {
   display: flex; gap: 36px; list-style: none;
