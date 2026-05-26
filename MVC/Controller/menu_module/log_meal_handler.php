@@ -168,6 +168,7 @@ if (!$suivi) {
     }
 
     // Create a minimal daily entry
+    $db = $db ?? config::getConnexion();
     $id_suiv = $hebdoController->get_next_suivi_id();
     $dailyData = [
         'id_obj' => (int)$userLtGoal['id_obj'],
@@ -185,12 +186,61 @@ if (!$suivi) {
         'id_user' => $userId
     ];
 
-    $ok = $hebdoController->save_objectif_hebdo($dailyData);
-    if (!$ok) {
-        echo json_encode(['success' => false, 'error' => 'Failed to initialize daily tracking.']);
+    $id_suiv = $hebdoController->get_next_suivi_id();
+    try {
+        $dailyInsert = $db->prepare(
+            "INSERT INTO objectifhebdomadaire (
+                id_suiv,
+                id_obj,
+                date_suiv,
+                val_cal_suiv,
+                poids_suiv,
+                val_fat_suiv,
+                val_prot_suiv,
+                val_carb_suiv,
+                note_suiv,
+                status_obj_quot_suiv,
+                nb_verre_eau_suiv,
+                nb_h_sommeil_suiv,
+                nb_pas_suiv,
+                id_user
+            ) VALUES (
+                :id_suiv,
+                :id_obj,
+                :date_suiv,
+                :val_cal_suiv,
+                :poids_suiv,
+                :val_fat_suiv,
+                :val_prot_suiv,
+                :val_carb_suiv,
+                :note_suiv,
+                :status_obj_quot_suiv,
+                :nb_verre_eau_suiv,
+                :nb_h_sommeil_suiv,
+                :nb_pas_suiv,
+                :id_user
+            )"
+        );
+        $dailyInsert->execute([
+            'id_suiv' => $id_suiv,
+            'id_obj' => (int)$userLtGoal['id_obj'],
+            'date_suiv' => $date,
+            'val_cal_suiv' => 0,
+            'poids_suiv' => (float)$userLtGoal['val_init_obj'],
+            'val_fat_suiv' => 1,
+            'val_prot_suiv' => 1,
+            'val_carb_suiv' => 1,
+            'note_suiv' => 'Auto-created from Meal Planner',
+            'status_obj_quot_suiv' => 'en_cours',
+            'nb_verre_eau_suiv' => 0,
+            'nb_h_sommeil_suiv' => 0,
+            'nb_pas_suiv' => 0,
+            'id_user' => $userId,
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => 'Failed to initialize daily tracking. ' . $e->getMessage()]);
         exit;
     }
-    $id_suiv = $hebdoController->get_next_suivi_id() - 1; // get the one we just inserted
 } else {
     $id_suiv = (int)$suivi['id_suiv'];
 }
