@@ -558,6 +558,8 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 </footer>
 
 <script>
+  const LOG_MEAL_ENDPOINT = <?php echo json_encode(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? ''))) . '/../../../Controller/menu_module/log_meal_handler.php'); ?>;
+
   const logMealBtn = document.querySelector('.btn-log');
   const qtyInput = document.getElementById('log-qty');
   if (logMealBtn) {
@@ -571,7 +573,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
       logMealBtn.innerHTML = '⏳ Logging...';
       logMealBtn.disabled = true;
 
-      fetch('../../../Controller/menu_module/log_meal_handler.php', {
+      fetch(LOG_MEAL_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

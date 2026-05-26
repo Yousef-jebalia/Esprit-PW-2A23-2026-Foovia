@@ -515,6 +515,7 @@ const USER_PROFILE = <?php echo json_encode([
 const GOALS = <?php echo json_encode($goals, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 const HAS_GOAL = <?php echo $hasGoal ? 'true' : 'false'; ?>;
 const AI_ENDPOINT = '../../../Controller/menu_module/generate_meal_plan_ai.php';
+const LOG_MEAL_ENDPOINT = <?php echo json_encode(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? ''))) . '/../../../Controller/menu_module/log_meal_handler.php'); ?>;
 const RECIPE_MAP = RECIPES.reduce((acc, recipe) => {
   acc[recipe.id] = recipe;
   return acc;
@@ -557,7 +558,7 @@ function logMeal(dayKey, slotKey) {
   const key = `${dayKey}-${slotKey}`;
 
   if (loggedMeals[key]) {
-    fetch('../../../Controller/menu_module/log_meal_handler.php', {
+    fetch(LOG_MEAL_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -583,7 +584,7 @@ function logMeal(dayKey, slotKey) {
     return;
   }
 
-  fetch('../../../Controller/menu_module/log_meal_handler.php', {
+  fetch(LOG_MEAL_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -666,7 +667,7 @@ function loadLogsForWeek() {
   lastLoggedFetchOffset = weekOffset;
 
   const dates = getWeekDates(weekOffset).map(d => getDayKey(d));
-  fetch(`../../../Controller/menu_module/log_meal_handler.php?dates=${dates.join(',')}`)
+  fetch(`${LOG_MEAL_ENDPOINT}?dates=${dates.join(',')}`)
     .then(res => res.json())
     .then(data => {
       if (data.success && data.logs) {
