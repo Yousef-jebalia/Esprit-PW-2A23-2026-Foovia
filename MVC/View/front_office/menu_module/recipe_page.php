@@ -120,6 +120,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
     <title>Organic - Grocery Store HTML Website Template</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">

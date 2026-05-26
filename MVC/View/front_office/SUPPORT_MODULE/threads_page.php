@@ -20,7 +20,7 @@ $threads    = $controller->get_threads_paged($page, $per_page);
 <html lang="en">
 <head>
   <title>Community Threads – Foovia</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="images/logo_web.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>

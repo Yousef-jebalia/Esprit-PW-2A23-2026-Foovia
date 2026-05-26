@@ -66,6 +66,7 @@ $is_locked = false;
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/Plan de travail 1 no bg (3) (1).png">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FOOVIA - Backoffice Access</title>

@@ -165,9 +165,9 @@ $messages = $controller->get_messages($id);
     .back-link { color:#4BAE52; font-size:.9rem; text-decoration:none; }
     .back-link:hover { color:#2E4A28; }
   </style>
-</head>
-<body>
-
+  <head>
+    <title>Foovia</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
   <symbol id="menu" viewBox="0 0 24 24"><path fill="currentColor" d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1m0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1m1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2z"/></symbol>
 </defs></svg>

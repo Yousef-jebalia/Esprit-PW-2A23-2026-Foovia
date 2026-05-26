@@ -86,6 +86,7 @@ if ($ingrediantData === null) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="../front_office/assets/Plan de travail 1 no bg (3) (1).png">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Edit Ingrediant</title>

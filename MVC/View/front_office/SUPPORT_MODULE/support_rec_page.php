@@ -100,8 +100,8 @@ if (!empty($reclamations)) {
 <html lang="en">
   <head>
     <title>Foovia</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="images/logo_web.png"/>
-    <link rel="shortcut icon" href="images/logo_web.png"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
+    <link rel="shortcut icon" href="../assets/Plan de travail 1 no bg (3) (1).png">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
