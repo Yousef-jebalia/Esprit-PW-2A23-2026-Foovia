@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // 1. Turn on full error reporting to catch the hidden culprit
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
