@@ -314,7 +314,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
     </div>
   <?php endif; ?>
 </nav>
-
 <!-- HERO -->
 <?php if (!empty($recipe)): ?>
   <div class="recipe-hero">
@@ -368,7 +367,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
           <span class="badge" style="background:var(--green); color:#fff"></span>
           Ingredients
         </h2>
-
         <?php if (!empty($recipeIngredients)): ?>
           <div class="ingredients-grid">
             <?php foreach ($recipeIngredients as $ingredientRow): ?>
@@ -411,7 +409,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
           <span class="badge" style="background:var(--orange); color:#fff"></span>
           Instructions
         </h2>
-
         <?php if (!empty($instructionSteps)): ?>
           <div class="instructions-list">
             <?php foreach ($instructionSteps as $index => $stepText): ?>
