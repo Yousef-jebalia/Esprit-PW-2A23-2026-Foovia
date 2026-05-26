@@ -34,7 +34,7 @@ if (isset($_GET['code'])) {
     try {
         $db = config::getConnexion();
         $controller = new Controller_user();
-        $sql = "SELECT id_user, name_user, email_user FROM user WHERE LOWER(email_user) = :email";
+        $sql = "SELECT id_user, name_user, email_user, role_user FROM user WHERE LOWER(email_user) = :email";
         $query = $db->prepare($sql);
         $query->execute(['email' => strtolower($email)]);
         $user = $query->fetch();
@@ -70,6 +70,7 @@ if (isset($_GET['code'])) {
             $_SESSION['user_id'] = $user['id_user'];
             $_SESSION['user_name'] = $user['name_user'];
             $_SESSION['user_email'] = $user['email_user'];
+            $_SESSION['role_user'] = $user['role_user'] ?? 'user';
         }
         header("Location: foovia.php");
         exit;

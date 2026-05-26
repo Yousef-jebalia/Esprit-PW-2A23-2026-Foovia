@@ -9,6 +9,9 @@ if ($is_logged_in) {
     $controller = new Controller_user();
     $user_data = $controller->get_user($_SESSION['user_id']);
     $user_subscription = $user_data['subscription_user'] ?? 'free';
+  if (!isset($_SESSION['role_user'])) {
+    $_SESSION['role_user'] = $user_data['role_user'] ?? 'user';
+  }
 }
 ?>
 <!DOCTYPE html>
@@ -122,7 +125,9 @@ if ($is_logged_in) {
     <li><a href="SUPPORT_MODULE/support_rec_page.php">Support & Community</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
+      <a href="foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <?php endif; ?>
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>

@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                     $_SESSION['user_id'] = $user['id_user'];
                     $_SESSION['user_name'] = $user['name_user'];
                     $_SESSION['user_email'] = $user['email_user'];
-                    $_SESSION['user_role'] = $user['role_user'];
+                    $_SESSION['role_user'] = $user['role_user'];
                     $success_message = 'Connected successfully! Redirecting...';
                     header('refresh:2;url=backoffice_work.php');
                     exit;

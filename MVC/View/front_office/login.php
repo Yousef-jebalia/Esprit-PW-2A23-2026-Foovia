@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
         try {
             $db = config::getConnexion();
 
-            $sql = "SELECT id_user, name_user, email_user, password_user FROM user WHERE LOWER(email_user) = :email";
+            $sql = "SELECT id_user, name_user, email_user, password_user, role_user FROM user WHERE LOWER(email_user) = :email";
             $query = $db->prepare($sql);
             $query->execute(['email' => $email]);
             $user = $query->fetch();
@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                     $_SESSION['user_id'] = $user['id_user'];
                     $_SESSION['user_name'] = $user['name_user'];
                     $_SESSION['user_email'] = $user['email_user'];
+                    $_SESSION['role_user'] = $user['role_user'] ?? 'user';
                     $success_message = 'Connected successfully! Redirecting...';
                     header('refresh:2;url=foovia.php');
                     exit;

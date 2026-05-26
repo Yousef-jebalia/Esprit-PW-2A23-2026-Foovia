@@ -360,7 +360,9 @@ $reclamations = $controller->get_reclamations();
               </svg>
             </button>
             <a href="support_rec_page.php" class="btn btn-outline-primary">Support</a>
-            <a href="../foovia-backoffice.php" class="btn btn-outline-secondary">Backoffice</a>
+            <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
+              <a href="../foovia-backoffice.php" class="btn btn-outline-secondary">Backoffice</a>
+            <?php endif; ?>
           </div>
         </div>
       </div>

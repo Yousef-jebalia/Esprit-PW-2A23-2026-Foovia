@@ -329,7 +329,9 @@ $illnessLabel = $illnesses ? implode(', ', $illnesses) : 'None';
   <div class="nav-actions">
     <button class="btn-nav outline" onclick="clearDay()">Clear day</button>
     <button class="btn-nav" onclick="autoFillDay()">✨ Auto-fill day</button>
-    <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
+      <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <?php endif; ?>
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
