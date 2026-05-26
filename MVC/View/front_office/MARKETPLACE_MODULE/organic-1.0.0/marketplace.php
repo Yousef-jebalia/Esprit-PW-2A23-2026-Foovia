@@ -402,7 +402,7 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
                 <div class="foovia-recommend-hero">
                     <div class="foovia-recommend-copy">
                         <span class="foovia-section-chip">Recommended for you</span>
-                        <h1>Discover products the <span>Foovia</span> way</h1>
+                        <h1 style="letter-spacing:0.005em; line-height:1.45;">Discover products the <span>Foovia</span> way</h1>
                         <div class="foovia-hero-actions-lite">
                             <a href="#products" class="foovia-hero-primary-link">Browse marketplace</a>
                             <a href="food-waste-awareness.php" class="foovia-hero-secondary-link">Food waste impact</a>

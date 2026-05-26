@@ -166,6 +166,21 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
         height: 22px;
         filter: brightness(0) invert(1);
       }
+      /* Override nav logo size to match foovia.php */
+      .foovia-nav .nav-logo {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: .04em;
+        color: inherit;
+        text-decoration: none;
+      }
+      .foovia-nav .nav-logo img,
+      .foovia-nav .nav-logo .nav-logo-img {
+        height: 50px;
+        width: auto;
+        display: inline-block;
+      }
     </style>
 
 </head>

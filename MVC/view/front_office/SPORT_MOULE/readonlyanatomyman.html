@@ -53,10 +53,10 @@
       cursor: default;
       pointer-events: none;
     }
-    svg {
-      width: 100%;
-      height: 100%;
-      display: block;
+    svg { 
+      width: 100%; 
+      height: 100%; 
+      display: block; 
     }
     .muscle-layer {
       filter: var(--muscle-base);
@@ -137,7 +137,7 @@ function createSVG() {
   svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svgEl.setAttribute('viewBox', '0 0 ' + SVG_W + ' ' + SVG_H);
   svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-
+  
   LAYERS.forEach(layer => {
     const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     image.setAttribute('data-name', layer.name);
@@ -147,10 +147,10 @@ function createSVG() {
     image.setAttribute('height', layer.h);
     image.setAttribute('href', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
     image.classList.add('muscle-layer');
-
+    
     svgEl.appendChild(image);
   });
-
+  
   wrapper.appendChild(svgEl);
 }
 
@@ -158,13 +158,13 @@ function createSVG() {
  * Main function: displaySelectedMuscles
  * Accepts an array of muscle names (strings) or a JSON string
  * Marks those muscles as selected in the read-only view
- *
+ * 
  * @param {Array<string> | string} musclesData - Array of muscle names or JSON string
  */
 function displaySelectedMuscles(musclesData) {
   // Parse if JSON string
   let muscles = [];
-
+  
   if (typeof musclesData === 'string') {
     try {
       muscles = JSON.parse(musclesData);
@@ -178,13 +178,13 @@ function displaySelectedMuscles(musclesData) {
     console.error('muscles parameter must be an array or JSON string');
     return;
   }
-
+  
   // Clear previous selections
   selected.clear();
   document.querySelectorAll('.muscle-layer.selected').forEach(el => {
     el.classList.remove('selected');
   });
-
+  
   // Apply selections
   muscles.forEach(muscleName => {
     if (typeof muscleName === 'string') {
