@@ -182,6 +182,8 @@ if (!$suivi) {
 $db = config::getConnexion();
 $successCount = 0;
 
+$lastDbError = null;
+
 // Auto-patch schema if quantity column is missing
 try {
     $db->query("SELECT quantity FROM log_meal LIMIT 1");
@@ -215,6 +217,10 @@ foreach ($mealsToLog as $m) {
             'meal_type' => $type,
             'qty' => $qty
         ]);
+        if (!$ok) {
+            $info = $query->errorInfo();
+            $lastDbError = isset($info[2]) ? $info[2] : implode(' | ', $info);
+        }
     } catch (Exception $e) {
         $sql = "INSERT INTO log_meal (id_rec, id_suiv, meal_time, meal_type)
                 VALUES (:id_rec, :id_suiv, :meal_time, :meal_type)";
@@ -225,8 +231,17 @@ foreach ($mealsToLog as $m) {
             'meal_time' => date('Y-m-d H:i:s'),
             'meal_type' => $type
         ]);
+        if (!$ok) {
+            $info = $query->errorInfo();
+            $lastDbError = isset($info[2]) ? $info[2] : implode(' | ', $info);
+        }
     }
     if ($ok) $successCount++;
+}
+
+if ($successCount === 0 && $lastDbError) {
+    echo json_encode(['success' => false, 'error' => 'DB insert failed: ' . $lastDbError]);
+    exit;
 }
 
 echo json_encode(['success' => true, 'logged_count' => $successCount]);
