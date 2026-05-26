@@ -105,7 +105,7 @@ $user_name = $_SESSION['user_name'] ?? 'User';
 $favoriteRecipeIds = [];
 
 try {
-  $favoriteQuery = $db->prepare('SELECT id_rec FROM choisir WHERE id_user = :id_user');
+  $favoriteQuery = $db->prepare('SELECT id_rec FROM recipe_favorite WHERE id_user = :id_user');
   $favoriteQuery->execute(['id_user' => (int)$userId]);
   $favoriteRecipeIds = array_map('intval', $favoriteQuery->fetchAll(PDO::FETCH_COLUMN));
 } catch (Exception $e) {
