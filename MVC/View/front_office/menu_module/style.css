@@ -1331,6 +1331,29 @@ a.btn-link.text-light:after {
         transition: transform 0.2s ease, background 0.2s ease;
       }
 
+      /* Smaller variant for the Recipes header "By ingredients" button */
+      /* Stronger selector to ensure override */
+      button.top-cta-button#recipesByIngredientsBtn,
+      #recipesByIngredientsBtn.top-cta-button {
+        padding: 0.45rem 0.65rem !important;
+        font-size: 0.82rem !important;
+        border-radius: 10px !important;
+        gap: 0.35rem !important;
+        min-width: auto !important;
+        height: auto !important;
+        line-height: 1 !important;
+      }
+
+      #recipesByIngredientsBtn .top-cta-count,
+      .top-cta-button #ingredientCountBadge {
+        width: 16px;
+        height: 16px;
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .top-cta-button:hover,
       .top-cta-button:focus-visible {
         color: #111008;

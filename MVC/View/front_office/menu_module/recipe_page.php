@@ -540,14 +540,22 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
             <div class="section-header d-flex align-items-center justify-content-between mb-5" style="gap:12px;">
               <h2 class="section-title mb-0">Recipes</h2>
               <div class="d-flex align-items-center" style="flex:1; gap:12px; margin-left:16px;">
-                <input
-                  type="search"
-                  class="form-control section-search-input flex-grow-1"
-                  id="recipeSearchInput"
-                  placeholder="Search recipes"
-                  aria-label="Search recipes"
-                >
-                <button type="button" class="top-cta-button" id="recipesByIngredientsBtn" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false">
+                <div class="input-group flex-grow-1">
+                  <span class="input-group-text" id="recipeSearchIcon" aria-hidden="true" style="background:transparent; border-right:0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <use href="#search"></use>
+                    </svg>
+                  </span>
+                  <input
+                    type="search"
+                    class="form-control section-search-input flex-grow-1"
+                    id="recipeSearchInput"
+                    placeholder="Search recipes"
+                    aria-label="Search recipes"
+                    aria-describedby="recipeSearchIcon"
+                  >
+                </div>
+                <button type="button" class="top-cta-button" id="recipesByIngredientsBtn" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false" style="padding:0.45rem 0.65rem; font-size:0.82rem; border-radius:10px; gap:0.35rem; min-width:auto; line-height:1;">
                   By ingredients
                   <span class="top-cta-count" id="ingredientCountBadge">0</span>
                 </button>
