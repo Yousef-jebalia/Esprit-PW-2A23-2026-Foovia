@@ -69,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $user['id_user'];
             $_SESSION['user_name'] = $user['name_user'];
             $_SESSION['user_email'] = $user['email_user'];
-            $_SESSION['backoffice_allowed'] = false;
 
             echo json_encode(['success' => true, 'redirect' => "foovia.php"]);
             exit;

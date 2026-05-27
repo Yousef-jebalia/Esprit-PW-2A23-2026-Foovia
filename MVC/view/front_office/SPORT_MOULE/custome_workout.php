@@ -12,12 +12,12 @@ include_once(__DIR__ . '/../../../Controller/Controller_user.php');
 $userController = new Controller_user();
 $userData = $userController->get_user($userId);
 $user_subscription = $userData['subscription_user'] ?? 'free';
-$backofficeAllowed = isset($_SESSION['backoffice_allowed']) && $_SESSION['backoffice_allowed'] === true;
-$isAdmin = $backofficeAllowed;
+$isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FOOVIA — Custom Workouts</title>

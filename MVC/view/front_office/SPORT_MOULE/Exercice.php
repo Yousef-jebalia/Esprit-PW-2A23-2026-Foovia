@@ -19,8 +19,7 @@ $user_name = $_SESSION['user_name'] ?? 'User';
 $userController = new Controller_user();
 $userData = $userController->get_user($userId);
 $userSubscription = $userData['subscription_user'] ?? 'free';
-$backofficeAllowed = isset($_SESSION['backoffice_allowed']) && $_SESSION['backoffice_allowed'] === true;
-$isAdmin = $backofficeAllowed;
+$isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
 ?>
 
 <!DOCTYPE html>

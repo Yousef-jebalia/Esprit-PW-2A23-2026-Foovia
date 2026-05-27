@@ -153,8 +153,8 @@ if ($is_logged_in) {
       <a href="../back_office/USER_MODULE/foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
     <?php endif; ?>
     <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
-      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='foovia-premium.php'">
-        <img src="assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='foovia-premium.php'" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:linear-gradient(135deg,#E8B84B 0%,#F0A830 100%);border-radius:50%;color:#fff;box-shadow:0 4px 12px rgba(232,184,75,0.3);margin-left:10px;cursor:pointer;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);border:2px solid #fff;flex-shrink:0;">
+        <img src="assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium" style="width:22px;height:22px;filter:brightness(0) invert(1);">
       </div>
     <?php endif; ?>
   </div>

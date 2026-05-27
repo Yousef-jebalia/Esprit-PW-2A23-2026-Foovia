@@ -56,7 +56,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') == 'POST' && isset($_POST['signin_subm
                   $_SESSION['user_name'] = (string) $user['name_user'];
                   $_SESSION['user_email'] = (string) $user['email_user'];
                   $_SESSION['role_user'] = (string) ($user['role_user'] ?? 'user');
-                  $_SESSION['backoffice_allowed'] = false;
 
                   // Redirect immediately instead of using refresh to preserve session
                   header('Location: ' . $redirectUrl, true, 302);
