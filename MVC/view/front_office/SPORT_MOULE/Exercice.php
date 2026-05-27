@@ -19,6 +19,8 @@ $user_name = $_SESSION['user_name'] ?? 'User';
 $userController = new Controller_user();
 $userData = $userController->get_user($userId);
 $userSubscription = $userData['subscription_user'] ?? 'free';
+$_SESSION['role_user'] = $userData['role_user'] ?? 'user';
+$isAdmin = strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
 ?>
 
 <!DOCTYPE html>
@@ -78,7 +80,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
     <li><a href="<?php echo ($userSubscription === 'premium' || $userSubscription === 'elite') ? 'custome_workout.php' : '../foovia-premium.php'; ?>">Custom Workouts</a></li>
   </ul>
   <div class="nav-actions">
-    <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
+    <?php if ($isAdmin): ?>
       <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
     <?php endif; ?>
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
