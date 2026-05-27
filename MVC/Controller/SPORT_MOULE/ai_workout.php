@@ -298,25 +298,6 @@ function getNextWorkoutId(PDO $db): int {
 }
 
 function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
-    $workoutModelCandidates = [
-        __DIR__ . '/../../Model/SPORT_MOULE/workout.php',
-        __DIR__ . '/../../Model/SPORT_MODULE/workout.php',
-    ];
-
-    $workoutModelPath = null;
-    foreach ($workoutModelCandidates as $candidate) {
-        if (is_file($candidate)) {
-            $workoutModelPath = $candidate;
-            break;
-        }
-    }
-
-    if ($workoutModelPath === null) {
-        throw new RuntimeException('Workout model file not found. Tried: ' . implode(', ', $workoutModelCandidates));
-    }
-
-    require_once $workoutModelPath;
-
     if (!$aiOutput || empty($aiOutput['exercises'])) return null;
 
     $db = config::getConnexion();
@@ -324,15 +305,9 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     $picWork = $picWork ?? '';
     $workoutId = getNextWorkoutId($db);
 
-    // Create workout object
-    $workout = new Workout(
-        $workoutName,
-        $picWork,
-        $aiOutput['calories'],
-        $aiOutput['duration_minutes'],
-        $userId,
-        $aiCategoryId
-    );
+    $calories = (int)($aiOutput['calories'] ?? 0);
+    $durationMinutes = (int)($aiOutput['duration_minutes'] ?? 0);
+    $userId = (int)$userId;
 
     $db->beginTransaction();
 
@@ -340,12 +315,12 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     $stmt = $db->prepare("INSERT INTO workout (id_work, name_work, pic_work, cal_work, duree_work, id_user, id_cat)
                          VALUES (:id_work, :name, :pic, :cal, :duree, :user, :cat)");
     $stmt->bindValue(':id_work', $workoutId, PDO::PARAM_INT);
-    $stmt->bindValue(':name', $workout->getNameWork());
-    $stmt->bindValue(':pic', $workout->getPicWork(), PDO::PARAM_LOB);
-    $stmt->bindValue(':cal', $workout->getCalWork(), PDO::PARAM_INT);
-    $stmt->bindValue(':duree', $workout->getDureeWork(), PDO::PARAM_INT);
-    $stmt->bindValue(':user', $workout->getIdUser(), PDO::PARAM_INT);
-    $stmt->bindValue(':cat', $workout->getIdCat(), PDO::PARAM_INT);
+    $stmt->bindValue(':name', $workoutName);
+    $stmt->bindValue(':pic', $picWork, PDO::PARAM_LOB);
+    $stmt->bindValue(':cal', $calories, PDO::PARAM_INT);
+    $stmt->bindValue(':duree', $durationMinutes, PDO::PARAM_INT);
+    $stmt->bindValue(':user', $userId, PDO::PARAM_INT);
+    $stmt->bindValue(':cat', $aiCategoryId, PDO::PARAM_INT);
     $stmt->execute();
 
     // Insert exercises into belong table
