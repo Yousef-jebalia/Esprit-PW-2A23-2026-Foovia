@@ -1,6 +1,107 @@
 <?php
 require_once __DIR__ . '/../../Model/config.php';
 
+function ai_workout_strip_code_fences(string $text): string {
+    $text = trim($text);
+    if (strpos($text, '```') === 0) {
+        $text = preg_replace('/^```(?:json)?\s*/i', '', $text);
+        $text = preg_replace('/\s*```$/', '', $text);
+    }
+
+    return trim($text);
+}
+
+function ai_workout_extract_json_candidate(string $text): ?string {
+    $text = ai_workout_strip_code_fences($text);
+
+    $start = strpos($text, '{');
+    $end = strrpos($text, '}');
+
+    if ($start === false) {
+        return null;
+    }
+
+    if ($end !== false && $end > $start) {
+        return substr($text, $start, $end - $start + 1);
+    }
+
+    return substr($text, $start);
+}
+
+function ai_workout_repair_truncated_json(string $jsonText): ?string {
+    $jsonText = trim($jsonText);
+    if ($jsonText === '') {
+        return null;
+    }
+
+    $jsonText = preg_replace('/,\s*([}\]])/', '$1', $jsonText);
+
+    $openStack = [];
+    $inString = false;
+    $escaped = false;
+    $length = strlen($jsonText);
+
+    for ($i = 0; $i < $length; $i++) {
+        $char = $jsonText[$i];
+
+        if ($inString) {
+            if ($escaped) {
+                $escaped = false;
+                continue;
+            }
+
+            if ($char === '\\') {
+                $escaped = true;
+                continue;
+            }
+
+            if ($char === '"') {
+                $inString = false;
+            }
+
+            continue;
+        }
+
+        if ($char === '"') {
+            $inString = true;
+            continue;
+        }
+
+        if ($char === '{' || $char === '[') {
+            $openStack[] = $char;
+            continue;
+        }
+
+        if ($char === '}' || $char === ']') {
+            if (empty($openStack)) {
+                continue;
+            }
+
+            $lastOpen = array_pop($openStack);
+            if (($char === '}' && $lastOpen !== '{') || ($char === ']' && $lastOpen !== '[')) {
+                return null;
+            }
+        }
+    }
+
+    if ($inString) {
+        $jsonText .= '"';
+    }
+
+    if (empty($openStack)) {
+        return $jsonText;
+    }
+
+    while (!empty($openStack)) {
+        $lastOpen = array_pop($openStack);
+        $jsonText = rtrim($jsonText);
+        $jsonText = preg_replace('/,\s*$/', '', $jsonText);
+        $jsonText .= $lastOpen === '{' ? '}' : ']';
+    }
+
+    return $jsonText;
+}
+
 function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') {
     $keyFilePath = realpath(__DIR__ . '/../../../sport_api');
     if (empty($workoutName) || empty($targetMuscles)) return null;
@@ -54,7 +155,7 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
         'generationConfig' => [
             'responseMimeType' => 'application/json',
             'temperature' => 0.2,
-            'maxOutputTokens' => 2048,
+            'maxOutputTokens' => 4096,
         ]
     ]);
 
@@ -119,24 +220,23 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
     }
 
     $text = trim($data['candidates'][0]['content']['parts'][0]['text']);
-
-    // Remove markdown if present
-    if (strpos($text, '```') === 0) {
-        $text = preg_replace('/```json?\n?/', '', $text);
-    }
-
     $json = json_decode($text, true);
-    if (!$json) {
-        $start = strpos($text, '{');
-        $end = strrpos($text, '}');
 
-        if ($start !== false && $end !== false && $end > $start) {
-            $candidate = substr($text, $start, $end - $start + 1);
+    if (!is_array($json)) {
+        $candidate = ai_workout_extract_json_candidate($text);
+        if ($candidate !== null) {
             $json = json_decode($candidate, true);
         }
 
-        if (!$json) {
-            return ['error' => "JSON parsing failed. AI response: " . substr($text, 0, 300)];
+        if (!is_array($json) && $candidate !== null) {
+            $repaired = ai_workout_repair_truncated_json($candidate);
+            if ($repaired !== null) {
+                $json = json_decode($repaired, true);
+            }
+        }
+
+        if (!is_array($json)) {
+            return ['error' => 'JSON parsing failed: ' . json_last_error_msg(), 'debug' => substr($text, 0, 500)];
         }
     }
 
@@ -186,6 +286,13 @@ function getAIWorkoutCategoryId(PDO $db): int {
     return (int) $db->lastInsertId();
 }
 
+function getNextWorkoutId(PDO $db): int {
+    $stmt = $db->query("SELECT COALESCE(MAX(id_work), 0) + 1 AS next_id FROM workout");
+    $nextId = $stmt ? (int)$stmt->fetchColumn() : 1;
+
+    return $nextId > 0 ? $nextId : 1;
+}
+
 function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     require_once __DIR__ . '/../../Model/SPORT_MOULE/workout.php';
 
@@ -194,6 +301,7 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     $db = config::getConnexion();
     $aiCategoryId = getAIWorkoutCategoryId($db);
     $picWork = $picWork ?? '';
+    $workoutId = getNextWorkoutId($db);
 
     // Create workout object
     $workout = new Workout(
@@ -205,9 +313,12 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
         $aiCategoryId
     );
 
-    // Insert workout
-    $stmt = $db->prepare("INSERT INTO workout (name_work, pic_work, cal_work, duree_work, id_user, id_cat)
-                         VALUES (:name, :pic, :cal, :duree, :user, :cat)");
+    $db->beginTransaction();
+
+    // Insert workout with an explicit ID to avoid relying on AUTO_INCREMENT state.
+    $stmt = $db->prepare("INSERT INTO workout (id_work, name_work, pic_work, cal_work, duree_work, id_user, id_cat)
+                         VALUES (:id_work, :name, :pic, :cal, :duree, :user, :cat)");
+    $stmt->bindValue(':id_work', $workoutId, PDO::PARAM_INT);
     $stmt->bindValue(':name', $workout->getNameWork());
     $stmt->bindValue(':pic', $workout->getPicWork(), PDO::PARAM_LOB);
     $stmt->bindValue(':cal', $workout->getCalWork(), PDO::PARAM_INT);
@@ -215,8 +326,6 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
     $stmt->bindValue(':user', $workout->getIdUser(), PDO::PARAM_INT);
     $stmt->bindValue(':cat', $workout->getIdCat(), PDO::PARAM_INT);
     $stmt->execute();
-
-    $workoutId = $db->lastInsertId();
 
     // Insert exercises into belong table
     $stmt = $db->prepare("INSERT INTO belong (id_work, id_ex, sets, weight, time, reps)
@@ -232,6 +341,8 @@ function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
             ':reps' => $ex['reps'] ?? 0
         ]);
     }
+
+    $db->commit();
 
     return [
         'id_work' => $workoutId,

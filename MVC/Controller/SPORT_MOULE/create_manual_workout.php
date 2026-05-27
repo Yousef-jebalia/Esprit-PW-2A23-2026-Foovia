@@ -3,6 +3,13 @@ require_once __DIR__ . '/../../Model/config.php';
 
 header('Content-Type: application/json');
 
+function getNextWorkoutId(PDO $db): int {
+    $stmt = $db->query("SELECT COALESCE(MAX(id_work), 0) + 1 AS next_id FROM workout");
+    $nextId = $stmt ? (int)$stmt->fetchColumn() : 1;
+
+    return $nextId > 0 ? $nextId : 1;
+}
+
 $input = json_decode(file_get_contents('php://input'), true);
 
 // Validate required fields
@@ -28,14 +35,16 @@ if (!is_array($exercises) || empty($exercises)) {
 
 try {
     $db = config::getConnexion();
+    $workoutId = getNextWorkoutId($db);
+
+    $db->beginTransaction();
 
     // 1) Insert into workout table
     $insertWorkout = $db->prepare(
-        "INSERT INTO workout (name_work, pic_work, cal_work, duree_work, id_user, id_cat)
-         VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO workout (id_work, name_work, pic_work, cal_work, duree_work, id_user, id_cat)
+         VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
-    $insertWorkout->execute([$name, $pic_work, $cal_work, $duree_work, $id_user, $id_cat]);
-    $workoutId = $db->lastInsertId();
+    $insertWorkout->execute([$workoutId, $name, $pic_work, $cal_work, $duree_work, $id_user, $id_cat]);
 
     // 2) Insert exercises into belong table
     $insertBelong = $db->prepare(
@@ -66,6 +75,8 @@ try {
         ]);
     }
 
+    $db->commit();
+
     echo json_encode([
         'ok' => true,
         'id_work' => $workoutId,
@@ -73,6 +84,9 @@ try {
     ]);
 
 } catch (Exception $e) {
+    if (isset($db) && $db instanceof PDO && $db->inTransaction()) {
+        $db->rollBack();
+    }
     http_response_code(500);
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
 }
