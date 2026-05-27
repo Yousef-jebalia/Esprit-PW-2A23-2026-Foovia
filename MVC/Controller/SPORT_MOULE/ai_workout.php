@@ -143,6 +143,10 @@ function generateAIWorkout($workoutName, $targetMuscles, $aiService = 'gemini') 
         return ['error' => "API key file not found at: $keyFilePath"];
     }
 
+    if (!function_exists('curl_init')) {
+        return ['error' => 'Server configuration error: cURL extension is not available.'];
+    }
+
     $key = trim(file_get_contents($keyFilePath));
     if (empty($key)) {
         return ['error' => "API key file is empty: $keyFilePath"];
