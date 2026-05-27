@@ -4,7 +4,7 @@ if (!isset($_SESSION['user_id'])) {
   header('Location: ../foovia-signin.php');
   exit;
 }
-require_once $_SERVER['DOCUMENT_ROOT'] . '/Project/MVC/View/front_office/_shared/foovia_sidebar.php'; 
+//require_once $_SERVER['DOCUMENT_ROOT'] . '/Project/MVC/View/front_office/_shared/foovia_sidebar.php'; 
 require_once '../../../Controller/Controller_user.php';
 $userController = new Controller_user();
 $userId = $_SESSION['user_id'];
