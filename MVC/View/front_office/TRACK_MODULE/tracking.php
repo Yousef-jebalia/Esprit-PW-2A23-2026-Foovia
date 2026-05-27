@@ -480,7 +480,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<link id="foovia-style" rel="stylesheet" href="./styleT.css?v=20260426">
+<link id="foovia-style" rel="stylesheet" href="./styleT.css?v=20260527">
 <style>
   /* Premium Badge Navigation Component */
   .premium-badge-nav {
@@ -558,9 +558,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   (function () {
     const styleLink = document.getElementById('foovia-style');
     const candidates = [
-      './styleT.css?v=20260426',
-      'styleT.css?v=20260426',
-      '/foovia/Esprit-PW-2A23-2526-Foovia-/view/front_office/styleT.css?v=20260426'
+      './styleT.css?v=20260527',
+      'styleT.css?v=20260527',
+      '/foovia/Esprit-PW-2A23-2526-Foovia-/view/front_office/styleT.css?v=20260527'
     ];
     let idx = 0;
 

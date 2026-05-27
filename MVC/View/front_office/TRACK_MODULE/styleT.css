@@ -1,4 +1,4 @@
-﻿@font-face {
+@font-face {
   font-family: 'Boldonse';
   src: url('../assets/Boldonse-Regular.ttf') format('truetype');
 }
@@ -64,7 +64,7 @@ body {
   transition: background-color .3s ease, color .3s ease;
 }
 
-/* â”€â”€ NAV â”€â”€ */
+/* ── NAV ── */
 nav {
   position: fixed; top: 0; left: 0; width: 100%;
   z-index: 100;
@@ -77,7 +77,7 @@ nav {
 }
 .nav-logo {
   display: flex; align-items: center; gap: 10px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-weight: 800; font-size: 1.5rem;
   letter-spacing: .04em;
   color: var(--page-text);
@@ -102,7 +102,7 @@ nav {
 .nav-btn {
   border-radius: 100px;
   padding: 9px 18px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-weight: 700;
   font-size: .84rem;
   letter-spacing: .01em;
@@ -172,7 +172,7 @@ nav {
 :root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
 
-/* â”€â”€ HERO â”€â”€ */
+/* ── HERO ── */
 .hero {
   min-height: 100vh;
   display: grid;
@@ -249,7 +249,7 @@ nav {
   display: inline-block;
   background: var(--yellow);
   color: var(--dark);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-weight: 700; font-size: .78rem;
   letter-spacing: .14em; text-transform: uppercase;
   padding: 6px 16px; border-radius: 100px;
@@ -289,7 +289,7 @@ nav {
   color: #fff;
   padding: 16px 38px;
   border-radius: 100px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: 1rem; font-weight: 700;
   text-decoration: none;
   transition: background .2s, transform .15s;
@@ -301,7 +301,7 @@ nav {
   color: var(--page-text);
   padding: 14px 34px;
   border-radius: 100px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: 1rem; font-weight: 700;
   text-decoration: none;
   transition: background .2s, color .2s;
@@ -395,7 +395,7 @@ nav {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* â”€â”€ FEATURES STRIP â”€â”€ */
+/* ── FEATURES STRIP ── */
 .features-strip {
   background: var(--feature-strip-bg);
   overflow: hidden;
@@ -424,7 +424,7 @@ nav {
   to   { transform: translateX(-50%); }
 }
 
-/* â”€â”€ FEATURES GRID â”€â”€ */
+/* ── FEATURES GRID ── */
 .section {
   padding: 100px 64px;
 }
@@ -477,7 +477,7 @@ nav {
 }
 
 .ltg-kicker {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -543,7 +543,7 @@ nav {
 }
 
 .ltg-toolbar p {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: .92rem;
   font-weight: 700;
   letter-spacing: .08em;
@@ -607,7 +607,7 @@ nav {
   color: var(--panel-text);
   border-radius: 999px;
   padding: 8px 14px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: .78rem;
   font-weight: 700;
   letter-spacing: .05em;
@@ -746,7 +746,7 @@ nav {
 }
 
 .ltg-table td:nth-child(1) {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-weight: 700;
   color: var(--orange);
 }
@@ -803,7 +803,7 @@ nav {
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 8px 12px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: .74rem;
   font-weight: 700;
   letter-spacing: .04em;
@@ -970,7 +970,7 @@ nav {
 .feat-tag {
   margin-top: 20px;
   display: inline-block;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: .72rem; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase;
   background: rgba(255,255,255,.18);
@@ -985,7 +985,7 @@ nav {
   overflow: hidden;
   margin-top: 0;
   display: inline-block;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: .85rem; font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -1008,7 +1008,7 @@ nav {
   background: rgba(255,255,255,.32);
 }
 
-/* â”€â”€ HOW IT WORKS â”€â”€ */
+/* ── HOW IT WORKS ── */
 .how {
   background: var(--dark);
   padding: 100px 64px;
@@ -1105,7 +1105,7 @@ nav {
   position: absolute; top: 36px; right: 28px;
 }
 
-/* â”€â”€ MARKETPLACE HIGHLIGHT â”€â”€ */
+/* ── MARKETPLACE HIGHLIGHT ── */
 .marketplace {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1172,7 +1172,7 @@ nav {
   color: var(--green);
 }
 
-/* â”€â”€ STATS â”€â”€ */
+/* ── STATS ── */
 .stats {
   padding: 80px 64px;
   display: grid;
@@ -1200,7 +1200,7 @@ nav {
   font-weight: 500;
 }
 
-/* â”€â”€ CTA â”€â”€ */
+/* ── CTA ── */
 .cta-section {
   padding: 100px 64px;
   text-align: center;
@@ -1243,11 +1243,11 @@ nav {
 .store-btn-icon { font-size: 1.6rem; }
 .store-btn-text small { display: block; font-size: .7rem; opacity: .6; }
 .store-btn-text strong {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-size: 1rem;
 }
 
-/* â”€â”€ FOOTER â”€â”€ */
+/* ── FOOTER ── */
 footer {
   background: var(--footer-bg);
   color: var(--footer-text);
@@ -1260,7 +1260,7 @@ footer {
   transition: background-color .3s ease, color .3s ease;
 }
 .footer-brand {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Boldonse', sans-serif;
   font-weight: 800;
   font-size: 1.2rem;
   color: var(--yellow);
@@ -1277,7 +1277,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 }
 .footer-links a:hover { color: var(--yellow); }
 
-/* â”€â”€ RESPONSIVE â”€â”€ */
+/* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   nav { padding: 14px 24px; }
   .nav-links { display: none; }
@@ -1475,12 +1475,12 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     font-weight: 700;
     color: var(--green);
     margin-bottom: 0.4rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
   }
 
   .ltg-edit-head h3 {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     color: var(--panel-text);
   }
@@ -1492,7 +1492,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     background: rgba(17, 16, 8, 0.08);
     color: var(--panel-text);
     font-weight: 700;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     cursor: pointer;
   }
 
@@ -1522,7 +1522,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     letter-spacing: 0.13em;
     text-transform: uppercase;
     color: var(--green);
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
   }
 
   .ltg-edit-card .form-label {
@@ -1567,7 +1567,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     border: 0;
     border-radius: 999px;
     padding: 0.72rem 1.25rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     cursor: pointer;
   }
@@ -1620,7 +1620,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .weekly-calendar-head h3 {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     color: var(--panel-text);
     font-size: 0.9rem;
@@ -1652,7 +1652,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     border: 0;
     border-radius: 999px;
     padding: 0.72rem 1.2rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(17, 16, 8, 0.12);
@@ -1788,7 +1788,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .weekly-cal-weekdays span {
     text-align: center;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.58rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1827,7 +1827,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   }
 
   .weekly-cal-day.is-today strong {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
   }
 
@@ -1999,9 +1999,10 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     margin-bottom: 1.25rem;
   }
 
-  .weekly-survey-head h3 {
+  .weekly-survey-head h3,
+  #weekly-survey-date {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     color: var(--panel-text);
     font-size: clamp(1.05rem, 2vw, 1.3rem);
@@ -2014,7 +2015,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     background: rgba(17, 16, 8, 0.08);
     color: var(--panel-text);
     font-weight: 700;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     cursor: pointer;
   }
 
@@ -2057,7 +2058,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   .weekly-macro-bubble.fat::after { background: var(--peach); }
 
   .weekly-macro-val {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     font-size: 1.15rem;
     line-height: 1;
@@ -2097,7 +2098,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   }
 
   .weekly-macro-name {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     font-size: 0.73rem;
   }
@@ -2225,7 +2226,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   }
 
   .sport-entry-kcal {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.78rem;
     color: var(--orange);
     white-space: nowrap;
@@ -2271,7 +2272,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     letter-spacing: 0.13em;
     text-transform: uppercase;
     color: var(--green);
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 700;
     display: block;
     margin-bottom: 0.65rem;
@@ -2746,7 +2747,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .lamp-tooltip strong {
     display: block;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.72rem;
     color: var(--yellow);
     margin-bottom: 4px;
@@ -3037,7 +3038,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   }
 
   .weekly-tracker-sec-label {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -3333,7 +3334,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     border: 0;
     border-radius: 999px;
     padding: 0.72rem 1.25rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     cursor: pointer;
   }
@@ -3392,7 +3393,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     gap: 6px;
     padding: 5px 14px;
     border-radius: 100px;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 700;
     font-size: .68rem;
     letter-spacing: .05em;
@@ -3429,7 +3430,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   }
 
   .lt-divider span {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: .62rem;
     letter-spacing: .12em;
     color: var(--panel-muted);
@@ -3472,7 +3473,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .lt-field label {
     display: block;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: .68rem;
     margin-bottom: 6px;
     color: var(--panel-muted);
@@ -3664,7 +3665,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .lt-slider-wrap label span {
     font-size: .8rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 700;
   }
 
@@ -3755,7 +3756,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     border: 0;
     border-radius: 999px;
     padding: 0.72rem 1.25rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(17, 16, 8, 0.15);
@@ -3810,9 +3811,9 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     }
   }
 
-  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    PROGRESS SECTION — Elevated redesign
-  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ═══════════════════════════════════════════════
+    PROGRESS SECTION � Elevated redesign
+  ═══════════════════════════════════════════════ */
   #progress .section-label {
     letter-spacing: 0.18em;
   }
@@ -3860,7 +3861,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .progress-chart-head h3 {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--panel-text);
@@ -3964,7 +3965,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
   }
 
   .progress-chart-day-name {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.68rem;
     font-weight: 700;
     color: var(--panel-text);
@@ -4020,7 +4021,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     padding: 0.35rem 0.85rem;
     font-size: 0.7rem;
     font-weight: 800;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     letter-spacing: 0.02em;
     background: rgba(75, 174, 82, 0.13);
     color: var(--forest);
@@ -4102,7 +4103,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .weight-chart-day strong {
     display: block;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.66rem;
     font-weight: 700;
     color: var(--panel-text);
@@ -4150,12 +4151,13 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
     }
   }
 
-  /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    HISTORY SECTION — Elevated redesign
-  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ═══════════════════════════════════════════════
+    HISTORY SECTION � Elevated redesign
+  ═══════════════════════════════════════════════ */
 
   #history .cta-title {
     margin-bottom: 0.25rem;
+    line-height: 1.45;
   }
 
   .history-shell {
@@ -4241,7 +4243,7 @@ footer p { font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 
 
   .history-date {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Boldonse', sans-serif;
     font-size: 0.88rem;
     font-weight: 800;
     color: var(--panel-text);
