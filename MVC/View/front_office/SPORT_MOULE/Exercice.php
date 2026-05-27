@@ -19,14 +19,13 @@ $user_name = $_SESSION['user_name'] ?? 'User';
 $userController = new Controller_user();
 $userData = $userController->get_user($userId);
 $userSubscription = $userData['subscription_user'] ?? 'free';
+$isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Exercises — FOOVIA</title>
@@ -70,17 +69,26 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 
 <!-- NAV -->
 <nav>
-  <a href="../foovia.php" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
-    FOOVIA
-  </a>
+  <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+    <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+    </button>
+    <a href="../foovia.php" class="nav-logo">
+      <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
+      FOOVIA
+    </a>
+  </div>
   <ul class="nav-links">
      <li><a href="Exercice.php">Exercice</a></li>
     <li><a href="Workout.php">Workouts</a></li>
     <li><a href="<?php echo ($userSubscription === 'premium' || $userSubscription === 'elite') ? 'custome_workout.php' : '../foovia-premium.php'; ?>">Custom Workouts</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <?php if ($isAdmin): ?>
+      <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+    <?php endif; ?>
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -112,8 +120,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
     <?php endif; ?>
   </div>
 </nav>
-
-
 
 <!-- EXERCISE PAGE -->
 <section class="exercise-page">
@@ -190,8 +196,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 
 </script>
 
-
-
       <div class="exercise-grid-wrapper">
         <?php if (empty($exercises)): ?>
           <div class="empty-state">No Exercises Yet</div>
@@ -226,7 +230,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
                       aria-label="Exercise info">
                       i
                     </button>
-                    
+
                   </div>
                 </div>
               </article>
@@ -405,7 +409,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
               .map((item) => item.trim())
               .filter(Boolean);
             const uniqueMuscles = Array.from(new Set(muscles));
-            
+
             // Store muscles for info window
             currentExerciseMuscles = uniqueMuscles;
 
@@ -603,8 +607,8 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 
 </section>
 
+<script src="../js/sidebar.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-
 
 </body>
 </html>
