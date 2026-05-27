@@ -85,98 +85,25 @@ $messages = $controller->get_messages($id);
       } catch (e) {}
     })();
   </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="css/vendor.css">
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-  <style>
-    body { background-color: var(--page-bg, #fff); color: var(--page-text, #1a1a1a); }
-    :root[data-theme="dark"] header { background-color: var(--nav-bg) !important; }
+  </head>
+<body>
 
-    .thread-hero {
-      background: linear-gradient(135deg, #2E4A28 0%, #4BAE52 100%);
-      color: #fff;
-      padding: 48px 0 32px;
-    }
-    .thread-hero h1   { font-size: 1.8rem; font-weight: 700; margin-bottom: .4rem; }
-    .thread-hero .meta { opacity: .82; font-size: .88rem; }
-
-    .thread-body-card {
-      border: 1.5px solid #e0e7e0;
-      border-radius: 14px;
-      padding: 24px 28px;
-      background: #fff;
-      margin-bottom: 28px;
-    }
-    :root[data-theme="dark"] .thread-body-card { background: #1e1e1e; border-color: #333; }
-
-    /* message bubbles */
-    .msg-bubble {
-      border-radius: 14px;
-      padding: 16px 20px;
-      background: #f4f8f4;
-      border: 1px solid #deeede;
-      position: relative;
-    }
-    :root[data-theme="dark"] .msg-bubble { background: #1a2a1a; border-color: #2d4a2d; }
-    .msg-bubble .msg-body  { font-size: .95rem; white-space: pre-wrap; word-break: break-word; }
-    .msg-author {
-      font-size: .82rem;
-      font-weight: 700;
-      color: #2E4A28;
-      margin-bottom: 8px;
-    }
-    :root[data-theme="dark"] .msg-author { color: #8fd18f; }
-    .msg-bubble .msg-meta  { font-size: .78rem; color: #64748b; margin-top: 8px; }
-    .msg-delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      font-size: .75rem;
-      color: #dc3545;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      opacity: .6;
-    }
-    .msg-delete-btn:hover { opacity: 1; }
-
-    /* reply form */
-    .reply-card {
-      border: 1.5px solid #c8e0c8;
-      border-radius: 14px;
-      padding: 24px 28px;
-      background: #f8fbf8;
-    }
-    :root[data-theme="dark"] .reply-card { background: #181e18; border-color: #2d4a2d; }
-    .reply-card textarea {
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      resize: vertical;
-      font-size: .95rem;
-    }
-    .reply-card textarea:focus { border-color: #4BAE52; outline: none; box-shadow: none; }
-
-    .btn-foovia        { background: linear-gradient(135deg,#4BAE52,#2E4A28); color:#fff; border:none; }
-    .btn-foovia:hover  { background: linear-gradient(135deg,#3d9a45,#25411f); color:#fff; }
-
-    .back-link { color:#4BAE52; font-size:.9rem; text-decoration:none; }
-    .back-link:hover { color:#2E4A28; }
-  </style>
-  <head>
-    <title>Foovia</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="../assets/Plan de travail 1 no bg (3) (1).png">
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
   <symbol id="menu" viewBox="0 0 24 24"><path fill="currentColor" d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1m0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1m1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2z"/></symbol>
 </defs></svg>
 
 <nav>
-  <a href="../foovia.php" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height: 50px; width: auto;">
-    FOOVIA
-  </a>
+  <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+    <a href="../foovia.php" class="nav-logo">
+      <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
+      FOOVIA
+    </a>
+    <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+    </button>
+  </div>
   <ul class="nav-links">
     <li><a href="../marketplace-gateway.php">Marketplace</a></li>
     <li><a href="#community">Community</a></li>

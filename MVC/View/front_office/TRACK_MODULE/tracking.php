@@ -4,6 +4,7 @@ if (!isset($_SESSION['user_id'])) {
   header('Location: ../foovia-signin.php');
   exit;
 }
+require_once $_SERVER['DOCUMENT_ROOT'] . '/Project/MVC/View/front_office/_shared/foovia_sidebar.php'; 
 require_once '../../../Controller/Controller_user.php';
 $userController = new Controller_user();
 $userId = $_SESSION['user_id'];
@@ -711,10 +712,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
 <body<?php echo $goal_start_date ? ' data-goal-start-date="' . htmlspecialchars($goal_start_date) . '"' : ''; ?><?php echo $goal_end_date ? ' data-goal-end-date="' . htmlspecialchars($goal_end_date) . '"' : ''; ?><?php echo $weekly_has_record ? ' data-weekly-has-record="1" data-weekly-id="' . htmlspecialchars((string) $weekly_today_objectif['id_suiv']) . '"' : ' data-weekly-has-record="0"'; ?> data-has-long-term-goal="<?php echo !empty($current_user_goal) ? '1' : '0'; ?>" data-long-term-edit-mode="<?php echo $long_term_edit_mode ? '1' : '0'; ?>">
 
 <nav>
-  <a href="../foovia.php" class="nav-logo">
-    <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
-    FOOVIA
-  </a>
+  <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+    <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+    </button>
+    <a href="../foovia.php" class="nav-logo">
+      <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-image">
+      FOOVIA
+    </a>
+  </div>
   <ul class="nav-links">
     <li><a href="#long-term-goals">Long Term Goal</a></li>
     <li><a href="#weekly-tracking">Weekly Tracking</a></li>
@@ -3865,6 +3873,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['weekly_delete_objecti
   });
 </script>
 
+<script src="../js/sidebar.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

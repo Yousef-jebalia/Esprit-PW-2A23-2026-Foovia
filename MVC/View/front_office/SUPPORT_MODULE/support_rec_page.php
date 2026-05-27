@@ -323,49 +323,57 @@ if (!empty($reclamations)) {
       </defs>
     </svg>
     <nav>
-  <a href="../foovia.php" class="nav-logo">
-        <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-img">
-    FOOVIA
-  </a>
-  <ul class="nav-links">
-    <li><a href="../foovia.php">Dashboard</a></li>
-    <li><a href="../marketplace-gateway.php">Marketplace</a></li>
-    <li><a href="support_rec_page.php">Support & Community</a></li>
-  </ul>
-  <div class="nav-actions">
-    <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
-      <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
-    <?php endif; ?>
-    <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
-      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="4"></circle>
-        <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"></path>
-      </svg>
-      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 1 0 11.5 11.5z"></path>
-      </svg>
-    </button>
-    <?php if ($is_logged_in && $logged_in_user_name !== ''): ?>
-      <div class="dropdown">
-        <a href="#" class="nav-btn dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          Welcome, <?php echo htmlspecialchars($logged_in_user_name); ?>
+      <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+        <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+          <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+          <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+          <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+        </button>
+        <a href="../foovia.php" class="nav-logo">
+          <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height:50px;width:auto;">
+          FOOVIA
         </a>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="../foovia.php">Dashboard</a></li>
-          <li><a class="dropdown-item" href="../logout.php">Logout</a></li>
-        </ul>
       </div>
-    <?php else: ?>
-      <a href="../foovia-signin.php?redirect=support" class="nav-btn nav-signin">Sign In</a>
-      <a href="../foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
-    <?php endif; ?>
-    <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
-      <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../foovia-premium.php'">
-        <img src="../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+      <ul class="nav-links">
+        <li><a href="../foovia.php">Dashboard</a></li>
+        <li><a href="../marketplace-gateway.php">Marketplace</a></li>
+        <li><a href="support_rec_page.php">Support</a></li>
+        <li><a href="threads_page.php">Threads</a></li>
+      </ul>
+      <div class="nav-actions">
+        <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
+          <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
+        <?php endif; ?>
+        <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"></path>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 1 0 11.5 11.5z"></path>
+          </svg>
+        </button>
+        <?php if ($is_logged_in && $logged_in_user_name !== ''): ?>
+          <div class="dropdown">
+            <a href="#" class="nav-btn dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Welcome, <?php echo htmlspecialchars($logged_in_user_name); ?>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="../foovia.php">Dashboard</a></li>
+              <li><a class="dropdown-item" href="../logout.php">Logout</a></li>
+            </ul>
+          </div>
+        <?php else: ?>
+          <a href="../foovia-signin.php?redirect=support" class="nav-btn nav-signin">Sign In</a>
+          <a href="../foovia-signup.php" class="nav-btn nav-signup">Sign Up</a>
+        <?php endif; ?>
+        <?php if ($is_logged_in && ($user_subscription === 'premium' || $user_subscription === 'elite')): ?>
+          <div class="premium-badge-nav" title="Premium Member" onclick="window.location.href='../foovia-premium.php'">
+            <img src="../assets/crown-svgrepo-com%20(1).svg" class="premium-icon-nav" alt="Premium">
+          </div>
+        <?php endif; ?>
       </div>
-    <?php endif; ?>
-  </div>
-</nav>
+    </nav>
 
     <div class="preloader-wrapper">
       <div class="preloader">
@@ -1885,5 +1893,6 @@ if (!empty($reclamations)) {
         });
       })();
     </script>
+    <script src="../js/sidebar.js"></script>
   </body>
 </html>

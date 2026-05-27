@@ -109,10 +109,17 @@ $threads    = $controller->get_threads_paged($page, $per_page);
 </svg>
 
 <nav>
-  <a href="#" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height:50px;width:auto;">
-    FOOVIA
-  </a>
+  <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+    <a href="#" class="nav-logo">
+      <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" style="height:50px;width:auto;">
+      FOOVIA
+    </a>
+    <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+    </button>
+  </div>
   <ul class="nav-links">
     <li><a href="#features">Features</a></li>
     <li><a href="#how">How it works</a></li>

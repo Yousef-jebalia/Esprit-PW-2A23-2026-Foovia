@@ -13,6 +13,17 @@ if ($is_logged_in) {
     $_SESSION['role_user'] = $user_data['role_user'] ?? 'user';
   }
 }
+
+$nav_pages = [
+    ['label' => 'Home', 'href' => 'foovia.php'],
+    ['label' => 'Recipes', 'href' => 'menu_module/recipe_page.php'],
+    ['label' => 'Tracking', 'href' => 'TRACK_MODULE/tracking.php'],
+  ['label' => 'Sport', 'href' => 'SPORT_MOULE/Exercice.php'],
+    ['label' => 'Marketplace', 'href' => 'marketplace-gateway.php'],
+    ['label' => 'Support', 'href' => 'SUPPORT_MODULE/support_rec_page.php'],
+];
+
+$current_page = basename(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: 'foovia.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +35,7 @@ if ($is_logged_in) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+<link rel="stylesheet" href="foovia.css?v=20260527-1">
 <style>
     /* Premium Badge Navigation Component */
     .premium-badge-nav {
@@ -109,15 +121,22 @@ if ($is_logged_in) {
     }
 </style>
 
-</head><link rel="stylesheet" href="foovia.css">
+</head>
 <body>
 
 <!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">
-    <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-img">
-    FOOVIA
-  </a>
+<nav class="site-nav">
+  <div class="nav-left" style="display:flex;align-items:center;gap:2px;margin-left:0;">
+    <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+    </button>
+    <a href="#" class="nav-logo" style="margin-left:0;">
+      <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-img">
+      FOOVIA
+    </a>
+  </div>
   <ul class="nav-links">
     <li><a href="#features">Features</a></li>
     <li><a href="#how">How it works</a></li>
@@ -429,7 +448,9 @@ if ($is_logged_in) {
       setTheme(nextTheme);
     });
   })();
+  // Unified sidebar initialization
 </script>
+<script src="js/sidebar.js"></script>
     <?php if ($user_subscription !== 'premium' && $user_subscription !== 'elite'): ?>
       <a href="foovia-premium.php" class="floating-premium-btn" title="Upgrade to Premium">
         <img src="assets/crown-svgrepo-com%20(1).svg" class="premium-icon-large" alt="Premium">

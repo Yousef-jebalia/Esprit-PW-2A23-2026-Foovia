@@ -183,11 +183,11 @@ $reclamations = $controller->get_reclamations();
           </h4>
           <ul class="list-group mb-3">
             <li class="list-group-item d-flex justify-content-between lh-sm">
-              <div>
-                <h6 class="my-0">Growers cider</h6>
-                <small class="text-body-secondary">Brief description</small>
-              </div>
-              <span class="text-body-secondary">$12</span>
+              <nav>
+            <a href="../foovia.php" class="nav-logo">
+                  <img src="assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo" class="nav-logo-img">
+              FOOVIA
+            </a>
             </li>
             <li class="list-group-item d-flex justify-content-between lh-sm">
               <div>

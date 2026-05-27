@@ -296,6 +296,8 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
 </style>
 </head>
 <body>
+<?php $foovia_sidebar_render_launcher = false; ?>
+<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/Project/MVC/View/front_office/_shared/foovia_sidebar.php'; ?>
 
 <!-- NAV -->
 <nav>

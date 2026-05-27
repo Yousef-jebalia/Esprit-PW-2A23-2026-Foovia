@@ -316,10 +316,17 @@ $illnessLabel = $illnesses ? implode(', ', $illnesses) : 'None';
 
 <!-- NAV -->
 <nav class="foovia-nav" data-theme="light" aria-label="Main navigation">
-  <a href="../foovia.php" class="nav-logo">
-    <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo">
-    FOOVIA
-  </a>
+  <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+    <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+      <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+    </button>
+    <a href="../foovia.php" class="nav-logo">
+      <img src="../assets/Plan de travail 1 no bg (3) (1).png" alt="FOOVIA Logo">
+      FOOVIA
+    </a>
+  </div>
   <ul class="nav-links">
     <li><a href="../foovia.php">Home</a></li>
     <li><a href="recipe_page.php">Recipes</a></li>
@@ -1625,5 +1632,6 @@ function showToast(msg) {
     });
   })();
 </script>
+<script src="../js/sidebar.js"></script>
 </body>
 </html>

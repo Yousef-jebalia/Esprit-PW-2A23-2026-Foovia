@@ -355,10 +355,17 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
 </style>
 
     <header class="foovia-topbar">
-        <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php" class="foovia-brand">
-            <img src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/assets/Plan%20de%20travail%201%20no%20bg%20(3)%20(1).png" alt="FOOVIA Logo" class="foovia-logo-img">
-            FOOVIA
-        </a>
+        <div style="display:flex;align-items:center;gap:2px;margin-left:0;flex-shrink:0;">
+            <button class="nav-sidebar-toggle" type="button" aria-label="Open page list" aria-controls="navSidebar" aria-expanded="false" style="width:54px;height:54px;border-radius:12px;gap:4px;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-color:rgba(17,16,8,.18);margin-right:8px;">
+                <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+                <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+                <span style="width:26px;height:4px;border-radius:999px;display:block;background:#111008;"></span>
+            </button>
+            <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia.php" class="foovia-brand">
+                <img src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/assets/Plan%20de%20travail%201%20no%20bg%20(3)%20(1).png" alt="FOOVIA Logo" class="foovia-logo-img">
+                FOOVIA
+            </a>
+        </div>
 
         <nav class="foovia-nav" aria-label="Primary">
             <a href="#recommended">recommanded</a>
