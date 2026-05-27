@@ -298,7 +298,24 @@ function getNextWorkoutId(PDO $db): int {
 }
 
 function saveAIWorkout($workoutName, $aiOutput, $userId, $picWork = null) {
-    require_once __DIR__ . '/../../Model/SPORT_MOULE/workout.php';
+    $workoutModelCandidates = [
+        __DIR__ . '/../../Model/SPORT_MOULE/workout.php',
+        __DIR__ . '/../../Model/SPORT_MODULE/workout.php',
+    ];
+
+    $workoutModelPath = null;
+    foreach ($workoutModelCandidates as $candidate) {
+        if (is_file($candidate)) {
+            $workoutModelPath = $candidate;
+            break;
+        }
+    }
+
+    if ($workoutModelPath === null) {
+        throw new RuntimeException('Workout model file not found. Tried: ' . implode(', ', $workoutModelCandidates));
+    }
+
+    require_once $workoutModelPath;
 
     if (!$aiOutput || empty($aiOutput['exercises'])) return null;
 
