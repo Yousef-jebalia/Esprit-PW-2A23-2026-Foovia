@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $db = config::getConnexion();
-        $sql = "SELECT id_user, name_user, email_user FROM user WHERE LOWER(email_user) = :email";
+        $sql = "SELECT id_user, name_user, email_user, role_user FROM user WHERE LOWER(email_user) = :email";
         $query = $db->prepare($sql);
         $query->execute(['email' => $dummy_email]);
         $user = $query->fetch();
@@ -69,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $user['id_user'];
             $_SESSION['user_name'] = $user['name_user'];
             $_SESSION['user_email'] = $user['email_user'];
+            $_SESSION['role_user'] = $user['role_user'] ?? 'user';
 
             echo json_encode(['success' => true, 'redirect' => "foovia.php"]);
             exit;

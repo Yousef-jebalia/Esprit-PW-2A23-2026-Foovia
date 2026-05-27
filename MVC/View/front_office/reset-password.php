@@ -45,6 +45,7 @@ try {
                 $_SESSION['user_id'] = $user['id_user'];
                 $_SESSION['user_name'] = $user['name_user'];
                 $_SESSION['user_email'] = $user['email_user'];
+              $_SESSION['role_user'] = $user['role_user'] ?? 'user';
                 header("Location: foovia.php");
                 exit;
             } else {
