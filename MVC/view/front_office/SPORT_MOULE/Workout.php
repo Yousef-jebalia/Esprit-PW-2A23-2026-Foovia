@@ -82,8 +82,7 @@ include_once(__DIR__ . '/../../../Controller/Controller_user.php');
 $userController = new Controller_user();
 $userData = $userController->get_user($userId);
 $user_subscription = $userData['subscription_user'] ?? 'free';
-$_SESSION['role_user'] = $userData['role_user'] ?? 'user';
-$isAdmin = strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
+$isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
 ?>
 
 <!DOCTYPE html>
