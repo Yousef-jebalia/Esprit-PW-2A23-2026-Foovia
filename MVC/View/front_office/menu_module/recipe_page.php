@@ -311,6 +311,10 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
         <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
           <a href="../foovia-backoffice.php" class="nav-btn nav-backoffice">Backoffice</a>
         <?php endif; ?>
+        <a href="<?php echo ($userSubscription === 'premium' || $userSubscription === 'elite') ? 'foovia-planner.php' : '../foovia-premium.php'; ?>" class="nav-btn nav-planner" style="text-decoration:none; background:var(--green); color:#fff; border-color:var(--green); margin-right:8px; display:inline-flex; align-items:center; gap:6px;">
+          <span>🥗</span>
+          <span>Planner</span>
+        </a>
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
       <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4"></circle>
@@ -343,17 +347,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
   </div>
     </nav>
 
-    <section class="top-cta-section" aria-label="Quick action">
-      <div class="container-lg" style="display:flex; gap:12px; align-items:center;">
-        <button type="button" class="top-cta-button" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false">
-           By ingredients
-          <span class="top-cta-count" id="ingredientCountBadge">0</span>
-        </button>
-        <a href="<?php echo ($userSubscription === 'premium' || $userSubscription === 'elite') ? 'foovia-planner.php' : '../foovia-premium.php'; ?>" class="top-cta-button" style="text-decoration:none; background:var(--green); color:#fff; border-color:var(--green); display:flex; align-items:center; gap:8px;">
-          <span>🥗</span> Go to Planner
-        </a>
-      </div>
-    </section>
+    <!-- top-cta removed; planner moved to nav -->
 
     <section class="ingredients-panel" id="ingredientsPanel" aria-hidden="true">
       <div class="ingredients-panel-inner">
@@ -543,17 +537,21 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
         <div class="row">
           <div class="col-md-12">
 
-            <div class="section-header d-flex flex-wrap justify-content-between mb-5">
-              <h2 class="section-title">Recipes</h2>
-            </div>
-            <div class="section-search">
-              <input
-                type="search"
-                class="form-control section-search-input"
-                id="recipeSearchInput"
-                placeholder="Search recipes"
-                aria-label="Search recipes"
-              >
+            <div class="section-header d-flex align-items-center justify-content-between mb-5" style="gap:12px;">
+              <h2 class="section-title mb-0">Recipes</h2>
+              <div class="d-flex align-items-center" style="flex:1; gap:12px; margin-left:16px;">
+                <input
+                  type="search"
+                  class="form-control section-search-input flex-grow-1"
+                  id="recipeSearchInput"
+                  placeholder="Search recipes"
+                  aria-label="Search recipes"
+                >
+                <button type="button" class="top-cta-button" id="recipesByIngredientsBtn" aria-expanded="false" aria-controls="ingredientsPanel" aria-pressed="false">
+                  By ingredients
+                  <span class="top-cta-count" id="ingredientCountBadge">0</span>
+                </button>
+              </div>
             </div>
 
           </div>
@@ -730,7 +728,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
       })();
 
       (function() {
-        const ctaButton = document.querySelector('.top-cta-button');
+        const ctaButton = document.querySelector('#recipesByIngredientsBtn') || document.querySelector('.top-cta-button[aria-controls="ingredientsPanel"]') || document.querySelector('.top-cta-button');
         const panel = document.getElementById('ingredientsPanel');
         const closeButton = panel ? panel.querySelector('.ingredients-modal-close') : null;
         const pictureModal = document.getElementById('ingredientPictureModal');
@@ -875,6 +873,10 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
           }
 
           button.addEventListener('click', () => {
+            const panelOpen = document.body.classList.contains('ingredients-modal-open') || (document.getElementById('ingredientsPanel') || {}).classList?.contains?.('is-open');
+            if (!panelOpen) {
+              return;
+            }
             const currentKey = getKeyForButton(button);
             if (!currentKey) {
               return;
