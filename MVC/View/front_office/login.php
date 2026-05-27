@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signin_submit'])) {
                     $_SESSION['user_name'] = $user['name_user'];
                     $_SESSION['user_email'] = $user['email_user'];
                     $_SESSION['role_user'] = $user['role_user'] ?? 'user';
+                    $_SESSION['backoffice_allowed'] = false;
                     $success_message = 'Connected successfully! Redirecting...';
                     header('refresh:2;url=foovia.php');
                     exit;

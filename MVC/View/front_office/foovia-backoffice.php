@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signin_submit'])) {
             $_SESSION['user_name'] = $user['name_user'];
             $_SESSION['user_email'] = $user['email_user'];
             $_SESSION['role_user'] = $user['role_user'];
+            $_SESSION['backoffice_allowed'] = true;
 
             header('Location: ../back_office/USER_MODULE/tabs.php');
             exit;

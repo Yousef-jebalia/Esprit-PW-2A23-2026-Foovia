@@ -82,7 +82,8 @@ include_once(__DIR__ . '/../../../Controller/Controller_user.php');
 $userController = new Controller_user();
 $userData = $userController->get_user($userId);
 $user_subscription = $userData['subscription_user'] ?? 'free';
-$isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['role_user'])) === 'admin';
+$backofficeAllowed = isset($_SESSION['backoffice_allowed']) && $_SESSION['backoffice_allowed'] === true;
+$isAdmin = $backofficeAllowed;
 ?>
 
 <!DOCTYPE html>
