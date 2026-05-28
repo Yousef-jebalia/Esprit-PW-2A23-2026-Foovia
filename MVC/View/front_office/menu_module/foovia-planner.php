@@ -409,13 +409,13 @@ $illnessLabel = $illnesses ? implode(', ', $illnesses) : 'None';
 
       <!-- WEEK OVERVIEW -->
       <div class="scard">
-        <div class="scard-title">📅 Week at a glance</div>
+          <div class="scard-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Week at a glance</div>
         <div class="week-mini" id="week-mini"></div>
       </div>
 
       <!-- GOALS CARD -->
       <div class="scard">
-        <div class="scard-title">🎯 Daily goals</div>
+        <div class="scard-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M21 3l-6.6 6.6"/></svg> Daily goals</div>
         <div class="goal-stack">
           <div>
             <div class="goal-row">
@@ -448,7 +448,7 @@ $illnessLabel = $illnesses ? implode(', ', $illnesses) : 'None';
       </div>
 
       <div class="scard">
-        <div class="scard-title">🧩 Dietary filters</div>
+        <div class="scard-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 3H2l8 9v7l4 2v-9l8-9z"/></svg> Dietary filters</div>
         <div class="dietary-list">
           <div class="dietary-item">
             <span class="dietary-label">Allergies</span>
@@ -532,11 +532,11 @@ const RECIPE_MAP = RECIPES.reduce((acc, recipe) => {
 const USER_CONDITIONS = (USER_PROFILE.illnesses || []).map(item => String(item).toLowerCase());
 
 const SLOTS = [
-  { key:'breakfast', label:'Breakfast', icon:'🌅', time:'7:00 – 9:00 AM' },
-  { key:'morning-snack', label:'Morning Snack', icon:'☕', time:'10:30 – 11:00 AM' },
-  { key:'lunch', label:'Lunch', icon:'☀️', time:'12:30 – 1:30 PM' },
-  { key:'afternoon-snack', label:'Afternoon Snack', icon:'🍎', time:'3:30 – 4:00 PM' },
-  { key:'dinner', label:'Dinner', icon:'🌙', time:'7:00 – 8:30 PM' },
+  { key:'breakfast', label:'Breakfast', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M4 12h16"/></svg>', time:'7:00 – 9:00 AM' },
+  { key:'morning-snack', label:'Morning Snack', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h14v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7z"/><path d="M16 8a3 3 0 0 1 0 6"/></svg>', time:'10:30 – 11:00 AM' },
+  { key:'lunch', label:'Lunch', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>', time:'12:30 – 1:30 PM' },
+  { key:'afternoon-snack', label:'Afternoon Snack', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11c1.5-2 2-6 0-8-2 0-3 2-4 2s-2-2-4-2c-2 2-1.5 6 0 8 1.5 2 3 3 4 3s2.5-1 4-3z"/><path d="M15 4s1 1 0 2"/></svg>', time:'3:30 – 4:00 PM' },
+  { key:'dinner', label:'Dinner', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>', time:'7:00 – 8:30 PM' },
 ];
 const SLOT_CAT = { breakfast:'breakfast', 'morning-snack':'snack', lunch:'lunch', 'afternoon-snack':'snack', dinner:'dinner' };
 
@@ -1453,7 +1453,7 @@ function render() {
     return `
     <div class="extras-section" style="margin-top:24px;">
       <h3 style="font-family:'Boldonse',sans-serif; font-size:1.1rem; margin-bottom:12px; color:var(--dark); display:flex; align-items:center; gap:8px;">
-        <span>🍱</span> Extra logged meals
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 7l9-4 9 4"/></svg> Extra logged meals
       </h3>
       <div style="display:flex; flex-direction:column; gap:12px;">
         ${extras.map(log => {
