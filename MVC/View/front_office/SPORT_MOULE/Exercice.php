@@ -34,7 +34,7 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="exercice_php.css">
-<link rel="stylesheet" href="foovia.css">
+<link rel="stylesheet" href="../foovia.css">
 <style>
   /* Premium Badge Navigation Component */
   .premium-badge-nav {
