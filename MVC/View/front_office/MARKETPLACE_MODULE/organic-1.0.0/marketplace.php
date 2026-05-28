@@ -845,5 +845,10 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/aziza-map.js?v=db-markets-1"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/marketplace-delivery-tracker.js?v=clear-progress-1"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/foovia-market-theme.js"></script>
+    <script>
+        // Marketplace layout relies on its own styles — avoid injecting full foovia.css
+        window.FOOVIA_DISABLE_SIDEBAR_CSS = true;
+    </script>
+    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/js/sidebar.js"></script>
 </body>
 </html>
