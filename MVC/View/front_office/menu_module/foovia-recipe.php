@@ -444,7 +444,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
           </div>
         </div>
         <button class="btn-log" style="flex: 1; height: 46px; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; border-radius: 12px;">
-          <span>📝</span> Log to Tracker
+          Log to Tracker
         </button>
       </div>
 
@@ -569,7 +569,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
       const recipeId = <?php echo (int)($recipe['id_rec'] ?? 0); ?>;
       const today = new Date().toISOString().split('T')[0];
 
-      logMealBtn.innerHTML = '⏳ Logging...';
+      logMealBtn.textContent = 'Logging...';
       logMealBtn.disabled = true;
 
       fetch(LOG_MEAL_ENDPOINT, {
@@ -584,19 +584,19 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
       .then(data => {
         if (data.success) {
           this.classList.add('saved');
-          this.innerHTML = '<span>✅</span> Logged';
-          this.style.background = 'var(--blue)';
-          this.style.borderColor = 'var(--blue)';
+          this.textContent = 'Logged';
+          this.style.background = 'var(--green)';
+          this.style.borderColor = 'var(--green)';
           this.style.color = '#fff';
         } else {
           alert('Error: ' + data.error);
-          this.innerHTML = '<span>📝</span> Log to Tracker';
+          this.textContent = 'Log to Tracker';
           this.disabled = false;
         }
       })
       .catch(err => {
         console.error(err);
-        this.innerHTML = '<span>📝</span> Log to Tracker';
+        this.textContent = 'Log to Tracker';
         this.disabled = false;
       });
     });
