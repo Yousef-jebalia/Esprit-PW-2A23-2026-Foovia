@@ -1550,7 +1550,38 @@ if ($is_logged_in) {
         <p class="testi-text">"The workout planner combined with macro tracking is a game changer. I finally have
           everything in one app — no more switching between 4 different tools."</p>
         <div class="testi-author">
-          <div class="testi-avatar" style="background:#fce4ec">💪</div>
+          <div class="testi-avatar" style="background:#fce4ec"><svg width="18" height="14" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align:middle;display:inline-block;">
+<path style="fill:#666666;" d="M431.197,121.41C540.2,192.013,533.727,340.034,442.92,413.628c-1.704,1.375-3.432,2.713-5.199,4.025
+  c-56.306,41.744-167.656,46.375-226.814-43.485c-50.854-77.266-103.236-76.534-132.954-78.276
+  c-29.73-1.741-98.554-3.483-71.966-85.241C32.589,128.906,168.672,22.793,353.263,83.679
+  C384.747,94.065,409.96,107.643,431.197,121.41z"/>
+<path style="fill:#F95428;" d="M480.247,260.623c2.625,49.315-18.764,97.343-57.189,128.486c-1.363,1.098-2.751,2.183-4.126,3.205
+  c-19.004,14.083-46.766,22.5-74.237,22.5c-0.013,0-0.013,0-0.013,0c-25.869,0-74.212-7.546-107.425-57.997
+  c-24.758-37.617-52.444-62.969-84.635-77.506c-27.749-12.518-52.495-13.83-68.862-14.701c-1.363-0.076-6.347-0.353-6.347-0.353
+  c-11.244-0.631-37.567-2.12-43.75-11.168c-3.521-5.149-2.65-17.364,2.335-32.671c9.048-27.812,34.21-57.921,67.297-80.547
+  c28.506-19.471,76.307-42.69,142.216-42.69c31.838,0,64.773,5.54,97.86,16.455c24.771,8.164,47.22,19.055,70.679,34.248
+  C454.252,173.93,477.761,213.97,480.247,260.623z"/>
+<path style="fill:#F2F2F2;" d="M361.023,228.924c27.169,0,49.201,22.033,49.201,49.214s-22.033,49.214-49.201,49.214
+  c-27.181,0-49.214-22.033-49.214-49.214S333.842,228.924,361.023,228.924z"/>
+<g>
+  <polygon style="fill:#E54728;" points="448.88,420.972 448.879,420.973 448.878,420.974 "/>
+  <path style="fill:#E54728;" d="M187.847,129.885c-4.519-2.621-10.312-1.083-12.934,3.439l-54.89,94.637
+    c-2.622,4.521-1.083,10.312,3.439,12.934c1.494,0.868,3.128,1.28,4.74,1.28c3.263,0,6.441-1.691,8.196-4.717l54.89-94.637
+    C193.907,138.298,192.369,132.508,187.847,129.885z"/>
+  <path style="fill:#E54728;" d="M267.8,131.778c-4.518-2.621-10.312-1.083-12.934,3.439l-72.424,124.869
+    c-2.622,4.521-1.083,10.312,3.439,12.934c1.494,0.868,3.128,1.28,4.74,1.28c3.263,0,6.441-1.691,8.196-4.717l72.424-124.869
+    C273.861,140.191,272.323,134.401,267.8,131.778z"/>
+  <path style="fill:#E54728;" d="M347.778,149.593c-4.511-2.639-10.307-1.118-12.947,3.393l-95.137,162.724
+    c-2.639,4.511-1.119,10.308,3.393,12.947c1.502,0.878,3.145,1.295,4.767,1.295c3.252,0,6.418-1.678,8.178-4.689l95.137-162.724
+    C353.81,158.028,352.291,152.231,347.778,149.593z"/>
+  <path style="fill:#E54728;" d="M334.234,341.832c-4.511-2.641-10.308-1.119-12.947,3.393l-9.353,15.998
+    c-2.639,4.511-1.119,10.308,3.393,12.947c1.502,0.878,3.146,1.295,4.769,1.295c3.252,0,6.418-1.678,8.178-4.689l9.353-15.998
+    C340.265,350.268,338.746,344.471,334.234,341.832z"/>
+  <path style="fill:#E54728;" d="M424.268,187.414c-4.51-2.641-10.307-1.119-12.947,3.393l-11.724,20.054
+    c-2.639,4.511-1.119,10.308,3.393,12.947c1.502,0.878,3.145,1.295,4.767,1.295c3.252,0,6.418-1.678,8.178-4.689l11.724-20.054
+    C430.3,195.849,428.781,190.052,424.268,187.414z"/>
+</g>
+</svg></div>
           <div>
             <div class="testi-name">Youssef A.</div>
             <div class="testi-role">Premium · Sousse</div>
@@ -1693,13 +1724,13 @@ if ($is_logged_in) {
     const PLAN_DATA = {
       free: { icon: '🌱', title: 'You\'re on the Free plan', body: 'You\'re already using Foovia for free. Upgrade to Premium to unlock the full experience.' },
       premium: { icon: '👑', title: 'Upgrade to Premium', body: 'You\'re about to unlock unlimited recipes, AI meal plans, ingredient scanning, and full marketplace access.' },
-      elite: { icon: '🔥', title: 'Go Elite', body: 'You\'re about to unlock everything in Premium plus a personal dietitian, weekly reports, 1-on-1 coaching, and more.' },
+      elite: { icon: '<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align:middle;fill:red;"><path d="M9.75838 1.09929C9.85156 1.13153 9.9852 1.17902 10.1535 1.24207C10.49 1.36812 10.9661 1.55678 11.5355 1.81078C12.6715 2.31752 14.193 3.09073 15.7215 4.15505C18.745 6.26052 22 9.65692 22 14.5393C22 16.6738 21.4305 18.7869 20.1046 20.3856C18.7552 22.0126 16.7095 23 14 23C13.9352 23 13.6752 22.9978 13.4169 22.8125C13.0566 22.5541 12.9699 22.1541 13.0085 21.8667C13.0376 21.6502 13.1305 21.5025 13.1576 21.4602C13.1966 21.3993 13.234 21.3556 13.2534 21.3338C13.293 21.2893 13.3281 21.2581 13.3407 21.247C13.3575 21.2322 13.3716 21.2207 13.3801 21.214C13.4065 21.1929 13.4323 21.1745 13.4402 21.1689L13.4413 21.1681L13.5185 21.1136C13.5762 21.0727 13.6587 21.0131 13.7588 20.9348C13.9606 20.7768 14.2297 20.546 14.4969 20.2526C15.0448 19.6509 15.5 18.8819 15.5 18C15.5 16.3681 14.571 14.8515 13.5067 13.669C12.9869 13.0914 12.4644 12.6267 12.0715 12.3065C12.0471 12.2866 12.0233 12.2674 12 12.2487C11.9767 12.2674 11.9529 12.2866 11.9285 12.3065C11.5356 12.6267 11.0131 13.0914 10.4933 13.669C9.42904 14.8515 8.5 16.3681 8.5 18C8.5 18.8887 8.95405 19.6581 9.49825 20.2564C9.76406 20.5486 10.0319 20.7779 10.2327 20.934C10.3323 21.0114 10.4142 21.0699 10.47 21.1087C10.4933 21.125 10.5115 21.1374 10.5281 21.1487L10.5401 21.1569C10.5471 21.1616 10.5635 21.1728 10.5787 21.1837C10.5832 21.187 10.6139 21.2089 10.6476 21.2376C10.6583 21.2467 10.6772 21.2632 10.6995 21.285C10.7154 21.3005 10.7647 21.3492 10.8157 21.4212C10.8424 21.4607 10.901 21.5658 10.9302 21.6326C10.9668 21.7437 10.9991 22.045 10.9733 22.2301C10.89 22.4562 10.6027 22.798 10.4241 22.9056C10.2979 22.9546 10.0834 22.9965 10 23C7.29045 23 5.24478 22.0126 3.89543 20.3856C2.56953 18.7869 2 16.6738 2 14.5393C2 11.9892 2.88357 10.3815 4.05286 9.15507C4.5965 8.58486 5.19715 8.10224 5.73579 7.66945L5.77852 7.63511C6.34602 7.17903 6.84273 6.7759 7.26778 6.31893C8.30821 5.20037 8.54446 4.18717 8.56055 3.49802C8.56885 3.14245 8.51857 2.85417 8.46943 2.66213C8.44495 2.56644 8.42112 2.49608 8.40592 2.45502C8.39834 2.43455 8.39298 2.42158 8.39089 2.41662C8.22725 2.05872 8.28834 1.6367 8.54841 1.34037C8.86981 0.974175 9.32884 0.950674 9.75838 1.09929Z" fill="red"/></svg>', title: 'Go Elite', body: 'You\'re about to unlock everything in Premium plus a personal dietitian, weekly reports, 1-on-1 coaching, and more.' },
     };
     let selectedPlan = '';
     function choosePlan(plan) {
       selectedPlan = plan;
       const d = PLAN_DATA[plan];
-      document.getElementById('modal-icon').textContent = d.icon;
+      document.getElementById('modal-icon').innerHTML = d.icon;
       document.getElementById('modal-title').textContent = d.title;
       document.getElementById('modal-body').textContent = d.body;
       const modal = document.getElementById('plan-modal');
@@ -1761,13 +1792,13 @@ if ($is_logged_in) {
         const icon = document.getElementById('success-icon');
 
         if (plan === 'free') {
-            icon.textContent = '🌱';
-            title.textContent = 'Plan Updated';
-            body.textContent = 'You are now on the Free plan. You can upgrade back to Premium anytime to regain full access!';
+          icon.innerHTML = PLAN_DATA.free.icon;
+          title.textContent = 'Plan Updated';
+          body.textContent = 'You are now on the Free plan. You can upgrade back to Premium anytime to regain full access!';
         } else {
-            icon.textContent = plan === 'elite' ? '🔥' : '👑';
-            title.textContent = 'Congratulations!';
-            body.textContent = `You've successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)}. Welcome to the next level of Foovia!`;
+          icon.innerHTML = PLAN_DATA[plan].icon;
+          title.textContent = 'Congratulations!';
+          body.textContent = `You've successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)}. Welcome to the next level of Foovia!`;
         }
 
         modal.style.display = 'flex';
