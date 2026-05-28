@@ -849,6 +849,6 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
         // Marketplace layout relies on its own styles — avoid injecting full foovia.css
         window.FOOVIA_DISABLE_SIDEBAR_CSS = true;
     </script>
-    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/js/sidebar.js"></script>
+    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/js/sidebar.js?v=20260528-1"></script>
 </body>
 </html>
