@@ -182,10 +182,203 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
         width: auto;
         display: inline-block;
       }
+
+      /* Skeleton shimmer keyframes */
+      @keyframes sk-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      /* In-place skeleton: mask real elements and draw shimmer placeholders */
+      .page-loading .category-photo,
+      .page-loading .tab-image,
+      .page-loading .card-img img {
+        opacity: 0 !important;
+      }
+
+      .page-loading .card-img,
+      .page-loading .category-photo {
+        position: relative;
+      }
+
+      .page-loading .card-img::before,
+      .page-loading .category-photo::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      .page-loading .card-img { min-height: 200px; border-radius:12px; overflow:hidden; }
+      .page-loading .category-photo { width:64px; height:64px; border-radius:50%; }
+
+      .page-loading .category-title,
+      .page-loading .card-title,
+      .page-loading .card-desc,
+      .page-loading .macro-tag,
+      .page-loading .card-view-btn {
+        color: transparent !important;
+        position: relative;
+      }
+
+      .page-loading .category-title::before,
+      .page-loading .card-title::before,
+      .page-loading .card-desc::before,
+      .page-loading .macro-tag::before,
+      .page-loading .card-view-btn::before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 1em;
+        width: 70%;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      .page-loading .card-desc::before { height: 0.9em; width: 86%; }
+      .page-loading .macro-tag::before { height: 1.4em; width: 72px; border-radius:999px; }
+      .page-loading .card-view-btn::before { height: 2em; width: 110px; border-radius:8px; }
+      /* Mask small UI bits and provide placeholders for counts/badges */
+      .page-loading .text-body-secondary {
+        color: transparent !important;
+        position: relative;
+      }
+      .page-loading .text-body-secondary::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 12px;
+        width: 60px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      .page-loading .top-cta-count {
+        opacity: 0 !important;
+        position: relative;
+      }
+      .page-loading .top-cta-count::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 22px;
+        width: 22px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      .page-loading .card-badges { position: relative; }
+      .page-loading .card-badges::before {
+        content: '';
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        height: 28px;
+        width: 80px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      .page-loading .recipe-favorite-badge { opacity: 0 !important; }
+      .page-loading .card-badge { opacity: 0 !important; visibility: hidden !important; }
+      .page-loading .card-badges > * { opacity: 0 !important; visibility: hidden !important; }
+      .page-loading .card-img::after {
+        /* small heart placeholder top-right */
+        content: '';
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        height: 34px;
+        width: 34px;
+        border-radius: 50%;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      /* Hide favorite heart in categories and show a circular shimmer */
+      .page-loading .category-filter-card figure { position: relative; }
+      .page-loading .category-favorite-icon { opacity: 0 !important; }
+      .page-loading .category-favorite-icon::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        height: 48px;
+        width: 48px;
+        border-radius: 50%;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+
+      .page-loading .section-search-input::placeholder { color: transparent; }
+      .page-loading .top-cta-button { color: transparent !important; position: relative; }
+      .page-loading .top-cta-button::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        height: 36px;
+        width: 120px;
+        margin-left: auto;
+        border-radius: 14px;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+      }
+      /* Ensure inline background/border on tags is suppressed during loading */
+      .page-loading .macro-tag {
+        background: transparent !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+      }
     </style>
 
 </head>
-  <body data-user-subscription="<?php echo htmlspecialchars($userSubscription); ?>">
+  <body class="page-loading" data-user-subscription="<?php echo htmlspecialchars($userSubscription); ?>">
+    <script>
+      // Minimal loader logic: ensure skeleton visible for a short minimum time
+      (function(){
+        const started = (performance && performance.now) ? performance.now() : Date.now();
+        const DEFAULT_MIN_MS = 2000;
+        const params = new URLSearchParams(location.search);
+        const minMs = params.has('skeleton') ? Math.max(DEFAULT_MIN_MS, 1200) : DEFAULT_MIN_MS;
+        const remove = () => {
+          try {
+            document.body.classList.remove('page-loading');
+            const s = document.querySelector('[data-page-skeleton]');
+            if (s && s.parentNode) s.parentNode.removeChild(s);
+          } catch (e) {}
+        };
+        const onLoad = () => {
+          const now = (performance && performance.now) ? performance.now() : Date.now();
+          const elapsed = Math.max(0, now - started);
+          const wait = Math.max(0, Math.ceil(minMs - elapsed));
+          if (wait > 0) setTimeout(remove, wait); else remove();
+        };
+        if (document.readyState === 'complete') onLoad(); else window.addEventListener('load', onLoad, { once: true });
+        // Safety fallback in case of JS errors
+        setTimeout(remove, 5000);
+      })();
+    </script>
 
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
       <defs>
