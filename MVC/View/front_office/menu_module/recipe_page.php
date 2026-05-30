@@ -344,6 +344,39 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
         background-size: 200% 100%;
         animation: sk-shimmer 1.2s linear infinite;
       }
+      /* Make the entire button show skeleton shimmer while loading */
+      .page-loading .btn,
+      .page-loading button,
+      .page-loading .btn-primary,
+      .page-loading .top-cta-button,
+      .page-loading .ingredient-select-btn {
+        color: transparent !important;
+        position: relative;
+        pointer-events: none;
+        background: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        border: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        overflow: hidden;
+      }
+      .page-loading .btn::before,
+      .page-loading button::before,
+      .page-loading .top-cta-button::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ece8df 25%, #f7f3eb 37%, #ece8df 63%);
+        background-size: 200% 100%;
+        animation: sk-shimmer 1.2s linear infinite;
+        z-index: 1020;
+        mix-blend-mode: normal;
+        pointer-events: none;
+      }
+      /* Hide any inner button decorations that might still show through */
+      .page-loading .btn * { visibility: hidden !important; }
       /* Ensure inline background/border on tags is suppressed during loading */
       .page-loading .macro-tag {
         background: transparent !important;
@@ -358,7 +391,7 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
       // Minimal loader logic: ensure skeleton visible for a short minimum time
       (function(){
         const started = (performance && performance.now) ? performance.now() : Date.now();
-        const DEFAULT_MIN_MS = 2000;
+        const DEFAULT_MIN_MS = 100;
         const params = new URLSearchParams(location.search);
         const minMs = params.has('skeleton') ? Math.max(DEFAULT_MIN_MS, 1200) : DEFAULT_MIN_MS;
         const remove = () => {
@@ -438,11 +471,6 @@ $userSubscription = $userData['subscription_user'] ?? 'free';
         <symbol xmlns="http://www.w3.org/2000/svg" id="pet" viewBox="0 0 14 14"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M1.5 9.5c.552 0 1-.672 1-1.5s-.448-1.5-1-1.5s-1 .672-1 1.5s.448 1.5 1 1.5m3-4.5c.552 0 1-.672 1-1.5S5.052 2 4.5 2s-1 .672-1 1.5s.448 1.5 1 1.5m5 0c.552 0 1-.672 1-1.5S10.052 2 9.5 2s-1 .672-1 1.5s.448 1.5 1 1.5m3 4.5c.552 0 1-.672 1-1.5s-.448-1.5-1-1.5s-1 .672-1 1.5s.448 1.5 1 1.5M10 10c0 1.38-1.62 2-3 2s-3-.62-3-2s1-3.5 3-3.5s3 2.12 3 3.5"/></symbol>
       </defs>
     </svg>
-
-    <div class="preloader-wrapper">
-      <div class="preloader">
-      </div>
-    </div>
 
     <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasCart">
       <div class="offcanvas-header justify-content-center">
