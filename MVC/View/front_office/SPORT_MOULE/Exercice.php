@@ -63,9 +63,53 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
     filter: brightness(0) invert(1);
   }
 </style>
+ 
+<!-- Skeleton loader styles -->
+<style>
+  .skeleton-overlay {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+  .skeleton-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .skeleton-inner { width: 90%; max-width: 1100px; }
+  .skeleton-block { background: linear-gradient(90deg, #eee 25%, #f7f7f7 50%, #eee 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+  .sk-nav { height: 56px; margin-bottom: 18px; }
+  .sk-title { height: 48px; width: 50%; margin: 14px 0 24px; }
+  .sk-anatomy { height: 360px; border-radius: 12px; margin-bottom: 18px; }
+  .sk-search { height: 44px; width: 60%; margin-bottom: 18px; }
+  .sk-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 16px; }
+  .sk-card { height: 160px; border-radius: 10px; }
 
+  @keyframes shimmer {
+    0% { background-position: 200% 0 }
+    100% { background-position: -200% 0 }
+  }
+</style>
 </head>
 <body>
+  <!-- Skeleton overlay shown while page resources load -->
+  <div id="skeleton-overlay" class="skeleton-overlay" aria-hidden="false">
+    <div class="skeleton-inner">
+      <div class="skeleton-block sk-nav"></div>
+      <div class="skeleton-block sk-title"></div>
+      <div class="skeleton-block sk-anatomy"></div>
+      <div class="skeleton-block sk-search"></div>
+      <div class="sk-grid">
+        <div class="skeleton-block sk-card"></div>
+        <div class="skeleton-block sk-card"></div>
+        <div class="skeleton-block sk-card"></div>
+        <div class="skeleton-block sk-card"></div>
+        <div class="skeleton-block sk-card"></div>
+        <div class="skeleton-block sk-card"></div>
+      </div>
+    </div>
+  </div>
 
 <!-- NAV -->
 <nav>
@@ -603,6 +647,24 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
         }
 
         window.showInfoWindow = showInfoWindow;
+      </script>
+
+      <script>
+        // Hide skeleton overlay when page finishes loading or on timeout fallback
+        (function() {
+          const overlay = document.getElementById('skeleton-overlay');
+          const hideOverlay = () => {
+            if (!overlay) return;
+            overlay.classList.add('skeleton-hidden');
+            setTimeout(() => { if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 600);
+          };
+
+          // Prefer full load event to ensure iframes/images are ready
+          window.addEventListener('load', hideOverlay);
+
+          // Fallback: hide after 2s in case load doesn't fire quickly
+          setTimeout(hideOverlay, 2000);
+        })();
       </script>
 
 </section>
