@@ -4,17 +4,19 @@ class Reclamations
     private string $id_reclamation;
     private int $id_user;
     private string $description;
+    private string $subject;
     private string $etat;
     private string $type;
     private string $date_overture;
     private string $date_fermiture;
 
     // Constructor
-    public function __construct(string $id_reclamation, int $id_user, string $description, string $etat, string $type, string $date_overture, string $date_fermiture)
+    public function __construct(string $id_reclamation, int $id_user, string $description, string $etat, string $type, string $date_overture, string $date_fermiture, string $subject = '')
     {
         $this->id_reclamation = $id_reclamation;
         $this->id_user = $id_user;
         $this->description = $description;
+        $this->subject = $subject;
         $this->etat = $etat;
         $this->type = $type;
         $this->date_overture = $date_overture;
@@ -41,6 +43,11 @@ class Reclamations
     public function getDescription(): string
     {
         return $this->description;
+    }
+
+    public function getSubject(): string
+    {
+        return $this->subject;
     }
 
     public function getEtat(): string
@@ -77,6 +84,11 @@ class Reclamations
     public function setDescription(string $description): void
     {
         $this->description = $description;
+    }
+
+    public function setSubject(string $subject): void
+    {
+        $this->subject = $subject;
     }
 
     public function setEtat(string $etat): void

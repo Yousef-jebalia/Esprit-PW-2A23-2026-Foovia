@@ -7,11 +7,16 @@ $controller = new Controller_reclamation();
 $reclamationToEdit = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_recl = $_POST['id_recl'] ?? '';
-    $etat = $_POST['etat_rec'] ?? '';
-    $date_fermeture = $_POST['date_fermeture'] ?? '';
+    $id_recl = trim((string) ($_POST['id_recl'] ?? ''));
+    $etat = trim((string) ($_POST['etat_rec'] ?? ''));
+    $date_fermeture = trim((string) ($_POST['date_fermeture'] ?? ''));
 
-    if ($id_recl !== '' && $etat !== '' && $date_fermeture !== '') {
+    if ($id_recl !== '' && ctype_digit($id_recl) && $etat !== '' && $date_fermeture !== '') {
+        $existingClaim = $controller->get_reclamation_by_id((int) $id_recl);
+
+        if (!$existingClaim) {
+            $error = 'Claim not found. It may have been deleted.';
+        } else {
         $reclamation = new Reclamations(
             $id_recl,
             0,
@@ -28,8 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             $error = 'Update error: ' . $e->getMessage();
         }
+        }
     } else {
-        $error = 'Status and Closing Date are required.';
+        $error = 'A valid Claim ID, Status, and Closing Date are required.';
     }
 }
 
