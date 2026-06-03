@@ -89,6 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_profile'])) {
 $user_data = $controller->get_user($_SESSION['user_id']) ?? [];
 $is_logged_in = true;
 $user_name = $_SESSION['user_name'] ?? '';
+$profile_full_name = trim(($user_data['name_user'] ?? '') . ' ' . ($user_data['lastname_user'] ?? ''));
+if ($profile_full_name === '') {
+    $profile_full_name = $user_name !== '' ? $user_name : 'My account';
+}
+$profile_email = $user_data['email_user'] ?? '';
+$profile_subscription = ucfirst((string) ($user_data['subscription_user'] ?? 'normal'));
+$profile_role = ucfirst((string) ($user_data['role_user'] ?? 'user'));
+$profile_initials = strtoupper(substr((string) ($user_data['name_user'] ?? 'F'), 0, 1) . substr((string) ($user_data['lastname_user'] ?? 'V'), 0, 1));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,7 +109,7 @@ $user_name = $_SESSION['user_name'] ?? '';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="foovia.css">
     <style>
-        body { padding-top: 80px; } /* For fixed nav */
+        body { padding-top: 96px; } /* For fixed nav */
         .field-value  { display: block; color: var(--page-muted); }
         .field-input  { display: none; background: var(--panel-bg); border-color: var(--surface-border); color: var(--page-text); }
         .field-input:focus { background: var(--panel-bg); color: var(--page-text); border-color: var(--green); box-shadow: none; }
@@ -113,6 +121,63 @@ $user_name = $_SESSION['user_name'] ?? '';
         .field-error  { color: var(--red); font-size: 12px; margin-top: 4px; display: none; }
         .form-control.invalid { border-color: var(--red) !important; }
         .form-control.valid   { border-color: var(--green) !important; }
+        .profile-field.is-editing .field-value { display: none; }
+        .profile-field.is-editing .field-input { display: block; }
+        .field-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .field-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .75rem;
+            font-weight: 400;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--page-muted);
+            margin: 0;
+        }
+        .profile-field .field-value,
+        .profile-field .field-input,
+        .profile-field .form-select {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+        }
+        .inline-edit-toggle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--surface-border);
+            background: rgba(255,255,255,.7);
+            color: var(--page-text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform .15s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
+        }
+        .inline-edit-toggle:hover,
+        .inline-edit-toggle:focus-visible {
+            transform: translateY(-1px);
+            border-color: var(--green);
+            color: var(--green);
+            outline: none;
+        }
+        .inline-edit-toggle svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
+        .inline-edit-toggle.is-save {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+        }
 
         .profile-container {
             max-width: 800px;
@@ -160,6 +225,412 @@ $user_name = $_SESSION['user_name'] ?? '';
             border-color: var(--surface-border) !important;
             color: var(--page-text) !important;
         }
+
+        .profile-page {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 28px 24px 80px;
+            position: relative;
+        }
+
+        .profile-page::before {
+            content: '';
+            position: absolute;
+            inset: 24px 24px auto auto;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245,200,66,.18), rgba(75,174,82,.06) 55%, transparent 72%);
+            filter: blur(10px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .profile-layout {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .profile-sidebar {
+            position: sticky;
+            top: 116px;
+            background: var(--panel-bg);
+            border: 1px solid var(--surface-border);
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 26px 60px rgba(17,16,8,.08);
+            overflow: hidden;
+        }
+
+        .profile-sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 92px;
+            background: linear-gradient(135deg, rgba(75,174,82,.16), rgba(245,200,66,.12));
+            pointer-events: none;
+        }
+
+        .profile-sidebar-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .profile-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 22px;
+            background: var(--dark);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: .04em;
+            box-shadow: 0 14px 30px rgba(17,16,8,.18);
+        }
+
+        .profile-kicker {
+            font-family: 'DM Sans', sans-serif;
+            font-size: .74rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--page-muted);
+            margin-bottom: 8px;
+        }
+
+        .profile-sidebar h2,
+        .profile-hero h1,
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            color: var(--page-text);
+        }
+
+        .profile-sidebar h2 {
+            font-size: 1.35rem;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .profile-meta {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--page-muted);
+            font-size: .96rem;
+            line-height: 1.55;
+            word-break: break-word;
+        }
+
+        .profile-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(75,174,82,.12);
+            color: var(--green);
+            font-family: 'Syne', sans-serif;
+            font-size: .74rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .profile-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-nav a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 14px;
+            border-radius: 16px;
+            border: 1px solid transparent;
+            background: rgba(255,255,255,.55);
+            color: var(--page-text);
+            text-decoration: none;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            transition: transform .15s ease, background-color .2s ease, border-color .2s ease;
+        }
+
+        .profile-nav a:hover,
+        .profile-nav a:focus-visible {
+            transform: translateX(2px);
+            background: rgba(75,174,82,.10);
+            border-color: rgba(75,174,82,.18);
+            outline: none;
+        }
+
+        .profile-nav small {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            color: var(--page-muted);
+        }
+
+        .profile-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .profile-hero,
+        .section-card,
+        .profile-actions-bar {
+            background: var(--panel-bg);
+            border: 1px solid var(--surface-border);
+            border-radius: 28px;
+            box-shadow: 0 18px 40px rgba(17,16,8,.05);
+        }
+
+        .profile-hero {
+            padding: 28px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .profile-hero h1 {
+            font-size: clamp(2rem, 3vw, 3rem);
+            line-height: 1.04;
+            margin-bottom: 10px;
+        }
+
+        .profile-hero p {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--page-muted);
+            max-width: 620px;
+            line-height: 1.7;
+        }
+
+        .profile-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .hero-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .hero-stat {
+            padding: 18px;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(75,174,82,.08), rgba(245,200,66,.06));
+            border: 1px solid rgba(75,174,82,.12);
+        }
+
+        .hero-stat span {
+            display: block;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .76rem;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--page-muted);
+            margin-bottom: 8px;
+        }
+
+        .hero-stat strong {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+
+        .section-card {
+            padding: 26px 28px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            font-size: 1.35rem;
+            margin-bottom: 6px;
+        }
+
+        .section-subtitle {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--page-muted);
+            line-height: 1.6;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .profile-field {
+            padding: 18px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.58);
+            border: 1px solid var(--surface-border);
+            min-width: 0;
+        }
+
+        .profile-field--full {
+            grid-column: 1 / -1;
+        }
+
+        .profile-field label,
+        .profile-field .field-label {
+            display: block;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .75rem;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--page-muted);
+            margin-bottom: 10px;
+        }
+
+        .profile-field .field-value {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            color: var(--page-text);
+            line-height: 1.55;
+        }
+
+        .profile-field .field-input,
+        .profile-field .form-select {
+            width: 100%;
+        }
+
+        .profile-section-actions {
+            margin-top: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .profile-actions-bar {
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .profile-actions-bar p {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--page-muted);
+        }
+
+        .profile-actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-foovia {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            padding-inline: 18px;
+            border-radius: 999px;
+        }
+
+        .btn-foovia:hover,
+        .btn-foovia:focus-visible {
+            background: var(--forest);
+            border-color: var(--forest);
+            color: #fff;
+        }
+
+        .btn-foovia-secondary {
+            background: transparent;
+            border-color: var(--surface-border);
+            color: var(--page-text);
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            padding-inline: 18px;
+            border-radius: 999px;
+        }
+
+        .btn-foovia-secondary:hover,
+        .btn-foovia-secondary:focus-visible {
+            background: var(--page-text);
+            border-color: var(--page-text);
+            color: var(--page-bg);
+        }
+
+        .profile-section-anchor {
+            scroll-margin-top: 128px;
+        }
+
+        @media (max-width: 1100px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-sidebar {
+                position: relative;
+                top: 0;
+            }
+
+            .hero-stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .profile-page {
+                padding: 20px 16px 64px;
+            }
+
+            .profile-hero,
+            .section-card,
+            .profile-actions-bar,
+            .profile-sidebar {
+                border-radius: 24px;
+                padding: 20px;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-hero {
+                flex-direction: column;
+            }
+
+            .profile-hero-actions,
+            .profile-actions-row {
+                justify-content: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -204,176 +675,324 @@ $user_name = $_SESSION['user_name'] ?? '';
   </div>
 </nav>
 
-<div class="profile-container">
-    <h2 class="mb-4" style="font-family: 'Syne', sans-serif;">My Account</h2>
-
-    <?php if (!empty($error_message) ?? false): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #fee; color: var(--red); border-color: var(--red);">
-            <?php echo htmlspecialchars($error_message); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if (!empty($pwd_error)): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #fee; color: var(--red); border-color: var(--red);">
-            <?php echo htmlspecialchars($pwd_error); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if (!empty($pwd_success)): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #efe; color: var(--green); border-color: var(--green);">
-            <?php echo htmlspecialchars($pwd_success); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if (isset($saved) && $saved): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #efe; color: var(--green); border-color: var(--green);">
-            Profile updated successfully.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <form method="POST" action="profile.php" id="profileForm" novalidate>
-        <input type="hidden" name="save_profile" value="1">
-
-        <div class="profile-card" id="profileCard">
-            <h3>Personal Information</h3>
-            <!-- First Name / Last Name -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>First Name:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['name_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="text" name="name_user" id="name_user" value="<?php echo htmlspecialchars($user_data['name_user'] ?? ''); ?>">
-                    <span class="field-error" id="name_user-error">First name must be at least 3 characters.</span>
+<div class="profile-page">
+    <div class="profile-layout">
+        <aside class="profile-sidebar">
+            <div class="profile-sidebar-inner">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="profile-avatar"><?php echo htmlspecialchars($profile_initials); ?></div>
+                    <div>
+                        <div class="profile-kicker">Account</div>
+                        <h2><?php echo htmlspecialchars($profile_full_name); ?></h2>
+                        <div class="profile-meta"><?php echo htmlspecialchars($profile_email !== '' ? $profile_email : 'No email added'); ?></div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Last Name:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['lastname_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="text" name="lastname_user" id="lastname_user" value="<?php echo htmlspecialchars($user_data['lastname_user'] ?? ''); ?>">
-                    <span class="field-error" id="lastname_user-error">Last name must be at least 3 characters.</span>
+
+                <div class="profile-badges">
+                    <span class="profile-badge"><?php echo htmlspecialchars($profile_subscription); ?></span>
+                    <span class="profile-badge"><?php echo htmlspecialchars($profile_role); ?></span>
+                </div>
+
+                <div class="profile-nav" aria-label="Account sections">
+                    <a href="#account-info"><span>Account info</span><small>Profile and contact</small></a>
+                    <a href="#security"><span>Password</span><small>Access and devices</small></a>
+                    <a href="#health"><span>Health</span><small>Measurements and notes</small></a>
+                    <a href="#admin"><span>System</span><small>Role and subscription</small></a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="profile-main">
+            <section class="profile-hero">
+                <div>
+                    <div class="profile-kicker">My account</div>
+                    <h1>Personal settings, Foovia style.</h1>
+                    <p>Keep your profile information, security settings, and wellness data in one place with a cleaner account dashboard.</p>
+                </div>
+            </section>
+
+            <div class="hero-stat-grid">
+                <div class="hero-stat">
+                    <span>Username</span>
+                    <strong><?php echo htmlspecialchars($user_data['name_user'] ?? 'N/A'); ?></strong>
+                </div>
+                <div class="hero-stat">
+                    <span>Email</span>
+                    <strong><?php echo htmlspecialchars($user_data['email_user'] ?? 'N/A'); ?></strong>
+                </div>
+                <div class="hero-stat">
+                    <span>Phone</span>
+                    <strong><?php echo htmlspecialchars($user_data['phone_user'] ?? 'Not set'); ?></strong>
                 </div>
             </div>
 
-            <!-- Email / Phone -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Email:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['email_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="text" name="email_user" id="email_user" value="<?php echo htmlspecialchars($user_data['email_user'] ?? ''); ?>">
-                    <span class="field-error" id="email_user-error">Email must end with @gmail.com</span>
+            <?php if (!empty($error_message) ?? false): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #fee; color: var(--red); border-color: var(--red);">
+                    <?php echo htmlspecialchars($error_message); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Phone:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['phone_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="text" name="phone_user" id="phone_user" value="<?php echo htmlspecialchars($user_data['phone_user'] ?? ''); ?>">
-                    <span class="field-error" id="phone_user-error">Phone must be exactly 8 digits.</span>
-                </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- Gender / Birthday -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Gender:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['gender_user'] ?? 'N/A'); ?></span>
-                    <select class="form-select field-input" name="gender_user">
-                        <?php foreach (['Male', 'Female', 'Other'] as $g): ?>
-                            <option value="<?php echo $g; ?>" <?php echo ($user_data['gender_user'] ?? '') === $g ? 'selected' : ''; ?>><?php echo $g; ?></option>
-                        <?php endforeach; ?>
-                    </select>
+            <?php if (!empty($pwd_error)): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #fee; color: var(--red); border-color: var(--red);">
+                    <?php echo htmlspecialchars($pwd_error); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Birthday:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['birthday_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="date" name="birthday_user" id="birthday_user" value="<?php echo htmlspecialchars($user_data['birthday_user'] ?? ''); ?>">
-                    <span class="field-error" id="birthday_user-error">You must be at least 15 years old.</span>
-                </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- Height / Weight -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Height (cm):</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['height_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="number" name="height_user" id="height_user" value="<?php echo htmlspecialchars($user_data['height_user'] ?? ''); ?>">
-                    <span class="field-error" id="height_user-error">Height must be between 100 and 250 cm.</span>
+            <?php if (!empty($pwd_success)): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #efe; color: var(--green); border-color: var(--green);">
+                    <?php echo htmlspecialchars($pwd_success); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Weight (kg):</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['weight_user'] ?? 'N/A'); ?></span>
-                    <input class="form-control field-input" type="number" name="weight_user" id="weight_user" value="<?php echo htmlspecialchars($user_data['weight_user'] ?? ''); ?>">
-                    <span class="field-error" id="weight_user-error">Weight must be between 30 and 300 kg.</span>
-                </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- BMI / Activity Level -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>BMI:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['bmi_user'] ?? 'N/A'); ?></span>
+            <?php if (isset($saved) && $saved): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #efe; color: var(--green); border-color: var(--green);">
+                    Profile updated successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Activity Level:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['activitylvl_user'] ?? 'N/A'); ?></span>
-                    <select class="form-select field-input" name="activitylvl_user" id="activitylvl_user">
-                        <?php foreach (['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active'] as $lvl): ?>
-                            <option value="<?php echo $lvl; ?>" <?php echo ($user_data['activitylvl_user'] ?? '') === $lvl ? 'selected' : ''; ?>><?php echo $lvl; ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <span class="field-error" id="activitylvl_user-error">Please select your activity level.</span>
-                </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- Illness -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <p class="mb-1"><strong>Illness:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['illness_user'] ?? 'None'); ?></span>
-                    <input class="form-control field-input" type="text" name="illness_user" value="<?php echo htmlspecialchars($user_data['illness_user'] ?? ''); ?>">
-                </div>
-            </div>
+            <form method="POST" action="profile.php" id="profileForm" novalidate>
+                <input type="hidden" name="save_profile" value="1">
 
-            <!-- Allergies -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <p class="mb-1"><strong>Allergies:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['allergie_user'] ?? 'None'); ?></span>
-                    <input class="form-control field-input" type="text" name="allergie_user" value="<?php echo htmlspecialchars($user_data['allergie_user'] ?? ''); ?>">
+                <div id="profileCard">
+                <div class="profile-actions-bar">
+                    <div>
+                        <div class="profile-kicker">Editor</div>
+                        <p>Tap the pen icon on any field to edit it, then confirm with the check button.</p>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Medications -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <p class="mb-1"><strong>Medications:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['medicament_user'] ?? 'None'); ?></span>
-                    <input class="form-control field-input" type="text" name="medicament_user" value="<?php echo htmlspecialchars($user_data['medicament_user'] ?? ''); ?>">
+                <div class="section-card profile-section-anchor" id="account-info">
+                    <div class="section-header">
+                        <div>
+                            <div class="profile-kicker">Account info</div>
+                            <div class="section-title">Identity and contact details</div>
+                            <div class="section-subtitle">This is the public-facing part of your account profile.</div>
+                        </div>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-field" data-inline-field data-field-name="name_user">
+                            <div class="field-head">
+                                <label class="field-title" for="name_user">First name</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit first name" title="Edit first name">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['name_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="text" name="name_user" id="name_user" value="<?php echo htmlspecialchars($user_data['name_user'] ?? ''); ?>">
+                            <span class="field-error" id="name_user-error">First name must be at least 3 characters.</span>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="lastname_user">
+                            <div class="field-head">
+                                <label class="field-title" for="lastname_user">Last name</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit last name" title="Edit last name">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['lastname_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="text" name="lastname_user" id="lastname_user" value="<?php echo htmlspecialchars($user_data['lastname_user'] ?? ''); ?>">
+                            <span class="field-error" id="lastname_user-error">Last name must be at least 3 characters.</span>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="email_user">
+                            <div class="field-head">
+                                <label class="field-title" for="email_user">Email</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit email" title="Edit email">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['email_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="text" name="email_user" id="email_user" value="<?php echo htmlspecialchars($user_data['email_user'] ?? ''); ?>">
+                            <span class="field-error" id="email_user-error">Email must end with @gmail.com</span>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="phone_user">
+                            <div class="field-head">
+                                <label class="field-title" for="phone_user">Phone</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit phone" title="Edit phone">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['phone_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="text" name="phone_user" id="phone_user" value="<?php echo htmlspecialchars($user_data['phone_user'] ?? ''); ?>">
+                            <span class="field-error" id="phone_user-error">Phone must be exactly 8 digits.</span>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="gender_user">
+                            <div class="field-head">
+                                <label class="field-title">Gender</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit gender" title="Edit gender">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['gender_user'] ?? 'N/A'); ?></span>
+                            <select class="form-select field-input" name="gender_user">
+                                <?php foreach (['Male', 'Female', 'Other'] as $g): ?>
+                                    <option value="<?php echo $g; ?>" <?php echo ($user_data['gender_user'] ?? '') === $g ? 'selected' : ''; ?>><?php echo $g; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="birthday_user">
+                            <div class="field-head">
+                                <label class="field-title" for="birthday_user">Birthday</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit birthday" title="Edit birthday">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['birthday_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="date" name="birthday_user" id="birthday_user" value="<?php echo htmlspecialchars($user_data['birthday_user'] ?? ''); ?>">
+                            <span class="field-error" id="birthday_user-error">You must be at least 15 years old.</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Read-only fields -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Registration Date:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars($user_data['inscriptiondate_user'] ?? 'N/A'); ?></span>
+                <div class="section-card profile-section-anchor" id="security">
+                    <div class="section-header">
+                        <div>
+                            <div class="profile-kicker">Security</div>
+                            <div class="section-title">Password and access</div>
+                            <div class="section-subtitle">Use a strong password and review connected devices regularly.</div>
+                        </div>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-field profile-field--full">
+                            <label>Password</label>
+                            <span class="field-value">Your current password is protected. Use the action below to change it.</span>
+                            <div class="profile-section-actions">
+                                <button type="button" class="btn btn-foovia" data-bs-toggle="modal" data-bs-target="#passwordModal">Change Password</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Role:</strong></p>
-                    <span class="field-value"><?php echo htmlspecialchars((string) ($user_data['role_user'] ?? 'N/A')); ?></span>
-                </div>
-            </div>
 
-            <!-- Action buttons -->
-            <div class="d-flex gap-2 flex-wrap mt-4">
-                <button type="button" class="btn" id="editBtn" onclick="enableEdit()" style="background: var(--green); border-color: var(--green); color: #000; font-weight: 500;">Edit Profile</button>
-                <button type="submit" class="btn d-none" id="saveBtn" style="background: var(--green); border-color: var(--green); color: #000; font-weight: 500;">Save Changes</button>
-                <button type="button" class="btn btn-secondary d-none" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
-                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#passwordModal" style="font-weight: 500;">Change Password</button>
-                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
-            </div>
-        </div>
-    </form>
+                <div class="section-card profile-section-anchor" id="wellness">
+                    <div class="section-header">
+                        <div>
+                            <div class="profile-kicker">Wellness</div>
+                            <div class="section-title">Body metrics and activity</div>
+                            <div class="section-subtitle">These details help tailor Foovia recommendations to your profile.</div>
+                        </div>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-field" data-inline-field data-field-name="height_user">
+                            <div class="field-head">
+                                <label class="field-title" for="height_user">Height (cm)</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit height" title="Edit height">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['height_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="number" name="height_user" id="height_user" value="<?php echo htmlspecialchars($user_data['height_user'] ?? ''); ?>">
+                            <span class="field-error" id="height_user-error">Height must be between 100 and 250 cm.</span>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="weight_user">
+                            <div class="field-head">
+                                <label class="field-title" for="weight_user">Weight (kg)</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit weight" title="Edit weight">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['weight_user'] ?? 'N/A'); ?></span>
+                            <input class="form-control field-input" type="number" name="weight_user" id="weight_user" value="<?php echo htmlspecialchars($user_data['weight_user'] ?? ''); ?>">
+                            <span class="field-error" id="weight_user-error">Weight must be between 30 and 300 kg.</span>
+                        </div>
+                        <div class="profile-field">
+                            <label class="field-title">BMI</label>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['bmi_user'] ?? 'N/A'); ?></span>
+                        </div>
+                        <div class="profile-field" data-inline-field data-field-name="activitylvl_user">
+                            <div class="field-head">
+                                <label class="field-title" for="activitylvl_user">Activity level</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit activity level" title="Edit activity level">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['activitylvl_user'] ?? 'N/A'); ?></span>
+                            <select class="form-select field-input" name="activitylvl_user" id="activitylvl_user">
+                                <?php foreach (['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active'] as $lvl): ?>
+                                    <option value="<?php echo $lvl; ?>" <?php echo ($user_data['activitylvl_user'] ?? '') === $lvl ? 'selected' : ''; ?>><?php echo $lvl; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <span class="field-error" id="activitylvl_user-error">Please select your activity level.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card profile-section-anchor" id="health">
+                    <div class="section-header">
+                        <div>
+                            <div class="profile-kicker">Health</div>
+                            <div class="section-title">Medical notes</div>
+                            <div class="section-subtitle">Add the details Foovia should remember when building meal and workout suggestions.</div>
+                        </div>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-field profile-field--full" data-inline-field data-field-name="illness_user">
+                            <div class="field-head">
+                                <label class="field-title" for="illness_user">Illness</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit illness" title="Edit illness">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['illness_user'] ?? 'None'); ?></span>
+                            <input class="form-control field-input" type="text" name="illness_user" id="illness_user" value="<?php echo htmlspecialchars($user_data['illness_user'] ?? ''); ?>">
+                        </div>
+                        <div class="profile-field profile-field--full" data-inline-field data-field-name="allergie_user">
+                            <div class="field-head">
+                                <label class="field-title" for="allergie_user">Allergies</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit allergies" title="Edit allergies">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['allergie_user'] ?? 'None'); ?></span>
+                            <input class="form-control field-input" type="text" name="allergie_user" id="allergie_user" value="<?php echo htmlspecialchars($user_data['allergie_user'] ?? ''); ?>">
+                        </div>
+                        <div class="profile-field profile-field--full" data-inline-field data-field-name="medicament_user">
+                            <div class="field-head">
+                                <label class="field-title" for="medicament_user">Medications</label>
+                                <button type="button" class="inline-edit-toggle" data-inline-toggle aria-label="Edit medications" title="Edit medications">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['medicament_user'] ?? 'None'); ?></span>
+                            <input class="form-control field-input" type="text" name="medicament_user" id="medicament_user" value="<?php echo htmlspecialchars($user_data['medicament_user'] ?? ''); ?>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card profile-section-anchor" id="admin">
+                    <div class="section-header">
+                        <div>
+                            <div class="profile-kicker">System</div>
+                            <div class="section-title">Account status</div>
+                            <div class="section-subtitle">Read-only data about registration and access level.</div>
+                        </div>
+                    </div>
+                    <div class="profile-grid">
+                        <div class="profile-field">
+                            <label>Registration date</label>
+                            <span class="field-value"><?php echo htmlspecialchars($user_data['inscriptiondate_user'] ?? 'N/A'); ?></span>
+                        </div>
+                        <div class="profile-field">
+                            <label>Role</label>
+                            <span class="field-value"><?php echo htmlspecialchars((string) ($user_data['role_user'] ?? 'N/A')); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-actions-bar">
+                    <div>
+                        <div class="profile-kicker">Danger zone</div>
+                        <p>Deleting your account will remove all saved profile data.</p>
+                    </div>
+                    <div class="profile-actions-row">
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+                    </div>
+                </div>
+                </div>
+            </form>
+        </main>
+    </div>
 </div>
 
 <!-- Password Change Modal -->
@@ -472,35 +1091,58 @@ $user_name = $_SESSION['user_name'] ?? '';
         });
     })();
 
-    // Profile Edit Logic
-    const card      = document.getElementById('profileCard');
-    const editBtn   = document.getElementById('editBtn');
-    const saveBtn   = document.getElementById('saveBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
+    // Inline edit logic
+    const profileForm = document.getElementById('profileForm');
+    const penIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>';
+    const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>';
 
-    let originals = {};
-
-    function enableEdit() {
-        document.querySelectorAll('.field-input').forEach(el => {
-            originals[el.name] = el.value;
-        });
-        card.classList.add('editing');
-        editBtn.classList.add('d-none');
-        saveBtn.classList.remove('d-none');
-        cancelBtn.classList.remove('d-none');
+    function setInlineButtonState(button, editing) {
+        button.classList.toggle('is-save', editing);
+        button.setAttribute('aria-label', editing ? 'Save field' : 'Edit field');
+        button.setAttribute('title', editing ? 'Save field' : 'Edit field');
+        button.innerHTML = editing ? checkIcon : penIcon;
     }
 
-    function cancelEdit() {
-        document.querySelectorAll('.field-input').forEach(el => {
-            if (originals[el.name] !== undefined) el.value = originals[el.name];
-            el.classList.remove('invalid', 'valid');
-        });
-        document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
-        card.classList.remove('editing');
-        editBtn.classList.remove('d-none');
-        saveBtn.classList.add('d-none');
-        cancelBtn.classList.add('d-none');
+    function getFieldValidator(fieldName) {
+        const validators = {
+            name_user: validateName,
+            lastname_user: validateLastname,
+            email_user: validateEmail,
+            phone_user: validatePhone,
+            birthday_user: validateBirthday,
+            height_user: validateHeight,
+            weight_user: validateWeight,
+            activitylvl_user: validateActivity,
+        };
+
+        return validators[fieldName] || (() => true);
     }
+
+    document.querySelectorAll('[data-inline-toggle]').forEach((button) => {
+        setInlineButtonState(button, false);
+
+        button.addEventListener('click', () => {
+            const field = button.closest('[data-inline-field]');
+            const input = field?.querySelector('.field-input');
+            if (!field || !input) return;
+
+            const isEditing = field.classList.contains('is-editing');
+            if (!isEditing) {
+                field.classList.add('is-editing');
+                setInlineButtonState(button, true);
+                if (typeof input.focus === 'function') input.focus();
+                if (typeof input.select === 'function' && input.tagName === 'INPUT' && input.type !== 'date' && input.type !== 'number') {
+                    input.select();
+                }
+                return;
+            }
+
+            const validator = getFieldValidator(field.dataset.fieldName || input.name);
+            if (validator()) {
+                profileForm.requestSubmit();
+            }
+        });
+    });
 
     function showError(fieldId, errorId) {
         const field = document.getElementById(fieldId);
@@ -569,8 +1211,7 @@ $user_name = $_SESSION['user_name'] ?? '';
     document.getElementById('weight_user')?.addEventListener('blur', validateWeight);
     document.getElementById('activitylvl_user')?.addEventListener('change', validateActivity);
 
-    document.getElementById('profileForm').addEventListener('submit', function (e) {
-        if (saveBtn.classList.contains('d-none')) return;
+    profileForm.addEventListener('submit', function (e) {
         const nameOk = validateName(), lastnameOk = validateLastname(), emailOk = validateEmail(), phoneOk = validatePhone(), birthdayOk = validateBirthday(), heightOk = validateHeight(), weightOk = validateWeight(), activityOk = validateActivity();
         if (!nameOk || !lastnameOk || !emailOk || !phoneOk || !birthdayOk || !heightOk || !weightOk || !activityOk) e.preventDefault();
     });
