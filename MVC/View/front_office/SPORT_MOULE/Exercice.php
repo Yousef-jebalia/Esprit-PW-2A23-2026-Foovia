@@ -238,6 +238,31 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
     });
   })();
 
+  // Ensure the anatomy iframe shows its full content without inner scrolling
+  (function() {
+    const anatomyFrame = document.getElementById('anatomy-frame');
+    if (!anatomyFrame) return;
+
+    const fitIFrame = () => {
+      try {
+        const doc = anatomyFrame.contentDocument || anatomyFrame.contentWindow.document;
+        if (!doc) return;
+        const body = doc.body || doc.documentElement;
+        const contentHeight = Math.max(doc.documentElement.scrollHeight || 0, doc.body.scrollHeight || 0, body.offsetHeight || 0);
+        const maxAllowed = Math.floor(window.innerHeight * 0.9);
+        const target = Math.min(contentHeight, maxAllowed) || 480;
+        anatomyFrame.style.height = target + 'px';
+      } catch (e) {
+        // cross-origin or not ready — ignore
+      }
+    };
+
+    anatomyFrame.addEventListener('load', () => setTimeout(fitIFrame, 80));
+    window.addEventListener('resize', () => setTimeout(fitIFrame, 80));
+    // attempt once in case already loaded
+    setTimeout(fitIFrame, 300);
+  })();
+
 </script>
 
       <div class="exercise-grid-wrapper">
