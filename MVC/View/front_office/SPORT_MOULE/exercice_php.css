@@ -105,7 +105,7 @@
 
 .exercise-grid {
   display: grid;
-  grid-template-columns: repeat(6, 300px);
+  grid-template-columns: repeat(5, 300px);
   gap: 16px;
   width: max-content;
   margin: 0 auto;
@@ -121,6 +121,7 @@
   border: 1px solid var(--surface-border);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   position: relative;
+  cursor: pointer;
 }
 
 .exercise-card.is-hidden {
