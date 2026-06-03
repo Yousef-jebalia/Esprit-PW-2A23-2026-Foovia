@@ -519,6 +519,51 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
             if (infoButton) {
               infoButton.addEventListener('click', () => openExerciseModal(card));
             }
+
+            // Make GIFs appear as a static image but animate on hover/focus.
+            const img = card.querySelector('.exercise-gif');
+            if (img) {
+              // keep original GIF data URI somewhere before we override src
+              const originalGifData = img.src || (card.dataset && card.dataset.gif ? 'data:image/gif;base64,' + card.dataset.gif : '');
+              if (originalGifData) {
+                img.dataset.gifSrc = originalGifData;
+
+                // create offscreen image to capture first frame into a PNG data URL
+                const capture = new Image();
+                capture.src = originalGifData;
+                capture.onload = () => {
+                  try {
+                    const c = document.createElement('canvas');
+                    const w = capture.naturalWidth || 120;
+                    const h = capture.naturalHeight || 120;
+                    c.width = w;
+                    c.height = h;
+                    const ctx = c.getContext('2d');
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.drawImage(capture, 0, 0, w, h);
+                    const staticData = c.toDataURL('image/png');
+                    img.dataset.staticSrc = staticData;
+                    // set img to static preview (keeps layout identical)
+                    img.src = staticData;
+                  } catch (e) {
+                    // ignore drawing failures, leave GIF as-is
+                    img.dataset.staticSrc = originalGifData;
+                  }
+                };
+
+                // hover/focus handlers to swap src
+                const showGif = () => {
+                  if (img.dataset.gifSrc && img.src !== img.dataset.gifSrc) img.src = img.dataset.gifSrc;
+                };
+                const showStatic = () => {
+                  if (img.dataset.staticSrc && img.src !== img.dataset.staticSrc) img.src = img.dataset.staticSrc;
+                };
+                card.addEventListener('mouseenter', showGif);
+                card.addEventListener('mouseleave', showStatic);
+                card.addEventListener('focusin', showGif);
+                card.addEventListener('focusout', showStatic);
+              }
+            }
           });
 
           if (closeButton) {
