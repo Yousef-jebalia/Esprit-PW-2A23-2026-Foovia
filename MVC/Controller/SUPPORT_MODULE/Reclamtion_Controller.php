@@ -10,16 +10,24 @@ class Controller_reclamation {
         $userId = (int) $reclamation->getIdUser();
         $dateOverture = trim($reclamation->getDateOverture());
         $dateOverture = $dateOverture !== '' ? $dateOverture : date('Y-m-d');
+        $subject = trim($reclamation->getSubject());
+        if ($subject === '') {
+            $subject = trim($reclamation->getDescription());
+            $subject = $subject !== ''
+                ? (function_exists('mb_substr') ? mb_substr($subject, 0, 120) : substr($subject, 0, 120))
+                : 'Support claim';
+        }
 
         if ($userId <= 0) {
             throw new Exception('Missing authenticated user.');
         }
 
         try {
-            $sql = "INSERT INTO reclamation (id_user, description_reclam, etat_reclam, type_reclam, dateouvert_reclam, dateferm_reclam)
-                    VALUES (:id_user, :description, :etat, :type, :date_overture, :date_fermiture)";
+            $sql = "INSERT INTO reclamation (id_user, subject, description_reclam, etat_reclam, type_reclam, dateouvert_reclam, dateferm_reclam)
+                    VALUES (:id_user, :subject, :description, :etat, :type, :date_overture, :date_fermiture)";
             $params = [
                 'id_user' => $userId,
+                'subject' => $subject,
                 'description' => $reclamation->getDescription(),
                 'etat' => $reclamation->getEtat(),
                 'type' => $reclamation->getType(),
@@ -29,6 +37,7 @@ class Controller_reclamation {
 
             $query = $db->prepare($sql);
             $query->execute($params);
+
             return true;
         } catch (Exception $e) {
             throw new Exception('Reclamation insert failed: ' . $e->getMessage());
@@ -100,12 +109,22 @@ class Controller_reclamation {
         $sql = "UPDATE reclamation SET etat_reclam = :etat, dateferm_reclam = :date_fermiture WHERE id_reclam = :id_reclamation";
         $db = config::getConnexion();
         try {
+            $claimId = trim($reclamation->getIdReclamation());
+            if ($claimId === '' || !ctype_digit($claimId)) {
+                throw new Exception('Invalid claim id for status update.');
+            }
+
             $query = $db->prepare($sql);
             $query->execute([
                 'etat' => $reclamation->getEtat(),
                 'date_fermiture' => $reclamation->getDateFermiture(),
-                'id_reclamation' => $reclamation->getIdReclamation()
+                'id_reclamation' => (int) $claimId
             ]);
+
+            if ($query->rowCount() === 0) {
+                throw new Exception('No claim was updated. The selected claim may not exist anymore.');
+            }
+
             return true;
         } catch (Exception $e) {
             throw new Exception('Reclamation status update failed: ' . $e->getMessage());
@@ -168,4 +187,3 @@ class Controller_reclamation {
         }
     }
 }
-?>

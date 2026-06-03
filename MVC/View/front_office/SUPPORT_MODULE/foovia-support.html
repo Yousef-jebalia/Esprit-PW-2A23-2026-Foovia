@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FOOVIA — Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Boldonse&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow:    #F5C842;
+    --green:     #4BAE52;
+    --orange:    #D94F00;
+    --yellow-mid:#F0A830;
+    --forest:    #2E4A28;
+    --peach:     #F2A98A;
+    --red:       #C0381A;
+    --off-white: #FDF8EE;
+    --dark:      #111008;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--off-white); color: var(--dark); overflow-x: hidden; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; width: 100%; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 52px;
+    background: rgba(253,248,238,.92); backdrop-filter: blur(14px);
+    border-bottom: 1.5px solid rgba(75,174,82,.15);
+  }
+  .nav-logo { font-family:'Boldonse',system-ui; font-size:1.35rem; color:var(--dark); text-decoration:none; }
+  .nav-links { display:flex; gap:28px; list-style:none; }
+  .nav-links a { font-size:.88rem; font-weight:500; color:#777; text-decoration:none; transition:color .2s; }
+  .nav-links a:hover, .nav-links a.active { color:var(--green); }
+  .nav-cta { background:var(--green); color:#fff; padding:9px 22px; border-radius:100px; font-family:'Boldonse',system-ui; font-size:.78rem; text-decoration:none; transition:background .2s; }
+  .nav-cta:hover { background:var(--forest); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--dark);
+    padding: 110px 56px 60px;
+    position: relative; overflow: hidden;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .hero::before {
+    content:'';
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 60% 70% at 80% 30%, rgba(75,174,82,.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 10% 80%, rgba(245,200,66,.09) 0%, transparent 55%);
+    pointer-events:none;
+  }
+  .hero-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size:44px 44px;
+  }
+  .hero-text { position:relative; z-index:2; }
+  .hero-eyebrow { font-family:'Boldonse',system-ui; font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:var(--yellow); margin-bottom:12px; }
+  .hero-title { font-family:'Boldonse',system-ui; font-size:clamp(2.4rem,5vw,4rem); color:#fff; line-height:1.02; margin-bottom:14px; }
+  .hero-title span { color:var(--yellow); }
+  .hero-sub { font-size:.95rem; color:rgba(255,255,255,.5); line-height:1.7; max-width:480px; }
+
+  /* search box in hero */
+  .hero-search { position:relative; z-index:2; flex-shrink:0; }
+  .search-box { position:relative; }
+  .search-box input {
+    width:340px; border:1.5px solid rgba(255,255,255,.12); border-radius:16px;
+    padding:16px 52px 16px 20px;
+    font-family:'DM Sans',sans-serif; font-size:.95rem;
+    background:rgba(255,255,255,.07); color:#fff; outline:none;
+    transition:border-color .2s, background .2s, box-shadow .2s;
+  }
+  .search-box input::placeholder { color:rgba(255,255,255,.3); }
+  .search-box input:focus { border-color:var(--yellow); background:rgba(255,255,255,.1); box-shadow:0 0 0 3px rgba(245,200,66,.12); }
+  .search-btn {
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    background:var(--yellow); border:none; border-radius:10px;
+    padding:8px 14px; font-size:.85rem; cursor:pointer;
+    transition:background .15s;
+  }
+  .search-btn:hover { background:var(--yellow-mid); }
+
+  /* search results dropdown */
+  .search-results {
+    position:absolute; top:calc(100% + 8px); left:0; right:0;
+    background:#fff; border-radius:14px; border:1.5px solid rgba(0,0,0,.09);
+    box-shadow:0 20px 48px rgba(0,0,0,.15);
+    display:none; max-height:280px; overflow-y:auto; z-index:300;
+  }
+  .search-results.open { display:block; }
+  .sr-item { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; transition:background .15s; }
+  .sr-item:last-child { border-bottom:none; }
+  .sr-item:hover { background:rgba(75,174,82,.06); }
+  .sr-icon { font-size:1.2rem; flex-shrink:0; }
+  .sr-text strong { font-family:'Boldonse',system-ui; font-size:.82rem; display:block; margin-bottom:1px; }
+  .sr-text span { font-size:.74rem; color:#aaa; }
+
+  /* ── QUICK CARDS ── */
+  .quick-cards {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px; padding:36px 56px;
+  }
+  .qcard {
+    background:#fff; border-radius:20px; padding:26px 22px;
+    border:1.5px solid rgba(0,0,0,.07);
+    display:flex; flex-direction:column; gap:12px;
+    cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s;
+    text-decoration:none; color:var(--dark);
+  }
+  .qcard:hover { transform:translateY(-5px); box-shadow:0 18px 42px rgba(0,0,0,.09); border-color:rgba(75,174,82,.25); }
+  .qcard-icon { font-size:2rem; width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; }
+  .qcard-title { font-family:'Boldonse',system-ui; font-size:.95rem; }
+  .qcard-sub { font-size:.78rem; color:#888; line-height:1.5; flex:1; }
+  .qcard-arrow { font-size:.8rem; color:var(--green); font-family:'Boldonse',system-ui; }
+
+  /* ── MAIN LAYOUT ── */
+  .main { display:grid; grid-template-columns:1fr 360px; gap:28px; padding:0 56px 80px; align-items:start; }
+
+  /* ── LEFT PANEL ── */
+  .left { display:flex; flex-direction:column; gap:28px; }
+
+  /* status banner */
+  .status-banner {
+    background:#fff; border-radius:18px; border:1.5px solid rgba(0,0,0,.07);
+    padding:18px 24px; display:flex; align-items:center; gap:16px;
+  }
+  .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; animation:statusPulse 2s ease-in-out infinite; }
+  .status-dot.ok { background:var(--green); box-shadow:0 0 0 4px rgba(75,174,82,.15); }
+  @keyframes statusPulse { 0%,100%{box-shadow:0 0 0 4px rgba(75,174,82,.15)} 50%{box-shadow:0 0 0 8px rgba(75,174,82,.08)} }
+  .status-text { flex:1; }
+  .status-title { font-family:'Boldonse',system-ui; font-size:.88rem; margin-bottom:2px; }
+  .status-sub { font-size:.75rem; color:#888; }
+  .status-badge { font-family:'Boldonse',system-ui; font-size:.65rem; letter-spacing:.1em; text-transform:uppercase; background:rgba(75,174,82,.1); color:var(--forest); border-radius:100px; padding:5px 12px; }
+
+  /* ── TICKET FORM ── */
+  .card { background:#fff; border-radius:22px; border:1.5px solid rgba(0,0,0,.07); padding:28px; }
+  .card-title { font-family:'Boldonse',system-ui; font-size:1.1rem; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .card-sub { font-size:.82rem; color:#888; margin-bottom:24px; }
+
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.wide { grid-column:span 2; }
+  .field label { font-family:'Boldonse',system-ui; font-size:.72rem; letter-spacing:.06em; color:#555; }
+  .field input, .field select, .field textarea {
+    border:1.5px solid rgba(0,0,0,.1); border-radius:12px;
+    padding:12px 14px; font-family:'DM Sans',sans-serif;
+    font-size:.92rem; background:var(--off-white); color:var(--dark);
+    outline:none; transition:border-color .2s, box-shadow .2s;
+    resize:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color:var(--green); box-shadow:0 0 0 3px rgba(75,174,82,.1);
+  }
+
+  /* category chips */
+  .cat-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .cat-chip {
+    border:1.5px solid rgba(0,0,0,.1); border-radius:100px;
+    padding:7px 15px; font-size:.78rem; font-weight:600;
+    cursor:pointer; background:#fff; color:#666;
+    transition:background .15s, border-color .15s, color .15s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .cat-chip:hover { border-color:var(--green); color:var(--green); }
+  .cat-chip.active { background:var(--dark); border-color:var(--dark); color:var(--yellow); }
+
+  /* priority */
+  .priority-row { display:flex; gap:10px; }
+  .prio-btn {
+    flex:1; border:1.5px solid rgba(0,0,0,.1); border-radius:12px;
+    padding:10px; text-align:center; cursor:pointer; background:#fff;
+    font-family:'Boldonse',system-ui; font-size:.72rem; transition:.15s;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .prio-btn .pico { font-size:1.2rem; }
+  .prio-btn:hover { border-color:var(--yellow); }
+  .prio-btn.active { border-color:var(--orange); background:rgba(217,79,0,.06); color:var(--orange); }
+
+  /* file upload */
+  .file-drop {
+    border:2px dashed rgba(0,0,0,.12); border-radius:14px;
+    padding:22px; text-align:center; cursor:pointer;
+    transition:border-color .2s, background .2s;
+  }
+  .file-drop:hover { border-color:var(--green); background:rgba(75,174,82,.04); }
+  .file-drop .fd-icon { font-size:1.8rem; margin-bottom:8px; display:block; }
+  .file-drop p { font-size:.78rem; color:#aaa; }
+  .file-drop p strong { color:var(--green); }
+  .file-input { display:none; }
+
+  .btn-submit {
+    width:100%; background:var(--orange); color:#fff;
+    border:none; border-radius:14px; padding:16px;
+    font-family:'Boldonse',system-ui; font-size:.95rem;
+    cursor:pointer; transition:background .2s, transform .15s;
+    margin-top:4px; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-submit:hover { background:var(--red); transform:scale(1.01); }
+
+  /* ── MY TICKETS ── */
+  .ticket-list { display:flex; flex-direction:column; gap:10px; }
+  .ticket {
+    background:var(--off-white); border-radius:16px;
+    border:1.5px solid rgba(0,0,0,.07); padding:16px 18px;
+    display:flex; align-items:center; gap:14px;
+    cursor:pointer; transition:border-color .2s, background .2s;
+  }
+  .ticket:hover { border-color:var(--yellow-mid); background:#fff; }
+  .ticket-status { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .ts-open { background:var(--orange); }
+  .ts-progress { background:var(--yellow); }
+  .ts-resolved { background:var(--green); }
+  .ticket-info { flex:1; }
+  .ticket-title { font-family:'Boldonse',system-ui; font-size:.85rem; margin-bottom:3px; }
+  .ticket-meta { font-size:.72rem; color:#aaa; display:flex; gap:10px; }
+  .ticket-badge { font-family:'Boldonse',system-ui; font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; padding:3px 10px; border-radius:100px; }
+  .tb-open     { background:rgba(217,79,0,.1);  color:var(--orange); }
+  .tb-progress { background:rgba(245,200,66,.15); color:#7a5800; }
+  .tb-resolved { background:rgba(75,174,82,.1);  color:var(--forest); }
+  .ticket-arrow { color:#ccc; font-size:.9rem; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { position:sticky; top:88px; display:flex; flex-direction:column; gap:20px; }
+
+  /* AI chatbot */
+  .chat-card { background:var(--dark); border-radius:22px; padding:0; overflow:hidden; }
+  .chat-head { padding:22px 22px 16px; border-bottom:1px solid rgba(255,255,255,.07); display:flex; align-items:center; gap:12px; }
+  .chat-avatar { width:40px; height:40px; border-radius:12px; background:var(--yellow); display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+  .chat-head-info { flex:1; }
+  .chat-name { font-family:'Boldonse',system-ui; font-size:.9rem; color:#fff; }
+  .chat-online { font-size:.72rem; color:var(--green); display:flex; align-items:center; gap:5px; }
+  .chat-online::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; }
+
+  .chat-messages { padding:16px; display:flex; flex-direction:column; gap:10px; max-height:260px; overflow-y:auto; scrollbar-width:none; }
+  .chat-messages::-webkit-scrollbar { display:none; }
+
+  .msg { max-width:85%; }
+  .msg-bot { align-self:flex-start; }
+  .msg-user { align-self:flex-end; }
+  .msg-bubble {
+    border-radius:16px; padding:10px 14px;
+    font-size:.82rem; line-height:1.55;
+  }
+  .msg-bot .msg-bubble { background:rgba(255,255,255,.08); color:rgba(255,255,255,.8); border-radius:4px 16px 16px 16px; }
+  .msg-user .msg-bubble { background:var(--yellow); color:var(--dark); font-weight:500; border-radius:16px 16px 4px 16px; }
+  .msg-time { font-size:.65rem; color:rgba(255,255,255,.25); margin-top:4px; padding:0 4px; }
+  .msg-user .msg-time { text-align:right; }
+
+  /* typing indicator */
+  .typing { display:flex; align-items:center; gap:4px; padding:10px 14px; background:rgba(255,255,255,.08); border-radius:4px 16px 16px 16px; width:fit-content; }
+  .typing span { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.4); animation:typingDot .9s ease-in-out infinite; }
+  .typing span:nth-child(2) { animation-delay:.18s; }
+  .typing span:nth-child(3) { animation-delay:.36s; }
+  @keyframes typingDot { 0%,80%,100%{transform:scale(1);opacity:.4} 40%{transform:scale(1.4);opacity:1} }
+
+  .chat-input-row {
+    display:flex; gap:8px; padding:14px 16px;
+    border-top:1px solid rgba(255,255,255,.07);
+  }
+  .chat-input {
+    flex:1; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.1);
+    border-radius:10px; padding:10px 13px;
+    font-family:'DM Sans',sans-serif; font-size:.84rem; color:#fff;
+    outline:none; transition:border-color .2s;
+  }
+  .chat-input::placeholder { color:rgba(255,255,255,.25); }
+  .chat-input:focus { border-color:var(--yellow); }
+  .chat-send {
+    background:var(--yellow); border:none; border-radius:10px;
+    width:38px; height:38px; cursor:pointer; font-size:1rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:background .15s;
+  }
+  .chat-send:hover { background:var(--yellow-mid); }
+
+  /* community card */
+  .scard { background:#fff; border-radius:20px; border:1.5px solid rgba(0,0,0,.07); padding:22px; }
+  .scard-title { font-family:'Boldonse',system-ui; font-size:.9rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+  .thread-list { display:flex; flex-direction:column; gap:8px; }
+  .thread {
+    display:flex; align-items:center; gap:10px; padding:10px 12px;
+    border:1.5px solid rgba(0,0,0,.07); border-radius:12px;
+    cursor:pointer; transition:border-color .15s, background .15s;
+    text-decoration:none; color:var(--dark);
+  }
+  .thread:hover { border-color:var(--green); background:rgba(75,174,82,.04); }
+  .thread-avatar { width:32px; height:32px; border-radius:50%; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700; color:#fff; }
+  .thread-info { flex:1; }
+  .thread-title { font-family:'Boldonse',system-ui; font-size:.75rem; margin-bottom:1px; }
+  .thread-meta { font-size:.68rem; color:#aaa; }
+  .thread-badge { font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:100px; flex-shrink:0; }
+  .tb-solved { background:rgba(75,174,82,.1); color:var(--forest); }
+  .tb-hot { background:rgba(217,79,0,.1); color:var(--orange); }
+
+  /* reward card */
+  .reward-card { background:var(--dark); border-radius:20px; padding:22px; color:#fff; }
+  .reward-title { font-family:'Boldonse',system-ui; font-size:.9rem; color:var(--yellow); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .reward-pts { font-family:'Boldonse',system-ui; font-size:2.4rem; color:var(--yellow); line-height:1; margin-bottom:4px; }
+  .reward-sub { font-size:.72rem; color:rgba(255,255,255,.4); margin-bottom:16px; }
+  .reward-bar-track { height:6px; background:rgba(255,255,255,.08); border-radius:100px; overflow:hidden; margin-bottom:8px; }
+  .reward-bar-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,var(--green),var(--yellow)); width:68%; }
+  .reward-milestone { font-size:.72rem; color:rgba(255,255,255,.35); display:flex; justify-content:space-between; }
+
+  /* ── SUCCESS TOAST ── */
+  .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--dark); color:#fff; padding:13px 26px; border-radius:100px; font-family:'Boldonse',system-ui; font-size:.84rem; z-index:500; opacity:0; pointer-events:none; transition:opacity .3s, transform .3s; display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ── TICKET MODAL ── */
+  .modal-overlay { position:fixed; inset:0; background:rgba(17,16,8,.65); z-index:400; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--off-white); border-radius:24px; width:100%; max-width:540px; max-height:88vh; overflow-y:auto; animation:mIn .3s cubic-bezier(.34,1.56,.64,1) both; padding:32px; }
+  @keyframes mIn { from{opacity:0;transform:scale(.88) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .modal-title { font-family:'Boldonse',system-ui; font-size:1.3rem; margin-bottom:6px; }
+  .modal-close { float:right; background:rgba(0,0,0,.08); border:none; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1rem; transition:background .15s; }
+  .modal-close:hover { background:rgba(0,0,0,.14); }
+  .ticket-thread { display:flex; flex-direction:column; gap:12px; margin:20px 0; }
+  .tt-msg { padding:14px 16px; border-radius:14px; font-size:.85rem; line-height:1.6; }
+  .tt-msg.support { background:rgba(75,174,82,.08); border:1px solid rgba(75,174,82,.15); }
+  .tt-msg.user    { background:#fff; border:1px solid rgba(0,0,0,.08); }
+  .tt-msg-meta { font-family:'Boldonse',system-ui; font-size:.65rem; text-transform:uppercase; letter-spacing:.1em; color:#aaa; margin-bottom:6px; }
+  .reply-box { border:1.5px solid rgba(0,0,0,.1); border-radius:12px; padding:12px 14px; font-family:'DM Sans',sans-serif; font-size:.9rem; background:#fff; width:100%; outline:none; resize:none; transition:border-color .2s; margin-bottom:10px; }
+  .reply-box:focus { border-color:var(--green); }
+  .btn-reply { background:var(--green); color:#fff; border:none; border-radius:12px; padding:13px 24px; font-family:'Boldonse',system-ui; font-size:.85rem; cursor:pointer; transition:background .2s; }
+  .btn-reply:hover { background:var(--forest); }
+
+  /* responsive */
+  @media (max-width:960px) {
+    nav { padding:14px 20px; } .nav-links { display:none; }
+    .hero { padding:100px 20px 48px; flex-direction:column; }
+    .search-box input { width:100%; }
+    .hero-search { width:100%; }
+    .quick-cards { grid-template-columns:1fr 1fr; padding:24px 20px; }
+    .main { grid-template-columns:1fr; padding:0 20px 60px; }
+    .sidebar { position:static; }
+  }
+  @media (max-width:520px) {
+    .quick-cards { grid-template-columns:1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .field.wide { grid-column:span 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="foovia.html" class="nav-logo">🌿 FOOVIA</a>
+  <ul class="nav-links">
+    <li><a href="foovia.html">Home</a></li>
+    <li><a href="foovia-recipes.html">Recipes</a></li>
+    <li><a href="foovia-tracker.html">Tracker</a></li>
+    <li><a href="#" class="active">Support</a></li>
+  </ul>
+  <a href="foovia-premium.html" class="nav-cta">Go Premium</a>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Ticket submitted!</div>
+
+<!-- TICKET MODAL -->
+<div class="modal-overlay" id="ticket-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title">Ticket #1042</div>
+    <div id="modal-status-badge" style="margin-bottom:16px"></div>
+    <div class="ticket-thread" id="modal-thread"></div>
+    <textarea class="reply-box" id="reply-box" rows="3" placeholder="Write a reply…"></textarea>
+    <button class="btn-reply" onclick="sendReply()">Send reply</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-text">
+    <p class="hero-eyebrow">💬 Help centre</p>
+    <h1 class="hero-title">How can we<br><span>help you?</span></h1>
+    <p class="hero-sub">Submit a ticket, chat with our AI assistant, or browse community discussions. We're here 24/7.</p>
+  </div>
+  <div class="hero-search">
+    <div class="search-box">
+      <input type="text" id="hero-search" placeholder="Search help articles, topics…" oninput="handleSearch(this.value)" onblur="setTimeout(()=>closeSearch(),200)"/>
+      <button class="search-btn">🔍</button>
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK CARDS -->
+<div class="quick-cards">
+  <a class="qcard" href="#ticket-form" onclick="setCat('account')">
+    <div class="qcard-icon" style="background:rgba(245,200,66,.15)">👤</div>
+    <div class="qcard-title">Account & Profile</div>
+    <div class="qcard-sub">Login issues, password reset, profile settings and preferences.</div>
+    <div class="qcard-arrow">Get help →</div>
+  </a>
+  <a class="qcard" href="#ticket-form" onclick="setCat('billing')">
+    <div class="qcard-icon" style="background:rgba(75,174,82,.12)">💳</div>
+    <div class="qcard-title">Billing & Premium</div>
+    <div class="qcard-sub">Subscription questions, payment issues, plan upgrades and refunds.</div>
+    <div class="qcard-arrow">Get help →</div>
+  </a>
+  <a class="qcard" href="#ticket-form" onclick="setCat('bug')">
+    <div class="qcard-icon" style="background:rgba(217,79,0,.1)">🐛</div>
+    <div class="qcard-title">Report a Bug</div>
+    <div class="qcard-sub">Something broken? Let us know and we'll fix it fast.</div>
+    <div class="qcard-arrow">Report →</div>
+  </a>
+  <a class="qcard" href="#ticket-form" onclick="setCat('feature')">
+    <div class="qcard-icon" style="background:rgba(242,169,138,.2)">💡</div>
+    <div class="qcard-title">Feature Request</div>
+    <div class="qcard-sub">Have an idea to make Foovia better? We'd love to hear it.</div>
+    <div class="qcard-arrow">Suggest →</div>
+  </a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="left">
+
+    <!-- STATUS -->
+    <div class="status-banner">
+      <div class="status-dot ok"></div>
+      <div class="status-text">
+        <div class="status-title">All systems operational</div>
+        <div class="status-sub">Last checked just now · No incidents reported</div>
+      </div>
+      <div class="status-badge">✅ Online</div>
+    </div>
+
+    <!-- TICKET FORM -->
+    <div class="card" id="ticket-form">
+      <div class="card-title">🎫 Submit a ticket</div>
+      <div class="card-sub">Our team typically responds within 2–4 hours.</div>
+
+      <!-- category -->
+      <div class="field" style="margin-bottom:14px;">
+        <label>Category</label>
+        <div class="cat-chips" id="cat-chips">
+          <div class="cat-chip" onclick="setCat('account',this)">👤 Account</div>
+          <div class="cat-chip" onclick="setCat('billing',this)">💳 Billing</div>
+          <div class="cat-chip" onclick="setCat('bug',this)">🐛 Bug report</div>
+          <div class="cat-chip" onclick="setCat('feature',this)">💡 Feature request</div>
+          <div class="cat-chip" onclick="setCat('recipe',this)">🍽️ Recipes</div>
+          <div class="cat-chip" onclick="setCat('tracker',this)">📊 Tracker</div>
+          <div class="cat-chip" onclick="setCat('marketplace',this)">🛒 Marketplace</div>
+          <div class="cat-chip" onclick="setCat('other',this)">❓ Other</div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="t-name" placeholder="Amine Trabelsi"/>
+        </div>
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" id="t-email" placeholder="you@example.com"/>
+        </div>
+        <div class="field wide">
+          <label>Subject</label>
+          <input type="text" id="t-subject" placeholder="Briefly describe your issue…"/>
+        </div>
+        <div class="field wide">
+          <label>Description</label>
+          <textarea id="t-desc" rows="5" placeholder="Give us as much detail as possible — steps to reproduce, what you expected, what happened…"></textarea>
+        </div>
+      </div>
+
+      <!-- priority -->
+      <div class="field" style="margin-bottom:14px;">
+        <label>Priority</label>
+        <div class="priority-row">
+          <div class="prio-btn" onclick="setPrio(this,'low')"><span class="pico">🟢</span>Low</div>
+          <div class="prio-btn active" onclick="setPrio(this,'medium')"><span class="pico">🟡</span>Medium</div>
+          <div class="prio-btn" onclick="setPrio(this,'high')"><span class="pico">🔴</span>High</div>
+          <div class="prio-btn" onclick="setPrio(this,'critical')"><span class="pico">🚨</span>Critical</div>
+        </div>
+      </div>
+
+      <!-- attachment -->
+      <div class="field" style="margin-bottom:18px;">
+        <label>Attachment (optional)</label>
+        <div class="file-drop" onclick="document.getElementById('file-input').click()">
+          <span class="fd-icon">📎</span>
+          <p><strong>Click to upload</strong> or drag a screenshot here</p>
+          <p style="margin-top:4px">PNG, JPG, PDF · max 10 MB</p>
+        </div>
+        <input type="file" id="file-input" class="file-input" accept="image/*,.pdf"/>
+      </div>
+
+      <button class="btn-submit" onclick="submitTicket()">🎫 Submit ticket</button>
+    </div>
+
+    <!-- MY TICKETS -->
+    <div class="card">
+      <div class="card-title">📬 My tickets</div>
+      <div class="card-sub">Click a ticket to view the thread and reply.</div>
+      <div class="ticket-list" id="ticket-list"></div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- AI CHAT -->
+    <div class="chat-card">
+      <div class="chat-head">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-head-info">
+          <div class="chat-name">Foovia Assistant</div>
+          <div class="chat-online">Online now</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg msg-bot">
+          <div class="msg-bubble">👋 Hi! I'm Foovia's support assistant. Ask me anything about recipes, tracking, workouts, or your account!</div>
+          <div class="msg-time">Just now</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" type="text" placeholder="Ask something…" onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+
+    <!-- COMMUNITY THREADS -->
+    <div class="scard">
+      <div class="scard-title">💬 Community threads</div>
+      <div class="thread-list">
+        <a class="thread" href="#">
+          <div class="thread-avatar" style="background:#4BAE52">A</div>
+          <div class="thread-info">
+            <div class="thread-title">How to sync meals with tracker?</div>
+            <div class="thread-meta">Amina · 2h ago · 14 replies</div>
+          </div>
+          <span class="thread-badge tb-solved">✓ Solved</span>
+        </a>
+        <a class="thread" href="#">
+          <div class="thread-avatar" style="background:#D94F00">K</div>
+          <div class="thread-info">
+            <div class="thread-title">Macro scan not reading correctly</div>
+            <div class="thread-meta">Karim · 5h ago · 8 replies</div>
+          </div>
+          <span class="thread-badge tb-hot">🔥 Hot</span>
+        </a>
+        <a class="thread" href="#">
+          <div class="thread-avatar" style="background:#F0A830">S</div>
+          <div class="thread-info">
+            <div class="thread-title">Marketplace delivery not available in my area</div>
+            <div class="thread-meta">Sana · 1d ago · 5 replies</div>
+          </div>
+          <span class="thread-badge tb-hot">🔥 Hot</span>
+        </a>
+        <a class="thread" href="#">
+          <div class="thread-avatar" style="background:#2E4A28">Y</div>
+          <div class="thread-info">
+            <div class="thread-title">Best way to set custom macro goals?</div>
+            <div class="thread-meta">Youssef · 2d ago · 21 replies</div>
+          </div>
+          <span class="thread-badge tb-solved">✓ Solved</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- REWARDS -->
+    <div class="reward-card">
+      <div class="reward-title">🏆 Your support rewards</div>
+      <div class="reward-pts">340</div>
+      <div class="reward-sub">points earned for helping the community</div>
+      <div class="reward-bar-track"><div class="reward-bar-fill"></div></div>
+      <div class="reward-milestone"><span>340 pts</span><span>500 pts = Premium week 🎁</span></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── SEARCH ──
+const ARTICLES = [
+  { icon:'🔐', title:'Reset your password', cat:'Account' },
+  { icon:'💳', title:'Cancel or change your subscription', cat:'Billing' },
+  { icon:'📸', title:'How the meal photo scan works', cat:'Tracker' },
+  { icon:'🥗', title:'Finding recipes by ingredients', cat:'Recipes' },
+  { icon:'🏋️', title:'Setting up your workout plan', cat:'Sport' },
+  { icon:'🛒', title:'How marketplace delivery works', cat:'Marketplace' },
+  { icon:'🎯', title:'Setting custom macro goals', cat:'Tracker' },
+  { icon:'🐛', title:'Report a bug — what info to include', cat:'Bug report' },
+  { icon:'👤', title:'Editing your health profile', cat:'Account' },
+  { icon:'💡', title:'Submitting a feature request', cat:'General' },
+];
+function handleSearch(q) {
+  const res = document.getElementById('search-results');
+  if (!q.trim()) { res.classList.remove('open'); return; }
+  const matches = ARTICLES.filter(a => a.title.toLowerCase().includes(q.toLowerCase()) || a.cat.toLowerCase().includes(q.toLowerCase()));
+  if (!matches.length) { res.classList.remove('open'); return; }
+  res.innerHTML = matches.map(a => `
+    <div class="sr-item">
+      <div class="sr-icon">${a.icon}</div>
+      <div class="sr-text"><strong>${a.title}</strong><span>${a.cat}</span></div>
+    </div>`).join('');
+  res.classList.add('open');
+}
+function closeSearch() { document.getElementById('search-results').classList.remove('open'); }
+
+// ── CATEGORY CHIPS ──
+let activeCat = null;
+function setCat(cat, el) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    const map = { account:0, billing:1, bug:2, feature:3, recipe:4, tracker:5, marketplace:6, other:7 };
+    const chips = document.querySelectorAll('.cat-chip');
+    if (chips[map[cat]]) chips[map[cat]].classList.add('active');
+  }
+  document.getElementById('ticket-form').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── PRIORITY ──
+function setPrio(el) {
+  document.querySelectorAll('.prio-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── SUBMIT TICKET ──
+const TICKETS = [
+  { id:'#1042', title:'Meal photo scan returning wrong calories', status:'progress', cat:'Tracker', date:'Today 10:24', thread:[
+    { from:'support', text:'Hi! Thanks for reaching out. Can you share a screenshot of the incorrect reading?', time:'10:25' },
+    { from:'user',    text:'Sure, I just uploaded it. It said my salad was 900 kcal which seems way off.', time:'10:31' },
+    { from:'support', text:'We\'re looking into this — the scan model is being retrained on salad dishes. Expect a fix within 48h!', time:'10:45' },
+  ]},
+  { id:'#1038', title:'Unable to log in on mobile app', status:'resolved', cat:'Account', date:'Yesterday', thread:[
+    { from:'support', text:'Hi! Please try clearing the app cache and logging in again.', time:'09:12' },
+    { from:'user',    text:'That worked! Thanks so much.', time:'09:40' },
+    { from:'support', text:'Great to hear! Marking this as resolved. Have a great day! 🌿', time:'09:42' },
+  ]},
+  { id:'#1031', title:'Marketplace delivery not available in Bizerte', status:'open', cat:'Marketplace', date:'2 days ago', thread:[
+    { from:'user', text:'Hey, I live in Bizerte and there\'s no delivery option showing for me.', time:'14:22' },
+    { from:'support', text:'Thanks for the report! We\'re currently expanding delivery zones. Bizerte is on our roadmap for Q3.', time:'15:00' },
+  ]},
+];
+
+function submitTicket() {
+  const name = document.getElementById('t-name').value.trim();
+  const email = document.getElementById('t-email').value.trim();
+  const subject = document.getElementById('t-subject').value.trim();
+  const desc = document.getElementById('t-desc').value.trim();
+  if (!name || !email || !subject || !desc) { showToast('⚠️ Please fill all required fields'); return; }
+  TICKETS.unshift({ id:'#' + (1043 + Math.floor(Math.random()*10)), title:subject, status:'open', cat:activeCat||'General', date:'Just now', thread:[
+    { from:'support', text:'Thanks for reaching out! We\'ve received your ticket and will respond shortly. 🌿', time:'Just now' }
+  ]});
+  renderTickets();
+  ['t-name','t-email','t-subject','t-desc'].forEach(id => document.getElementById(id).value = '');
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+  showToast('✅ Ticket submitted — we\'ll respond soon!');
+}
+
+function renderTickets() {
+  document.getElementById('ticket-list').innerHTML = TICKETS.map((t,i) => `
+    <div class="ticket" onclick="openTicket(${i})">
+      <div class="ticket-status ts-${t.status}"></div>
+      <div class="ticket-info">
+        <div class="ticket-title">${t.id} — ${t.title}</div>
+        <div class="ticket-meta"><span>${t.cat}</span><span>${t.date}</span></div>
+      </div>
+      <span class="ticket-badge tb-${t.status}">${t.status==='progress'?'In progress':t.status.charAt(0).toUpperCase()+t.status.slice(1)}</span>
+      <div class="ticket-arrow">›</div>
+    </div>`).join('');
+}
+
+function openTicket(i) {
+  const t = TICKETS[i];
+  document.getElementById('modal-title').textContent = `${t.id} — ${t.title}`;
+  document.getElementById('modal-status-badge').innerHTML = `<span class="ticket-badge tb-${t.status}" style="font-size:.72rem">${t.status==='progress'?'In progress':t.status.charAt(0).toUpperCase()+t.status.slice(1)}</span>`;
+  document.getElementById('modal-thread').innerHTML = t.thread.map(m => `
+    <div class="tt-msg ${m.from}">
+      <div class="tt-msg-meta">${m.from==='support'?'🌿 Foovia Support':'👤 You'} · ${m.time}</div>
+      ${m.text}
+    </div>`).join('');
+  document.getElementById('ticket-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('ticket-modal').classList.remove('open'); }
+
+function sendReply() {
+  const box = document.getElementById('reply-box');
+  const val = box.value.trim();
+  if (!val) return;
+  const thread = document.getElementById('modal-thread');
+  thread.innerHTML += `<div class="tt-msg user"><div class="tt-msg-meta">👤 You · Just now</div>${val}</div>`;
+  box.value = '';
+  thread.scrollTop = thread.scrollHeight;
+  setTimeout(() => {
+    thread.innerHTML += `<div class="tt-msg support"><div class="tt-msg-meta">🌿 Foovia Support · Just now</div>Thanks for the update! We'll look into it right away.</div>`;
+    thread.scrollTop = thread.scrollHeight;
+  }, 1200);
+}
+
+// ── AI CHAT ──
+const BOT_REPLIES = {
+  recipe: ['You can search recipes by ingredient, category, or macro goal on the Recipes page! 🍽️', 'Just tap "By ingredients" on the recipe page and select what\'s in your fridge!'],
+  track:  ['Head to the Tracker page to log your meals and macros. You can even scan a photo of your meal! 📊', 'To set your macro goals, go to Tracker → Daily Targets in the sidebar.'],
+  workout:['Your workout plan is in the Sport section. Use the body mannequin to select the muscle groups you want to train! 💪'],
+  premium:['Premium unlocks AI meal suggestions, ingredient photo scanning, custom workouts, and marketplace delivery. 👑', 'You can upgrade on the Premium page. Monthly or annual billing available!'],
+  account:['To reset your password, go to Sign In and tap "Forgot your password". 🔐', 'You can update your health profile anytime in the Profile section.'],
+  default:['Great question! Let me look into that for you… 🌿 If I can\'t help, submitting a ticket is the fastest way to reach our team.', 'I\'m not 100% sure about that one! Submitting a ticket will get you a definitive answer from our team within a few hours. 😊'],
+};
+function getReply(msg) {
+  const m = msg.toLowerCase();
+  if (/recipe|ingredient|meal|cook|food/.test(m)) return BOT_REPLIES.recipe[Math.floor(Math.random()*BOT_REPLIES.recipe.length)];
+  if (/track|macro|calor|water|log/.test(m)) return BOT_REPLIES.track[Math.floor(Math.random()*BOT_REPLIES.track.length)];
+  if (/workout|sport|exercise|train|gym/.test(m)) return BOT_REPLIES.workout[0];
+  if (/premium|upgrade|plan|price|subscription/.test(m)) return BOT_REPLIES.premium[Math.floor(Math.random()*BOT_REPLIES.premium.length)];
+  if (/account|login|password|profile|sign/.test(m)) return BOT_REPLIES.account[Math.floor(Math.random()*BOT_REPLIES.account.length)];
+  return BOT_REPLIES.default[Math.floor(Math.random()*BOT_REPLIES.default.length)];
+}
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  const wrap = document.getElementById('chat-messages');
+  const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  wrap.innerHTML += `<div class="msg msg-user"><div class="msg-bubble">${msg}</div><div class="msg-time">${now}</div></div>`;
+  wrap.innerHTML += `<div class="msg msg-bot" id="typing-msg"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  wrap.scrollTop = wrap.scrollHeight;
+  setTimeout(() => {
+    const typing = document.getElementById('typing-msg');
+    if (typing) typing.outerHTML = `<div class="msg msg-bot"><div class="msg-bubble">${getReply(msg)}</div><div class="msg-time">${now}</div></div>`;
+    wrap.scrollTop = wrap.scrollHeight;
+  }, 1000 + Math.random()*600);
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── INIT ──
+renderTickets();
+</script>
+</body>
+</html>
