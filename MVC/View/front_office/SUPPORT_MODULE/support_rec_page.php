@@ -605,22 +605,23 @@ if (!empty($reclamations)) {
                     <h3 class="h5 mb-1 text-body">Youssef Jebalia</h3>
                     <p class="small text-muted mb-2">Responsible for support module</p>
                     <p class="small mb-1"><a href="mailto:youssef.jebalia@esprit.tn">youssef.jebalia@esprit.tn</a></p>
-                    <p class="small mb-0 text-body">+216 29530130</p>
+                    <p class="small mb-1"><a href="https://www.linkedin.com/in/yousef-jebalia-0947a0337/" target="_blank">LinkedIn Profile</a></p>
+                    
                   </div>
                 </div>
               </article>
             </div>
             <div class="col-sm-6 col-lg-4">
-              <article class="support-team-card" tabindex="0" aria-label="Karim Ben Salah, Claims specialist, karim.bensalah@foovia.com, +216 98 203 040">
+              <article class="support-team-card" tabindex="0" >
                 <div class="support-team-card__surface">
                   <figure class="support-team-card__figure">
-                    <img class="support-team-card__photo" src="assets/coolbob.png" width="140" height="140" alt="agent 1">
+                    <img class="support-team-card__photo" src="assets/ysfz.jpg" width="140" height="140" alt="agent 1">
                   </figure>
                   <div class="support-team-card__drawer">
                     <h3 class="h5 mb-1 text-body">Youssef Zouaghi</h3>
                     <p class="small text-muted mb-2">Responsible for recipe module</p>
                      <p class="small mb-1"><a href="mailto:youssef.zouaghi@esprit.tn">youssef.zouaghi@esprit.tn</a></p>
-                    <p class="small mb-0 text-body">+216 77 777 777</p>
+                    <p class="small mb-1"><a href="https://www.linkedin.com/in/youssef-zouaghi-9a3a0b399/" target="_blank">LinkedIn Profile</a></p>
                   </div>
                 </div>
               </article>
@@ -635,7 +636,7 @@ if (!empty($reclamations)) {
                     <h3 class="h5 mb-1 text-body">Aziz Amri</h3>
                     <p class="small text-muted mb-2">Responsible for marketplace module</p>
                     <p class="small mb-1"><a href="mailto:MohamedAziz.Amri@esprit.tn">MohamedAziz.Amri@esprit.tn</a></p>
-                    <p class="small mb-0 text-body">+216 65328769</p>
+                    <p class="small mb-1"><a href="https://www.linkedin.com/in/aziz-amri-a628bb409/" target="_blank">LinkedIn Profile</a></p>
                   </div>
                 </div>
               </article>
@@ -644,13 +645,13 @@ if (!empty($reclamations)) {
               <article class="support-team-card" tabindex="0" aria-label="Karim Ben Salah, Claims specialist, karim.bensalah@foovia.com, +216 98 203 040">
                 <div class="support-team-card__surface">
                   <figure class="support-team-card__figure">
-                    <img class="support-team-card__photo" src="assets/coolbob.png" width="140" height="140" alt="agent 1">
+                    <img class="support-team-card__photo" src="assets/jwif.jpg" width="140" height="140" alt="agent 1">
                   </figure>
                   <div class="support-team-card__drawer">
                     <h3 class="h5 mb-1 text-body">Mohamed Cherif</h3>
                     <p class="small text-muted mb-2">Responsible for sport module</p>
                      <p class="small mb-1"><a href="mailto:mohamed.cherif@esprit.tn">mohamed.cherif@esprit.tn</a></p>
-                    <p class="small mb-0 text-body">+216 77 777 777</p>
+                    <p class="small mb-1"><a href="https://www.linkedin.com/in/mohamed-cherif-eng/" target="_blank">LinkedIn Profile</a></p>
                   </div>
                 </div>
               </article>
@@ -659,13 +660,13 @@ if (!empty($reclamations)) {
               <article class="support-team-card" tabindex="0" aria-label="Karim Ben Salah, Claims specialist, karim.bensalah@foovia.com, +216 98 203 040">
                 <div class="support-team-card__surface">
                   <figure class="support-team-card__figure">
-                    <img class="support-team-card__photo" src="assets/coolbob.png" width="140" height="140" alt="agent 1">
+                    <img class="support-team-card__photo" src="assets/amal.jpg" width="140" height="140" alt="agent 1">
                   </figure>
                   <div class="support-team-card__drawer">
                     <h3 class="h5 mb-1 text-body">Amal Daldoul</h3>
                     <p class="small text-muted mb-2">Responsible for user module</p>
                      <p class="small mb-1"><a href="mailto:amal.daldoul@esprit.tn">amal.daldoul@esprit.tn</a></p>
-                    <p class="small mb-0 text-body">+216 77 777 777</p>
+                    <p class="small mb-1"><a href="https://www.linkedin.com/in/amal-daldoul-836852409/" target="_blank">LinkedIn Profile</a></p>
                   </div>
                 </div>
               </article>
@@ -680,7 +681,7 @@ if (!empty($reclamations)) {
                     <h3 class="h5 mb-1 text-body">Lyna Byby</h3>
                     <p class="small text-muted mb-2">Responsible for tracking module</p>
                      <p class="small mb-1"><a href="mailto:Lyna.Bibi@esprit.tn">Lyna.Bibi@esprit.tn</a></p>
-                    <p class="small mb-0 text-body">+216 77 777 777</p>
+                    <p class="small mb-1"><a href="https://www.linkedin.com/in/lyna-bibi-a85bb8405/" target="_blank">LinkedIn Profile</a></p>
                   </div>
                 </div>
               </article>
