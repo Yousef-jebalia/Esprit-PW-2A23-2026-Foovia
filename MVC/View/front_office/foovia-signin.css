@@ -15,7 +15,10 @@
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--dark);
+    background:
+      radial-gradient(circle at top left, rgba(75,174,82,.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(245,200,66,.22), transparent 30%),
+      linear-gradient(135deg, #f7fbf2 0%, #eef7e9 48%, #fdf8ee 100%);
     color: var(--dark);
     display: flex;
     min-height: 100vh;
@@ -25,7 +28,11 @@
   /* ── LEFT PANEL ── */
   .left-panel {
     flex: 1;
-    background: var(--dark);
+    background:
+      radial-gradient(circle at top left, rgba(75,174,82,.18), transparent 32%),
+      radial-gradient(circle at bottom right, rgba(245,200,66,.22), transparent 28%),
+      linear-gradient(135deg, #fbfff7 0%, #f1f8ea 42%, #fff8ee 100%);
+    background-color: #f7fbf2;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -39,41 +46,50 @@
   .blob {
     position: absolute;
     border-radius: 50%;
-    opacity: .18;
+    opacity: .34;
+    filter: blur(0px);
+    will-change: transform;
+    transform-origin: center;
   }
   .blob-1 {
-    width: 500px; height: 500px;
-    background: var(--green);
+    width: 540px; height: 540px;
+    background: rgba(75,174,82,.42);
     top: -120px; left: -140px;
-    animation: drift 8s ease-in-out infinite alternate;
+    animation: floatOrbA 13s ease-in-out infinite alternate;
   }
   .blob-2 {
-    width: 380px; height: 380px;
-    background: var(--yellow);
-    bottom: -80px; right: -80px;
-    animation: drift 10s ease-in-out infinite alternate-reverse;
+    width: 420px; height: 420px;
+    background: rgba(245,200,66,.44);
+    bottom: -90px; right: -90px;
+    animation: floatOrbB 15s ease-in-out infinite alternate-reverse;
   }
   .blob-3 {
-    width: 200px; height: 200px;
-    background: var(--orange);
+    width: 220px; height: 220px;
+    background: rgba(217,79,0,.34);
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    animation: drift 7s ease-in-out infinite alternate;
+    animation: floatOrbC 11s ease-in-out infinite alternate;
   }
-  @keyframes drift {
-    from { transform: translate(0, 0) scale(1); }
-    to   { transform: translate(20px, 30px) scale(1.06); }
+  @keyframes floatOrbA {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50%  { transform: translate(48px, 34px) scale(1.1) rotate(14deg); }
+    100% { transform: translate(22px, 56px) scale(1.05) rotate(28deg); }
   }
-  .blob-2 { animation: drift2 10s ease-in-out infinite alternate-reverse; }
-  @keyframes drift2 {
-    from { transform: translate(0, 0) scale(1); }
-    to   { transform: translate(-20px, -20px) scale(1.04); }
+  @keyframes floatOrbB {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    45%  { transform: translate(-44px, -24px) scale(1.08) rotate(-14deg); }
+    100% { transform: translate(-26px, 34px) scale(1.03) rotate(-24deg); }
+  }
+  @keyframes floatOrbC {
+    0%   { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    50%  { transform: translate(-38%, -62%) scale(1.12) rotate(18deg); }
+    100% { transform: translate(-62%, -40%) scale(1.06) rotate(-18deg); }
   }
 
   .left-logo {
     font-family: 'Boldonse', system-ui;
     font-size: 1.6rem;
-    color: var(--yellow);
+    color: var(--forest);
     text-decoration: none;
     position: relative; z-index: 2;
   }
@@ -84,14 +100,14 @@
   .left-body h1 {
     font-family: 'Boldonse', system-ui;
     font-size: clamp(2.4rem, 4vw, 3.6rem);
-    color: #fff;
-    line-height: 1.05;
+    color: var(--dark);
+    line-height: 1.38;
     margin-bottom: 20px;
   }
-  .left-body h1 span { color: var(--yellow); }
+  .left-body h1 span { color: var(--green); }
   .left-body p {
     font-size: 1rem;
-    color: rgba(255,255,255,.55);
+    color: rgba(17,16,8,.66);
     line-height: 1.7;
     max-width: 380px;
   }
@@ -107,13 +123,14 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: rgba(255,255,255,.07);
-    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.62);
+    border: 1px solid rgba(17,16,8,.08);
     border-radius: 100px;
     padding: 10px 18px;
-    color: rgba(255,255,255,.75);
+    color: rgba(17,16,8,.78);
     font-size: .85rem;
     width: fit-content;
+    box-shadow: 0 10px 24px rgba(17,16,8,.06);
   }
   .pill-dot {
     width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
@@ -122,13 +139,14 @@
   /* ── RIGHT PANEL (form) ── */
   .right-panel {
     width: 520px;
-    background: var(--off-white);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,252,244,.98));
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 64px 56px;
     position: relative;
     min-height: 100vh;
+    box-shadow: -24px 0 48px rgba(17,16,8,.04);
   }
 
   .form-eyebrow {
@@ -136,13 +154,13 @@
     font-size: .7rem;
     letter-spacing: .16em;
     text-transform: uppercase;
-    color: var(--green);
+    color: var(--orange);
     margin-bottom: 10px;
   }
   .form-title {
     font-family: 'Boldonse', system-ui;
     font-size: 2.2rem;
-    line-height: 1.05;
+    line-height: 1.32;
     margin-bottom: 8px;
     color: var(--dark);
   }
@@ -246,7 +264,7 @@
   /* submit */
   .btn-submit {
     width: 100%;
-    background: var(--dark);
+    background: linear-gradient(135deg, var(--green), #67bf4f);
     color: #fff;
     border: none;
     border-radius: 14px;
@@ -254,13 +272,14 @@
     font-family: 'Boldonse', system-ui;
     font-size: 1rem;
     cursor: pointer;
-    transition: background .2s, transform .15s;
+    transition: background .2s, transform .15s, box-shadow .15s;
     margin-bottom: 16px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 10px 24px rgba(75,174,82,.16);
   }
-  .btn-submit:hover { background: var(--forest); transform: scale(1.01); }
-  .btn-submit:active { transform: scale(.99); }
+  .btn-submit:hover { background: var(--forest); transform: translateY(-2px); box-shadow: 0 14px 28px rgba(75,174,82,.14); }
+  .btn-submit:active { transform: translateY(0); }
 
   /* social */
   .social-btns { display: flex; gap: 10px; }
@@ -325,4 +344,12 @@
     .left-panel { min-height: auto; padding: 36px 28px 48px; }
     .left-body h1 { font-size: 2rem; }
     .right-panel { width: 100%; padding: 48px 28px 60px; min-height: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blob-1,
+    .blob-2,
+    .blob-3 {
+      animation: none;
+    }
   }

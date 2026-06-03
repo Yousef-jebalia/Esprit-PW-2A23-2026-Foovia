@@ -15,7 +15,10 @@
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--dark);
+    background:
+      radial-gradient(circle at top left, rgba(75,174,82,.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(245,200,66,.22), transparent 30%),
+      linear-gradient(135deg, #f7fbf2 0%, #eef7e9 48%, #fdf8ee 100%);
     color: var(--dark);
     display: flex;
     min-height: 100vh;
@@ -25,7 +28,11 @@
   /* ── LEFT PANEL ── */
   .left-panel {
     flex: 1;
-    background: var(--dark);
+    background:
+      radial-gradient(circle at top left, rgba(75,174,82,.18), transparent 32%),
+      radial-gradient(circle at bottom right, rgba(245,200,66,.22), transparent 28%),
+      linear-gradient(135deg, #fbfff7 0%, #f1f8ea 42%, #fff8ee 100%);
+    background-color: #f7fbf2;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -38,40 +45,50 @@
   .blob {
     position: absolute;
     border-radius: 50%;
-    opacity: .16;
+    opacity: .34;
+    filter: blur(0px);
+    will-change: transform;
+    transform-origin: center;
     pointer-events: none;
   }
   .blob-1 {
     width: 460px; height: 460px;
-    background: var(--orange);
+    background: rgba(217,79,0,.34);
     top: -100px; right: -100px;
-    animation: driftA 9s ease-in-out infinite alternate;
+    animation: floatOrbA 13s ease-in-out infinite alternate;
   }
   .blob-2 {
     width: 340px; height: 340px;
-    background: var(--green);
+    background: rgba(75,174,82,.42);
     bottom: -60px; left: -80px;
-    animation: driftB 11s ease-in-out infinite alternate-reverse;
+    animation: floatOrbB 15s ease-in-out infinite alternate-reverse;
   }
   .blob-3 {
     width: 180px; height: 180px;
-    background: var(--yellow);
+    background: rgba(245,200,66,.44);
     top: 55%; left: 55%;
-    animation: driftA 6s ease-in-out infinite alternate;
+    animation: floatOrbC 11s ease-in-out infinite alternate;
   }
-  @keyframes driftA {
-    from { transform: translate(0,0) scale(1); }
-    to   { transform: translate(-18px, 28px) scale(1.07); }
+  @keyframes floatOrbA {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50%  { transform: translate(-38px, 30px) scale(1.1) rotate(18deg); }
+    100% { transform: translate(-16px, 50px) scale(1.05) rotate(28deg); }
   }
-  @keyframes driftB {
-    from { transform: translate(0,0) scale(1); }
-    to   { transform: translate(18px, -22px) scale(1.05); }
+  @keyframes floatOrbB {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    45%  { transform: translate(40px, -24px) scale(1.08) rotate(-14deg); }
+    100% { transform: translate(22px, 36px) scale(1.03) rotate(-22deg); }
+  }
+  @keyframes floatOrbC {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50%  { transform: translate(-24px, 28px) scale(1.12) rotate(16deg); }
+    100% { transform: translate(18px, -16px) scale(1.05) rotate(-16deg); }
   }
 
   .left-logo {
     font-family: 'Boldonse', system-ui;
     font-size: 1.6rem;
-    color: var(--yellow);
+    color: var(--forest);
     text-decoration: none;
     position: relative; z-index: 2;
   }
@@ -82,15 +99,15 @@
   .left-body h1 {
     font-family: 'Boldonse', system-ui;
     font-size: clamp(2.2rem, 3.8vw, 3.4rem);
-    color: #fff;
-    line-height: 1.05;
+    color: var(--dark);
+    line-height: 1.28;
     margin-bottom: 20px;
   }
   .left-body h1 span.gr { color: var(--green); }
   .left-body h1 span.ye { color: var(--yellow); }
   .left-body p {
     font-size: 1rem;
-    color: rgba(255,255,255,.52);
+    color: rgba(17,16,8,.66);
     line-height: 1.7;
     max-width: 380px;
   }
@@ -105,20 +122,20 @@
   }
   .step-num {
     width: 32px; height: 32px; border-radius: 10px;
-    background: rgba(255,255,255,.08);
-    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.62);
+    border: 1px solid rgba(17,16,8,.08);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Boldonse', system-ui;
     font-size: .8rem;
-    color: var(--yellow);
+    color: var(--forest);
     flex-shrink: 0;
   }
-  .step-label { font-size: .85rem; color: rgba(255,255,255,.6); }
+  .step-label { font-size: .85rem; color: rgba(17,16,8,.72); }
 
   /* ── RIGHT PANEL ── */
   .right-panel {
     width: 540px;
-    background: var(--off-white);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,252,244,.98));
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -126,6 +143,7 @@
     position: relative;
     min-height: 100vh;
     overflow-y: auto;
+    box-shadow: -24px 0 48px rgba(17,16,8,.04);
   }
 
   .form-eyebrow {
@@ -133,13 +151,13 @@
     font-size: .7rem;
     letter-spacing: .16em;
     text-transform: uppercase;
-    color: var(--orange);
+    color: var(--green);
     margin-bottom: 10px;
   }
   .form-title {
     font-family: 'Boldonse', system-ui;
     font-size: 2rem;
-    line-height: 1.08;
+    line-height: 1.38;
     margin-bottom: 8px;
     color: var(--dark);
   }
@@ -288,7 +306,7 @@
   /* submit */
   .btn-submit {
     width: 100%;
-    background: var(--orange);
+    background: linear-gradient(135deg, var(--green), #67bf4f);
     color: #fff;
     border: none;
     border-radius: 14px;
@@ -296,11 +314,12 @@
     font-family: 'Boldonse', system-ui;
     font-size: 1rem;
     cursor: pointer;
-    transition: background .2s, transform .15s;
+    transition: background .2s, transform .15s, box-shadow .15s;
     margin-bottom: 16px;
+    box-shadow: 0 10px 24px rgba(75,174,82,.16);
   }
-  .btn-submit:hover { background: var(--red); transform: scale(1.01); }
-  .btn-submit:active { transform: scale(.99); }
+  .btn-submit:hover { background: var(--forest); transform: translateY(-2px); box-shadow: 0 14px 28px rgba(75,174,82,.14); }
+  .btn-submit:active { transform: translateY(0); }
 
   /* divider & social */
   .divider {
@@ -326,6 +345,14 @@
     transition: background .15s, border-color .15s;
   }
   .social-btn:hover { background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.2); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blob-1,
+    .blob-2,
+    .blob-3 {
+      animation: none;
+    }
+  }
 
   /* success overlay */
   .success-overlay {
