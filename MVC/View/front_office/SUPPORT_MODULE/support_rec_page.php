@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Reclamtion_Controller.php';
+include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Thread_Controller.php';
 include_once __DIR__ . '/../../../Controller/Controller_user.php';
 
 $user_subscription = 'free';
@@ -33,7 +34,10 @@ if (!empty($_SESSION['support_claim_flash_error'])) {
 }
 
 $controller = new Controller_reclamation();
+$threadController = new Thread_Controller();
 $reclamations = [];
+$threads = [];
+$active_thread_id = (int) ($_GET['open_thread'] ?? ($_POST['open_thread_id'] ?? 0));
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (! $is_logged_in) {
@@ -52,6 +56,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $success = "Claim deleted successfully.";
         } else {
             $error = "Claim not found or you do not own this claim.";
+        }
+      } elseif (isset($_POST['action']) && $_POST['action'] === 'reply_thread') {
+        $threadId = (int) ($_POST['open_thread_id'] ?? 0);
+        $body = trim((string) ($_POST['reply_body'] ?? ''));
+
+        if ($threadId <= 0) {
+          $error = 'Invalid thread selected.';
+        } elseif ($body === '') {
+          $error = 'Reply cannot be empty.';
+        } elseif (!$is_logged_in) {
+          $error = 'Please sign in to post a reply.';
+        } else {
+          try {
+            $message = new ThreadMessage(0, $threadId, $logged_in_user_id, $body, '');
+            $threadController->add_message($message);
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?open_thread=' . $threadId . '&posted_thread=1');
+            exit;
+          } catch (Exception $e) {
+            $error = 'Could not post your reply. Please try again.';
+          }
         }
       } elseif (isset($_POST['action']) && $_POST['action'] === 'create_claim') {
         $subject = trim((string) ($_POST['subject'] ?? ''));
@@ -87,6 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 $reclamations = $is_logged_in ? $controller->get_reclamations_by_user($logged_in_user_id) : [];
+$threads = $threadController->get_threads_paged(1, 6);
 
 $reclamation_cards = array_map(static function (array $reclamation): array {
   return [
@@ -99,6 +124,39 @@ $reclamation_cards = array_map(static function (array $reclamation): array {
     'closingDate' => trim((string) ($reclamation['dateferm_reclam'] ?? '')),
   ];
 }, $reclamations);
+
+$thread_cards = array_map(static function (array $thread): array {
+  $publishedAt = trim((string) ($thread['published_at'] ?? ''));
+  return [
+    'id' => (string) ($thread['id_thread'] ?? ''),
+    'title' => trim((string) ($thread['title'] ?? '')),
+    'description' => trim((string) ($thread['description'] ?? '')),
+    'publishedAt' => $publishedAt,
+    'publishedLabel' => $publishedAt !== '' && strtotime($publishedAt) !== false ? date('M j, Y \a\t H:i', strtotime($publishedAt)) : '',
+    'replyCount' => (int) ($thread['reply_count'] ?? 0),
+    'linkedClaimId' => (string) ($thread['id_reclam'] ?? ''),
+    'messages' => [],
+  ];
+}, $threads);
+
+foreach ($thread_cards as $index => $threadCard) {
+  $messages = $threadController->get_messages((int) $threadCard['id']);
+  $thread_cards[$index]['messages'] = array_map(static function (array $message): array {
+    $sentAt = trim((string) ($message['sent_at'] ?? ''));
+    return [
+      'id' => (int) ($message['id_message'] ?? 0),
+      'body' => trim((string) ($message['body'] ?? '')),
+      'sentAt' => $sentAt,
+      'sentLabel' => $sentAt !== '' && strtotime($sentAt) !== false ? date('M j, Y H:i', strtotime($sentAt)) : '',
+      'authorName' => trim((string) ($message['author_name'] ?? '')),
+      'idUser' => (int) ($message['id_user'] ?? 0),
+    ];
+  }, $messages);
+}
+
+if (isset($_GET['posted_thread'])) {
+  $success = 'Your reply was posted!';
+}
 
 // Sort claims by opening date (newest first). Rows without a parseable date go last.
 if (!empty($reclamations)) {
@@ -171,9 +229,11 @@ if (!empty($reclamations)) {
       }
       .support-hero-anim > *,
       #support-claims-section .support-claims-title,
+      #support-threads-section .support-threads-title,
       #support-claims-section #reclamation-search,
       #reclamation-table thead th,
-      #reclamation-table tbody td {
+      #reclamation-table tbody td,
+      .support-thread-card {
         will-change: transform, opacity;
       }
       .support-team-section { margin-bottom: 2.5rem; }
@@ -257,6 +317,318 @@ if (!empty($reclamations)) {
       :root[data-theme="dark"] #reclamation-table tbody td {
         background-color: var(--surface);
         border-color: rgba(255, 255, 255, 0.08);
+      }
+      .support-threads-section {
+        margin-top: 2.75rem;
+      }
+      .support-thread-card {
+        display: block;
+        height: 100%;
+        width: 100%;
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+      }
+      .support-thread-card:focus-visible {
+        outline: 2px solid var(--bs-primary, #0d6efd);
+        outline-offset: 4px;
+        border-radius: 1rem;
+      }
+      .support-thread-card__surface {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        padding: 1.4rem 1.4rem 1.2rem;
+        background: linear-gradient(180deg, rgba(75, 174, 82, 0.06), rgba(255, 255, 255, 0.94));
+        border: 1px solid var(--surface-border);
+        border-radius: 1rem;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      }
+      .support-thread-card:hover .support-thread-card__surface,
+      .support-thread-card:focus-within .support-thread-card__surface {
+        transform: translateY(-3px);
+        border-color: rgba(75, 174, 82, 0.45);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+      }
+      .support-thread-card__top,
+      .support-thread-card__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+      .support-thread-card__eyebrow {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #4BAE52;
+      }
+      .support-thread-card__reply-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.28rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        background: rgba(75, 174, 82, 0.12);
+        color: #2E4A28;
+      }
+      .support-thread-card__title {
+        margin: 0;
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--page-text);
+      }
+      .support-thread-card__desc {
+        margin: 0;
+        color: var(--page-text);
+        opacity: 0.82;
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        min-height: 4.65em;
+      }
+      .support-thread-card__footer {
+        margin-top: auto;
+        font-size: 0.86rem;
+        color: #64748b;
+      }
+      .support-thread-card__claim {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.22rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.05);
+        color: inherit;
+        font-weight: 600;
+      }
+      .support-thread-card__cta {
+        font-weight: 700;
+        color: #2E4A28;
+      }
+      :root[data-theme="dark"] .support-thread-card__surface {
+        background: linear-gradient(180deg, rgba(75, 174, 82, 0.12), rgba(30, 30, 30, 0.96));
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      :root[data-theme="dark"] .support-thread-card__title,
+      :root[data-theme="dark"] .support-thread-card__desc,
+      :root[data-theme="dark"] .support-thread-card__footer {
+        color: var(--page-text);
+      }
+      :root[data-theme="dark"] .support-thread-card__reply-count {
+        background: rgba(125, 212, 126, 0.16);
+        color: #9ae59b;
+      }
+      :root[data-theme="dark"] .support-thread-card__claim {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      :root[data-theme="dark"] .support-thread-card__cta {
+        color: #9ae59b;
+      }
+      .thread-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 16, 8, 0.65);
+        z-index: 1050;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .thread-modal-overlay.open {
+        display: flex;
+      }
+      .thread-modal {
+        background: var(--off-white, #fdf8ee);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 760px;
+        max-height: 88vh;
+        overflow-y: auto;
+        padding: 28px;
+        box-shadow: 0 24px 72px rgba(0, 0, 0, 0.24);
+        animation: threadModalIn 0.3s cubic-bezier(.34,1.56,.64,1) both;
+      }
+      @keyframes threadModalIn {
+        from { opacity: 0; transform: scale(.92) translateY(22px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      .thread-modal__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      .thread-modal__title {
+        font-family: 'Boldonse', system-ui;
+        font-size: 1.3rem;
+        margin-bottom: 6px;
+        color: var(--dark, #111008);
+      }
+      .thread-modal__meta {
+        font-size: 0.82rem;
+        color: #64748b;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .thread-modal__close {
+        background: rgba(0, 0, 0, 0.08);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .thread-modal__close:hover {
+        background: rgba(0, 0, 0, 0.14);
+      }
+      .thread-modal__section {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .thread-modal__label {
+        font-family: 'Boldonse', system-ui;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #4BAE52;
+        margin-bottom: 10px;
+      }
+      .thread-modal__text {
+        color: var(--page-text);
+        line-height: 1.65;
+        white-space: pre-wrap;
+      }
+      .thread-modal__messages {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .thread-modal__message {
+        border-radius: 16px;
+        padding: 14px 16px;
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+      .thread-modal__message.support {
+        background: rgba(75, 174, 82, 0.08);
+        border: 1px solid rgba(75, 174, 82, 0.14);
+      }
+      .thread-modal__message.user {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .thread-modal__message-meta {
+        font-family: 'Boldonse', system-ui;
+        font-size: 0.66rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #9ca3af;
+        margin-bottom: 8px;
+      }
+      .thread-modal__empty {
+        color: #64748b;
+        font-style: italic;
+      }
+      .thread-modal__reply-box {
+        border: 1.5px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        background: #fff;
+        width: 100%;
+        outline: none;
+        resize: vertical;
+        min-height: 92px;
+        transition: border-color 0.2s;
+        margin-bottom: 12px;
+      }
+      .thread-modal__reply-box:focus {
+        border-color: var(--green, #4BAE52);
+      }
+      .thread-modal__actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .thread-modal__full-link {
+        font-family: 'Boldonse', system-ui;
+        font-size: 0.78rem;
+        text-decoration: none;
+        color: #2E4A28;
+        border: 1px solid rgba(75, 174, 82, 0.24);
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: rgba(75, 174, 82, 0.06);
+      }
+      .thread-modal__full-link:hover {
+        background: rgba(75, 174, 82, 0.12);
+      }
+      .thread-modal__reply-btn {
+        background: var(--green, #4BAE52);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-family: 'Boldonse', system-ui;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .thread-modal__reply-btn:hover {
+        background: var(--forest, #2E4A28);
+      }
+      :root[data-theme="dark"] .thread-modal {
+        background: var(--surface, #1e1e1e);
+        color: var(--page-text);
+      }
+      :root[data-theme="dark"] .thread-modal__title,
+      :root[data-theme="dark"] .thread-modal__text {
+        color: var(--page-text);
+      }
+      :root[data-theme="dark"] .thread-modal__section {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+      :root[data-theme="dark"] .thread-modal__message.user {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+      :root[data-theme="dark"] .thread-modal__message.support {
+        background: rgba(75, 174, 82, 0.12);
+        border-color: rgba(75, 174, 82, 0.2);
+      }
+      :root[data-theme="dark"] .thread-modal__reply-box {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--page-text);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      :root[data-theme="dark"] .thread-modal__full-link {
+        color: #9ae59b;
+        background: rgba(154, 229, 155, 0.08);
+        border-color: rgba(154, 229, 155, 0.18);
       }
       /* Premium Badge Navigation Component */
       .premium-badge-nav {
@@ -529,9 +901,6 @@ if (!empty($reclamations)) {
         <div class="container mt-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
                 <h2 class="mb-0 support-claims-title">List of Claims</h2>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="threads_page.php" class="btn btn-outline-success">Community Threads</a>
-                </div>
             </div>
             <?php if (!$is_logged_in): ?>
                 <div class="alert alert-info" role="alert">
@@ -566,6 +935,85 @@ if (!empty($reclamations)) {
 
     </section>
     <br><br>
+
+    <section class="support-section-shell support-threads-section" id="support-threads-section">
+      <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+          <div>
+            <h2 class="mb-1 support-threads-title">Community Threads</h2>
+            <p class="text-muted mb-0">Open a card to read the discussion and reply in the existing thread view.</p>
+          </div>
+        </div>
+
+        <?php if (empty($thread_cards)): ?>
+          <div class="alert alert-info" role="alert">
+            No threads have been published yet. Check back soon or visit the community thread page.
+          </div>
+        <?php else: ?>
+          <div class="row g-4">
+            <?php foreach ($thread_cards as $threadCard): ?>
+              <div class="col-12 col-md-6 col-xl-4">
+                <button class="support-thread-card" type="button" data-thread-index="<?php echo (int) $threadCard['id']; ?>">
+                  <div class="support-thread-card__surface">
+                    <div class="support-thread-card__top">
+                      <span class="support-thread-card__eyebrow">Thread #<?php echo (int) $threadCard['id']; ?></span>
+                      <span class="support-thread-card__reply-count"><?php echo (int) $threadCard['replyCount']; ?> repl<?php echo ((int) $threadCard['replyCount'] === 1) ? 'y' : 'ies'; ?></span>
+                    </div>
+                    <h3 class="support-thread-card__title"><?php echo htmlspecialchars($threadCard['title'] !== '' ? $threadCard['title'] : 'Untitled thread'); ?></h3>
+                    <p class="support-thread-card__desc"><?php echo htmlspecialchars($threadCard['description'] !== '' ? $threadCard['description'] : 'No description provided.'); ?></p>
+                    <div class="support-thread-card__footer">
+                      <span><?php echo !empty($threadCard['publishedAt']) ? 'Published ' . date('M j, Y \\a\\t H:i', strtotime($threadCard['publishedAt'])) : 'Recently published'; ?></span>
+                      <span class="support-thread-card__cta">Open discussion →</span>
+                    </div>
+                    <?php if (!empty($threadCard['linkedClaimId'])): ?>
+                      <div class="support-thread-card__claim">Linked claim #<?php echo (int) $threadCard['linkedClaimId']; ?></div>
+                    <?php endif; ?>
+                  </div>
+                </button>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    </section>
+
+    <div class="thread-modal-overlay" id="thread-modal" onclick="if(event.target===this) closeThreadModal();">
+      <div class="thread-modal" role="dialog" aria-modal="true" aria-labelledby="thread-modal-title">
+        <div class="thread-modal__head">
+          <div>
+            <div class="thread-modal__title" id="thread-modal-title">Thread #0000</div>
+            <div id="thread-modal-meta" class="thread-modal__meta"></div>
+          </div>
+          <button class="thread-modal__close" type="button" aria-label="Close thread details" onclick="closeThreadModal()">✕</button>
+        </div>
+        <div class="thread-modal__section">
+          <div class="thread-modal__label">Topic</div>
+          <div class="thread-modal__text" id="thread-modal-subject"></div>
+        </div>
+        <div class="thread-modal__section">
+          <div class="thread-modal__label">Discussion</div>
+          <div class="thread-modal__messages" id="thread-modal-thread"></div>
+        </div>
+        <div class="thread-modal__section">
+          <div class="thread-modal__label">Reply</div>
+          <?php if ($is_logged_in): ?>
+            <form method="post">
+              <input type="hidden" name="action" value="reply_thread">
+              <input type="hidden" name="open_thread_id" id="thread-modal-thread-id" value="0">
+              <textarea class="thread-modal__reply-box" name="reply_body" id="thread-modal-reply-box" rows="4" placeholder="Write a reply…" required maxlength="5000"></textarea>
+              <div class="thread-modal__actions">
+                <button type="submit" class="thread-modal__reply-btn">Send reply</button>
+              </div>
+            </form>
+          <?php else: ?>
+            <p class="mb-3" style="color:#64748b;">You must be signed in to post a reply.</p>
+            <div class="thread-modal__actions">
+              <a href="../foovia-signin.php?redirect=support" class="thread-modal__full-link">Sign in to reply</a>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
 
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4" style="text-align: center;">
@@ -675,7 +1123,7 @@ if (!empty($reclamations)) {
               <article class="support-team-card" tabindex="0" aria-label="Karim Ben Salah, Claims specialist, karim.bensalah@foovia.com, +216 98 203 040">
                 <div class="support-team-card__surface">
                   <figure class="support-team-card__figure">
-                    <img class="support-team-card__photo" src="assets/coolbob.png" width="140" height="140" alt="agent 1">
+                    <img class="support-team-card__photo" src="assets/lyna.jpg" width="140" height="140" alt="agent 1">
                   </figure>
                   <div class="support-team-card__drawer">
                     <h3 class="h5 mb-1 text-body">Lyna Byby</h3>
@@ -733,6 +1181,8 @@ if (!empty($reclamations)) {
     </script>
     <script>
       const CLAIMS = <?php echo json_encode($reclamation_cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+      const THREADS = <?php echo json_encode($thread_cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+      const ACTIVE_THREAD_ID = <?php echo (int) $active_thread_id; ?>;
 
       function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -788,6 +1238,63 @@ if (!empty($reclamations)) {
         document.getElementById('claim-modal').classList.remove('open');
       }
 
+      function getThreadById(threadId) {
+        return THREADS.find(function (thread) {
+          return Number(thread.id) === Number(threadId);
+        }) || null;
+      }
+
+      function renderThreadMessages(messages) {
+        if (!messages || !messages.length) {
+          return '<div class="thread-modal__empty">No replies yet. Be the first to continue the discussion.</div>';
+        }
+
+        return messages.map(function (message) {
+          var isSupport = Number(message.idUser || 0) === 0;
+          var author = message.authorName || (isSupport ? 'Foovia Support' : ('User #' + Number(message.idUser || 0)));
+          var time = message.sentLabel || message.sentAt || 'Just now';
+          var body = escapeHtml(message.body || '');
+          return '<div class="thread-modal__message ' + (isSupport ? 'support' : 'user') + '">' +
+            '<div class="thread-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
+            '<div>' + body + '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      function openThreadModalById(threadId) {
+        var thread = getThreadById(threadId);
+        if (!thread) return;
+
+        var threadIdValue = Number(thread.id || 0);
+        document.getElementById('thread-modal-title').textContent = 'Thread #' + threadIdValue;
+        document.getElementById('thread-modal-meta').innerHTML =
+          '<span>' + escapeHtml(thread.publishedLabel ? ('Published ' + thread.publishedLabel) : 'Recently published') + '</span>' +
+          '<span>Replies: ' + escapeHtml(String(thread.replyCount || 0)) + '</span>' +
+          (thread.linkedClaimId ? '<span>Linked claim #' + escapeHtml(String(thread.linkedClaimId)) + '</span>' : '');
+        document.getElementById('thread-modal-subject').textContent = thread.title || 'Untitled thread';
+        document.getElementById('thread-modal-thread').innerHTML = renderThreadMessages(thread.messages || []);
+
+        var replyInput = document.getElementById('thread-modal-thread-id');
+        if (replyInput) {
+          replyInput.value = String(threadIdValue);
+        }
+
+        var fullLink = document.getElementById('thread-modal-full-link');
+        if (fullLink) {
+          fullLink.setAttribute('href', 'thread_detail_page.php?id=' + threadIdValue);
+        }
+        var guestFullLink = document.getElementById('thread-modal-full-link-guest');
+        if (guestFullLink) {
+          guestFullLink.setAttribute('href', 'thread_detail_page.php?id=' + threadIdValue);
+        }
+
+        document.getElementById('thread-modal').classList.add('open');
+      }
+
+      function closeThreadModal() {
+        document.getElementById('thread-modal').classList.remove('open');
+      }
+
       function renderClaims() {
         var list = document.getElementById('ticket-list');
         if (!list) return;
@@ -837,6 +1344,23 @@ if (!empty($reclamations)) {
       }
 
       renderClaims();
+
+      document.querySelectorAll('[data-thread-index]').forEach(function (button) {
+        var threadId = Number(button.getAttribute('data-thread-index'));
+        button.addEventListener('click', function () {
+          openThreadModalById(threadId);
+        });
+        button.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openThreadModalById(threadId);
+          }
+        });
+      });
+
+      if (ACTIVE_THREAD_ID > 0) {
+        openThreadModalById(ACTIVE_THREAD_ID);
+      }
     </script>
     <script>
         $(document).ready(function() {
@@ -965,6 +1489,40 @@ if (!empty($reclamations)) {
               easing: 'easeOutCubic'
             });
             bump(70 * tickets.length + 140);
+          }
+        });
+
+        observeOnce(document.querySelector('#support-threads-section'), function (section) {
+          var title = section.querySelector('.support-threads-title');
+          var cards = section.querySelectorAll('.support-thread-card');
+          var cursor = 0;
+
+          function bump(ms) {
+            cursor += ms;
+          }
+
+          if (title) {
+            prepAnimState(title, { opacity: 0, translateY: 22 });
+            anime({
+              targets: title,
+              translateY: [22, 0],
+              opacity: [0, 1],
+              duration: 580,
+              delay: cursor,
+              easing: 'easeOutQuad'
+            });
+            bump(90);
+          }
+          if (cards.length) {
+            prepAnimState(cards, { opacity: 0, translateY: 18 });
+            anime({
+              targets: cards,
+              translateY: [18, 0],
+              opacity: [0, 1],
+              duration: 620,
+              delay: staggerDelay(70, { start: cursor }),
+              easing: 'easeOutCubic'
+            });
           }
         });
       })();
