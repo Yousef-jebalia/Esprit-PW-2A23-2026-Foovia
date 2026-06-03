@@ -248,7 +248,11 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
         const doc = anatomyFrame.contentDocument || anatomyFrame.contentWindow.document;
         if (!doc) return;
         const body = doc.body || doc.documentElement;
-        const contentHeight = Math.max(doc.documentElement.scrollHeight || 0, doc.body.scrollHeight || 0, body.offsetHeight || 0);
+        // disable internal scrolling inside the iframe
+        try { doc.documentElement.style.overflow = 'hidden'; } catch (e) {}
+        try { if (doc.body) doc.body.style.overflow = 'hidden'; } catch (e) {}
+
+        const contentHeight = Math.max(doc.documentElement.scrollHeight || 0, doc.body ? doc.body.scrollHeight || 0 : 0, body.offsetHeight || 0);
         const maxAllowed = Math.floor(window.innerHeight * 0.9);
         const target = Math.min(contentHeight, maxAllowed) || 480;
         anatomyFrame.style.height = target + 'px';
