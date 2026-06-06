@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include_once __DIR__ . '/../../Model/config.php';
 include_once __DIR__ . '/../../Model/SUPPORT_MODULE/traitements.php';
 

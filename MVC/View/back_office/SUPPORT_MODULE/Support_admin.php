@@ -1,16 +1,49 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include __DIR__ . '/../../../Controller/SUPPORT_MODULE/Traitemant_Controller.php';
 include __DIR__ . '/../../../Controller/SUPPORT_MODULE/Reclamtion_Controller.php';
+include __DIR__ . '/../../../Controller/SUPPORT_MODULE/ReclamationMessage_Controller.php';
 
 $error = '';
 $success = '';
 $controller = new Controller_traitement();
 $reclamationController = new Controller_reclamation();
+$claimMessageController = new ReclamationMessage_Controller();
 $traitements = [];
 $reclamations = [];
+$admin_user_id = (int) ($_SESSION['user_id'] ?? 0);
+$active_claim_id = (int) ($_GET['open_claim'] ?? ($_POST['open_claim_id'] ?? 0));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'delete_traitement' && !empty($_POST['id_traitement'])) {
+    if ($_POST['action'] === 'reply_claim_admin') {
+        $claimId = (int) ($_POST['open_claim_id'] ?? 0);
+        $body = trim((string) ($_POST['reply_body'] ?? ''));
+
+        if ($claimId <= 0) {
+            $error = 'Invalid claim selected.';
+        } elseif ($body === '') {
+            $error = 'Reply cannot be empty.';
+        } elseif ($admin_user_id <= 0) {
+            $error = 'You must be signed in as an admin to reply.';
+        } else {
+            $claim = $reclamationController->get_reclamation_by_id($claimId);
+            if (!$claim) {
+                $error = 'Claim not found.';
+            } else {
+                try {
+                    $message = new ReclamationMessage(0, $claimId, $admin_user_id, $body, '');
+                    $claimMessageController->add_message($message);
+                    header('Location: Support_admin.php?open_claim=' . $claimId . '&posted_claim=1');
+                    exit;
+                } catch (Exception $e) {
+                    $error = 'Could not post your reply. Please try again.';
+                }
+            }
+        }
+    } elseif ($_POST['action'] === 'delete_traitement' && !empty($_POST['id_traitement'])) {
         $deleteTraitement = new Traitements(
             (int)$_POST['id_traitement'],
             0,
@@ -38,6 +71,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 $traitements = $controller->get_traitements();
 $reclamations = $reclamationController->get_reclamations();
+
+if (isset($_GET['posted_claim'])) {
+    $success = 'Your reply was posted!';
+}
+
+$claim_conversations = [];
+foreach ($reclamations as $reclamation) {
+    $claimId = (int) ($reclamation['id_reclam'] ?? 0);
+    if ($claimId <= 0) {
+        continue;
+    }
+    $storedMessages = $claimMessageController->get_messages($claimId);
+    $claim_conversations[] = [
+        'id' => (string) $claimId,
+        'ownerUserId' => (int) ($reclamation['id_user'] ?? 0),
+        'subject' => trim((string) ($reclamation['subject'] ?? '')),
+        'description' => trim((string) ($reclamation['description_reclam'] ?? '')),
+        'status' => trim((string) ($reclamation['etat_reclam'] ?? '')),
+        'type' => trim((string) ($reclamation['type_reclam'] ?? '')),
+        'openingDate' => trim((string) ($reclamation['dateouvert_reclam'] ?? '')),
+        'replyCount' => count($storedMessages),
+        'messages' => $claimMessageController->build_timeline($reclamation, $storedMessages, 'Client'),
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,6 +131,109 @@ $reclamations = $reclamationController->get_reclamations();
     <!-- Style.css -->
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="assets/css/jquery.mCustomScrollbar.css">
+    <style>
+        .claim-reply-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 16, 8, 0.65);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .claim-reply-modal-overlay.open { display: flex; }
+        .claim-reply-modal {
+            background: #fff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 720px;
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: 0 24px 72px rgba(0, 0, 0, 0.24);
+        }
+        .claim-reply-modal__head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .claim-reply-modal__title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .claim-reply-modal__meta {
+            font-size: 0.85rem;
+            color: #64748b;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .claim-reply-modal__close {
+            background: rgba(0, 0, 0, 0.08);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .claim-reply-modal__section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .claim-reply-modal__label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #4BAE52;
+            margin-bottom: 8px;
+        }
+        .claim-reply-modal__messages {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .claim-reply-modal__message {
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+        .claim-reply-modal__message.client {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+        }
+        .claim-reply-modal__message.support {
+            background: rgba(75, 174, 82, 0.08);
+            border: 1px solid rgba(75, 174, 82, 0.14);
+        }
+        .claim-reply-modal__message-meta {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .claim-reply-modal__reply-box {
+            width: 100%;
+            min-height: 92px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -465,6 +625,7 @@ $reclamations = $reclamationController->get_reclamations();
                                                                             <td><?php echo htmlspecialchars($reclamation['dateferm_reclam'] ?? '-'); ?></td>
                                                                             <td>
                                                                                 <a href="update_reclamation_page.php?id=<?php echo urlencode($reclamation['id_reclam']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                                                <button type="button" class="btn btn-primary btn-sm claim-reply-btn" data-claim-id="<?php echo (int) $reclamation['id_reclam']; ?>" style="margin-left:8px;">Reply</button>
                                                                                 <button type="button" class="btn btn-info btn-sm handle-treatment-btn" style="margin-left:8px;">Handle</button>
                                                                                 <a href="thread_admin_page.php?id_reclam=<?php echo urlencode($reclamation['id_reclam']); ?>"
                                                                                    class="btn btn-success btn-sm" style="margin-left:8px;" title="Publish this claim as a community thread">
@@ -500,6 +661,36 @@ $reclamations = $reclamationController->get_reclamations();
             </div>
         </div>
     </div>
+
+    <div class="claim-reply-modal-overlay" id="claim-reply-modal" onclick="if(event.target===this) closeClaimReplyModal();">
+        <div class="claim-reply-modal" role="dialog" aria-modal="true" aria-labelledby="claim-reply-modal-title">
+            <div class="claim-reply-modal__head">
+                <div>
+                    <div class="claim-reply-modal__title" id="claim-reply-modal-title">Claim #0000</div>
+                    <div id="claim-reply-modal-meta" class="claim-reply-modal__meta"></div>
+                </div>
+                <button class="claim-reply-modal__close" type="button" aria-label="Close conversation" onclick="closeClaimReplyModal()">✕</button>
+            </div>
+            <div class="claim-reply-modal__section">
+                <div class="claim-reply-modal__label">Subject</div>
+                <div id="claim-reply-modal-subject"></div>
+            </div>
+            <div class="claim-reply-modal__section">
+                <div class="claim-reply-modal__label">Conversation</div>
+                <div class="claim-reply-modal__messages" id="claim-reply-modal-messages"></div>
+            </div>
+            <div class="claim-reply-modal__section">
+                <div class="claim-reply-modal__label">Reply as support</div>
+                <form method="post">
+                    <input type="hidden" name="action" value="reply_claim_admin">
+                    <input type="hidden" name="open_claim_id" id="claim-reply-modal-claim-id" value="0">
+                    <textarea class="claim-reply-modal__reply-box" name="reply_body" id="claim-reply-modal-reply-box" rows="4" placeholder="Write a reply to the client…" required maxlength="5000"></textarea>
+                    <button type="submit" class="btn btn-success btn-sm">Send reply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Required Jquery -->
     <script type="text/javascript" src="assets/js/jquery/jquery.min.js "></script>
     <script type="text/javascript" src="assets/js/jquery-ui/jquery-ui.min.js "></script>
@@ -515,6 +706,64 @@ $reclamations = $reclamationController->get_reclamations();
     <!-- Custom js -->
     <script type="text/javascript" src="assets/js/script.min.js"></script>
     <script>
+        const CLAIM_CONVERSATIONS = <?php echo json_encode($claim_conversations, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        const ACTIVE_CLAIM_ID = <?php echo (int) $active_claim_id; ?>;
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getClaimConversationById(claimId) {
+            return CLAIM_CONVERSATIONS.find(function (claim) {
+                return Number(claim.id) === Number(claimId);
+            }) || null;
+        }
+
+        function renderAdminClaimMessages(messages, ownerUserId) {
+            if (!messages || !messages.length) {
+                return '<div class="text-muted">No messages yet.</div>';
+            }
+
+            return messages.map(function (message) {
+                var isClient = Number(message.idUser || 0) === Number(ownerUserId || 0);
+                var author = message.authorName || (isClient ? 'Client' : 'Support');
+                var time = message.sentLabel || message.sentAt || 'Just now';
+                var body = escapeHtml(message.body || '');
+                return '<div class="claim-reply-modal__message ' + (isClient ? 'client' : 'support') + '">' +
+                    '<div class="claim-reply-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
+                    '<div>' + body + '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        function openClaimReplyModal(claimId) {
+            var claim = getClaimConversationById(claimId);
+            if (!claim) {
+                alert('Unable to load this claim conversation.');
+                return;
+            }
+
+            document.getElementById('claim-reply-modal-title').textContent = 'Claim #' + claim.id;
+            document.getElementById('claim-reply-modal-meta').innerHTML =
+                '<span>Status: ' + escapeHtml(claim.status || '-') + '</span>' +
+                '<span>Type: ' + escapeHtml(claim.type || '-') + '</span>' +
+                '<span>Opened: ' + escapeHtml(claim.openingDate || '-') + '</span>' +
+                '<span>Replies: ' + escapeHtml(String(claim.replyCount || 0)) + '</span>';
+            document.getElementById('claim-reply-modal-subject').textContent = claim.subject || 'Untitled claim';
+            document.getElementById('claim-reply-modal-messages').innerHTML = renderAdminClaimMessages(claim.messages || [], claim.ownerUserId);
+            document.getElementById('claim-reply-modal-claim-id').value = String(claim.id || '0');
+            document.getElementById('claim-reply-modal').classList.add('open');
+        }
+
+        function closeClaimReplyModal() {
+            document.getElementById('claim-reply-modal').classList.remove('open');
+        }
+
         $(document).ready(function() {
             function attachSearch(inputSelector) {
                 $(inputSelector).on('keyup', function() {
@@ -540,6 +789,17 @@ $reclamations = $reclamationController->get_reclamations();
                 }
                 window.location.href = 'add_traitement_page.php?id_reclam=' + encodeURIComponent(claimId) + '&id_user=' + encodeURIComponent(userId);
             });
+
+            $(document).on('click', '.claim-reply-btn', function() {
+                var claimId = Number($(this).data('claim-id') || 0);
+                if (claimId > 0) {
+                    openClaimReplyModal(claimId);
+                }
+            });
+
+            if (ACTIVE_CLAIM_ID > 0) {
+                openClaimReplyModal(ACTIVE_CLAIM_ID);
+            }
         });
     </script>
 </body>

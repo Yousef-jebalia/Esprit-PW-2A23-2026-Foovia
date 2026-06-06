@@ -300,7 +300,7 @@ nav {
   }
   .claim-modal-overlay.open { display: flex; }
   .claim-modal {
-    width: min(100%, 620px);
+    width: min(100%, 760px);
     max-height: min(88vh, 760px);
     overflow: auto;
     background: var(--surface);
