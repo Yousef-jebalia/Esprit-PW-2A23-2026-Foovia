@@ -191,14 +191,9 @@ foreach ($products as $product) {
     }
 }
 
-$newArrivals = array_slice($products, 0, 4);
-$priceFriendly = $products;
-usort($priceFriendly, static fn (array $left, array $right): int => foovia_product_unit_price($left) <=> foovia_product_unit_price($right));
-$priceFriendly = array_slice($priceFriendly, 0, 4);
-
-$highStock = $products;
-usort($highStock, static fn (array $left, array $right): int => ((int) $right['quantity_march']) <=> ((int) $left['quantity_march']));
-$highStock = array_slice($highStock, 0, 4);
+$catalogCategories = array_keys($categoryBuckets);
+natcasesort($catalogCategories);
+$catalogCategories = array_values($catalogCategories);
 
 $spotlightNames = [
     ['orange', 'oranges'],
@@ -237,41 +232,6 @@ if (count($spotlightProducts) < 5) {
     }
 }
 
-$recommendedPanels = [];
-if ($newArrivals !== []) {
-    $recommendedPanels[] = [
-        'title' => 'New arrivals in Foovia',
-        'caption' => 'Recently published marketplace products',
-        'products' => $newArrivals,
-    ];
-}
-if ($priceFriendly !== []) {
-    $recommendedPanels[] = [
-        'title' => 'Best price picks',
-        'caption' => 'Affordable items ready to order',
-        'products' => $priceFriendly,
-    ];
-}
-foreach ($categoryBuckets as $categoryName => $bucket) {
-    if (count($recommendedPanels) >= 4) {
-        break;
-    }
-    if ($bucket !== []) {
-        $recommendedPanels[] = [
-            'title' => $categoryName . ' recommendations',
-            'caption' => 'Products selected from this food category',
-            'products' => array_slice($bucket, 0, 4),
-        ];
-    }
-}
-if (count($recommendedPanels) < 4 && $highStock !== []) {
-    $recommendedPanels[] = [
-        'title' => 'Stocked and ready',
-        'caption' => 'Products with the highest available quantity',
-        'products' => $highStock,
-    ];
-}
-$recommendedPanels = array_slice($recommendedPanels, 0, 3);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -285,7 +245,7 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=waste-planner-1">
+    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/css/marketplace.css?v=marketplace-catalog-ux-1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -369,7 +329,6 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
 
         <nav class="foovia-nav" aria-label="Primary">
             <a href="#recommended">recommanded</a>
-            <a href="food-waste-awareness.php">food waste</a>
             <a href="#products">marketplace</a>
             <a href="#aziza-map">around you</a>
         </nav>
@@ -378,6 +337,7 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
                         <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
                             <a href="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/foovia-backoffice.php" class="foovia-nav-btn foovia-nav-backoffice">Backoffice</a>
                         <?php endif; ?>
+            <a href="food-waste-awareness.php" class="foovia-nav-btn foovia-nav-food-waste">Food waste</a>
             <button class="foovia-theme-toggle" type="button" aria-label="Switch display mode">
                 <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="12" cy="12" r="4"></circle>
@@ -477,96 +437,94 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
                     <?php endif; ?>
                 </div>
 
-                <?php if ($recommendedPanels !== []): ?>
-                    <div class="foovia-recommend-subhead">
-                        <div>
-                            <span class="foovia-recommend-label">Waste saver planner</span>
-                            <h2>Choose smarter, waste less, buy exactly enough</h2>
-                        </div>
-                        <div class="foovia-recommend-tools">
-                            <div class="foovia-recommend-scroll">
-                                <button type="button" class="foovia-scroll-btn" data-recommend-prev aria-label="Scroll recommendations left">&larr;</button>
-                                <button type="button" class="foovia-scroll-btn" data-recommend-next aria-label="Scroll recommendations right">&rarr;</button>
-                            </div>
-                        </div>
+                <section class="foovia-shop-shortcuts" aria-labelledby="shop-shortcuts-title">
+                    <div class="foovia-shop-shortcuts-copy">
+                        <span class="foovia-section-chip">Shop your way</span>
+                        <h2 id="shop-shortcuts-title">Find the right products faster</h2>
+                        <p>Jump into a useful catalog view, then refine it with search and filters.</p>
                     </div>
-                    <section class="foovia-recommend-promote" data-recommend-promote>
-                        <div class="foovia-recommend-promote-slot" data-recommend-promote-slot>
-                            <div class="foovia-recommend-promote-empty" data-recommend-empty>
-                                <span class="foovia-recommend-empty-chip">Today's first pick</span>
-                            </div>
-                        </div>
-                    </section>
-                    <div class="foovia-recommend-grid" data-recommend-track>
-                        <?php foreach ($recommendedPanels as $panelIndex => $panel): ?>
-                            <section class="foovia-recommend-card">
-                                <div class="foovia-recommend-card-head">
-                                    <span class="foovia-recommend-card-index">0<?= $panelIndex + 1 ?></span>
-                                    <h2><?= htmlspecialchars($panel['title'], ENT_QUOTES) ?></h2>
-                                    <p><?= htmlspecialchars($panel['caption'], ENT_QUOTES) ?></p>
-                                </div>
-                                <div class="foovia-mini-grid">
-                                    <?php foreach (array_slice($panel['products'], 0, 3) as $recommendedProduct): ?>
-                                        <a
-                                            href="product-details.php?id=<?= (int) $recommendedProduct['id_march'] ?>"
-                                            class="foovia-mini-item"
-                                            data-recommend-item
-                                            data-product-id="<?= (int) $recommendedProduct['id_march'] ?>"
-                                            data-product-name="<?= htmlspecialchars($recommendedProduct['name_march'], ENT_QUOTES) ?>"
-                                            data-product-price="<?= htmlspecialchars(foovia_format_price(foovia_product_unit_price($recommendedProduct)), ENT_QUOTES) ?>"
-                                            data-product-unit="<?= htmlspecialchars(foovia_product_unit($recommendedProduct), ENT_QUOTES) ?>"
-                                            data-product-description="<?= htmlspecialchars($recommendedProduct['description_march'], ENT_QUOTES) ?>"
-                                            data-product-category="<?= htmlspecialchars((string) ($recommendedProduct['category_names'] ?: 'Foovia pick'), ENT_QUOTES) ?>"
-                                            data-product-stock="<?= (int) $recommendedProduct['quantity_march'] ?>"
-                                            data-product-stores="<?= htmlspecialchars(json_encode($productStorePayload($recommendedProduct)), ENT_QUOTES) ?>"
-                                            data-product-image="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/Controller/MARKETPLACE_MODULE/Marchandise_Controller.php?action=image&id=<?= (int) $recommendedProduct['id_march'] ?>"
-                                        >
-                                            <span class="foovia-mini-thumb">
-                                                <img src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/Controller/MARKETPLACE_MODULE/Marchandise_Controller.php?action=image&id=<?= (int) $recommendedProduct['id_march'] ?>" alt="<?= htmlspecialchars($recommendedProduct['name_march'], ENT_QUOTES) ?>">
-                                            </span>
-                                            <span class="foovia-mini-name"><?= htmlspecialchars($recommendedProduct['name_march'], ENT_QUOTES) ?></span>
-                                            <span class="foovia-mini-meta"><?= htmlspecialchars(foovia_format_unit_price($recommendedProduct), ENT_QUOTES) ?></span>
-                                        </a>
-                                    <?php endforeach; ?>
-                                </div>
-                                <a href="#products" class="foovia-mini-link">Open full catalog</a>
-                            </section>
-                        <?php endforeach; ?>
+                    <div class="foovia-shop-shortcut-grid">
+                        <button type="button" class="foovia-shop-shortcut" data-catalog-shortcut="affordable">
+                            <span class="foovia-shop-shortcut-icon" aria-hidden="true">TND</span>
+                            <strong>Lowest prices</strong>
+                            <small>Start with budget-friendly products</small>
+                        </button>
+                        <button type="button" class="foovia-shop-shortcut" data-catalog-shortcut="stock">
+                            <span class="foovia-shop-shortcut-icon" aria-hidden="true">+</span>
+                            <strong>Ready in stock</strong>
+                            <small>See the most available products first</small>
+                        </button>
+                        <button type="button" class="foovia-shop-shortcut" data-catalog-shortcut="fresh">
+                            <span class="foovia-shop-shortcut-icon" aria-hidden="true">NEW</span>
+                            <strong>Freshest first</strong>
+                            <small>Prioritize later expiration dates</small>
+                        </button>
                     </div>
-                <?php endif; ?>
+                </section>
             </div>
         </section>
 
         <section class="pb-5 foovia-catalog-section" id="products">
             <div class="container-lg">
-                <div class="row justify-content-between align-items-end mb-4">
-                    <div class="col-lg-6">
+                <div class="market-catalog-heading">
+                    <div>
+                        <span class="foovia-section-chip">Browse and compare</span>
                         <h2 class="market-title fw-bold mb-2">Marketplace Catalog</h2>
+                        <p class="market-catalog-intro">Search products, compare prices, and choose a nearby store.</p>
                     </div>
+                    <strong class="market-result-count" data-result-count><?= count($products) ?> products</strong>
                 </div>
 
-                <div class="market-search mb-5">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-lg-8">
-                            <input type="text" class="form-control" placeholder="Search by product, description, or store" data-product-search>
-                        </div>
-                        <div class="col-lg-4">
+                <div class="market-search mb-4">
+                    <div class="market-search-primary">
+                        <label class="market-field market-field-search">
+                            <span>Search products</span>
+                            <input type="search" class="form-control" placeholder="Try tomato, dairy, or a store name" data-product-search>
+                        </label>
+                        <button type="button" class="market-clear-filters" data-clear-filters>Clear filters</button>
+                    </div>
+                    <div class="market-filter-grid">
+                        <label class="market-field">
+                            <span>Category</span>
+                            <select class="form-select" data-category-filter>
+                                <option value="">All categories</option>
+                                <?php foreach ($catalogCategories as $category): ?>
+                                    <option value="<?= htmlspecialchars(strtolower($category), ENT_QUOTES) ?>"><?= htmlspecialchars($category, ENT_QUOTES) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                        <label class="market-field">
+                            <span>Store</span>
                             <select class="form-select" data-store-filter>
                                 <option value="">All stores</option>
                                 <?php foreach ($stores as $store): ?>
                                     <option value="<?= htmlspecialchars(strtolower($store['name_mag']), ENT_QUOTES) ?>"><?= htmlspecialchars($store['name_mag'], ENT_QUOTES) ?></option>
                                 <?php endforeach; ?>
                             </select>
-                        </div>
+                        </label>
+                        <label class="market-field">
+                            <span>Sort by</span>
+                            <select class="form-select" data-product-sort>
+                                <option value="default">Recommended</option>
+                                <option value="price-asc">Lowest price</option>
+                                <option value="price-desc">Highest price</option>
+                                <option value="stock-desc">Most in stock</option>
+                                <option value="fresh-desc">Freshest first</option>
+                                <option value="name-asc">Name A-Z</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="market-active-filter" data-active-filter aria-live="polite">
+                        Showing all available products
                     </div>
                 </div>
 
-                <div class="row market-grid">
-                    <?php foreach ($products as $product): ?>
+                <div class="row market-grid" data-market-grid>
+                    <?php foreach ($products as $productIndex => $product): ?>
                         <?php
                             $storePayload = $productStorePayload($product);
                         ?>
-                        <div class="col-sm-6 col-lg-4 col-xl-3" data-product-card data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>" data-store-name="<?= htmlspecialchars(strtolower((string) ($product['store_names'] ?? '')), ENT_QUOTES) ?>" data-product-description="<?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?>">
+                        <div class="col-sm-6 col-lg-4 col-xl-3" data-product-card data-original-index="<?= $productIndex ?>" data-product-name="<?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?>" data-store-name="<?= htmlspecialchars(strtolower((string) ($product['store_names'] ?? '')), ENT_QUOTES) ?>" data-product-description="<?= htmlspecialchars($product['description_march'], ENT_QUOTES) ?>" data-product-category="<?= htmlspecialchars(strtolower((string) ($product['category_names'] ?? '')), ENT_QUOTES) ?>" data-product-price="<?= htmlspecialchars((string) foovia_product_unit_price($product), ENT_QUOTES) ?>" data-product-stock="<?= (int) $product['quantity_march'] ?>" data-product-expiry="<?= htmlspecialchars((string) $product['date_expiration_march'], ENT_QUOTES) ?>">
                             <article
                                 class="market-card"
                                 draggable="true"
@@ -586,6 +544,9 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
                                 <div class="market-card-body">
                                     <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                                         <div>
+                                            <?php if (!empty($product['category_names'])): ?>
+                                                <span class="market-category-label"><?= htmlspecialchars(explode(',', (string) $product['category_names'])[0], ENT_QUOTES) ?></span>
+                                            <?php endif; ?>
                                             <h3 class="h5 mb-1"><a href="product-details.php?id=<?= (int) $product['id_march'] ?>" class="market-product-link"><?= htmlspecialchars($product['name_march'], ENT_QUOTES) ?></a></h3>
                                             <span class="market-store-badges">
                                                 <?php if ($storePayload === []): ?>
@@ -618,9 +579,9 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
                                         <span class="market-badge">Stock: <?= (int) $product['quantity_march'] ?></span>
                                         <span class="market-badge">Access: <?= htmlspecialchars($product['point_acces_march'], ENT_QUOTES) ?></span>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center">
+                                    <div class="market-card-footer">
                                         <small class="text-muted">Expires <?= htmlspecialchars($product['date_expiration_march'], ENT_QUOTES) ?></small>
-                                        <div class="d-flex gap-2">
+                                        <div class="market-card-actions">
                                             <button
                                                 type="button"
                                                 class="btn btn-success rounded-pill px-3"
@@ -839,7 +800,7 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
         window.FOOVIA_CAN_DELIVER = <?= $canUseDelivery ? 'true' : 'false' ?>;
     </script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/frontoffice-filters.js?v=market-pagination-1"></script>
+    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/frontoffice-filters.js?v=marketplace-catalog-ux-1"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/frontoffice-recommendations.js?v=waste-planner-1"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/foovia-cart.js?v=no-aziza-test-1"></script>
     <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/MARKETPLACE_MODULE/assets/js/aziza-map.js?v=db-markets-1"></script>
@@ -849,6 +810,6 @@ $recommendedPanels = array_slice($recommendedPanels, 0, 3);
         // Marketplace layout relies on its own styles — avoid injecting full foovia.css
         window.FOOVIA_DISABLE_SIDEBAR_CSS = true;
     </script>
-    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/js/sidebar.js?v=20260528-1"></script>
+    <script src="<?= htmlspecialchars($appBaseUrl, ENT_QUOTES) ?>/MVC/View/front_office/js/sidebar.js?v=sidebar-icons-1"></script>
 </body>
 </html>

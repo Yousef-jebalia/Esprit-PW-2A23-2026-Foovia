@@ -332,6 +332,7 @@ body.nav-sidebar-open .nav-sidebar-backdrop {
 .nav-sidebar-link {
   display: flex;
   align-items: center;
+  gap: 11px;
   padding: 14px 16px;
   border-radius: 16px;
   font-family: 'Syne', sans-serif;
@@ -342,6 +343,20 @@ body.nav-sidebar-open .nav-sidebar-backdrop {
   background: rgba(255,255,255,.55);
   border: 1px solid transparent;
   transition: transform .15s ease, background-color .2s ease, border-color .2s ease;
+}
+
+.nav-sidebar-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 18px;
+  transition: filter .2s ease, transform .2s ease;
+}
+
+.nav-sidebar-link:hover .nav-sidebar-icon,
+.nav-sidebar-link:focus-visible .nav-sidebar-icon {
+  transform: scale(1.08);
 }
 
 .nav-sidebar-link:hover,
@@ -355,6 +370,10 @@ body.nav-sidebar-open .nav-sidebar-backdrop {
 .nav-sidebar-link[aria-current="page"] {
   background: var(--green);
   color: #fff;
+}
+
+.nav-sidebar-link[aria-current="page"] .nav-sidebar-icon {
+  filter: brightness(0) invert(1);
 }
 
 @media (max-width: 1100px) {

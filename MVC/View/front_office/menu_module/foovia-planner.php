@@ -1741,6 +1741,6 @@ function showToast(msg) {
     });
   })();
 </script>
-<script src="../js/sidebar.js"></script>
+<script src="../js/sidebar.js?v=sidebar-icons-1"></script>
 </body>
 </html>

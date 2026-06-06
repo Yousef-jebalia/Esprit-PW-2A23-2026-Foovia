@@ -59,9 +59,12 @@
           .nav-sidebar-header h2{font-family:Boldonse, sans-serif;font-size:1.4rem;line-height:1.1}
           .nav-sidebar-close{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(0,0,0,.06);background:transparent;color:#111008;font-size:1.5rem;line-height:1;cursor:pointer}
           .nav-sidebar-nav ul{list-style:none;display:flex;flex-direction:column;gap:10px;padding-left:0}
-          .nav-sidebar-link{display:flex;align-items:center;padding:14px 16px;border-radius:16px;font-family:Syne, sans-serif;font-weight:700;font-size:.95rem;color:#111008;text-decoration:none;background:rgba(255,255,255,.55);border:1px solid transparent;transition:transform .15s ease,background-color .2s ease,border-color .2s ease}
+          .nav-sidebar-link{display:flex;align-items:center;gap:11px;padding:14px 16px;border-radius:16px;font-family:Syne, sans-serif;font-weight:700;font-size:.95rem;color:#111008;text-decoration:none;background:rgba(255,255,255,.55);border:1px solid transparent;transition:transform .15s ease,background-color .2s ease,border-color .2s ease}
+          .nav-sidebar-icon{display:block;width:18px;height:18px;object-fit:contain;flex:0 0 18px;transition:filter .2s ease,transform .2s ease}
+          .nav-sidebar-link:hover .nav-sidebar-icon,.nav-sidebar-link:focus-visible .nav-sidebar-icon{transform:scale(1.08)}
           .nav-sidebar-link:hover,.nav-sidebar-link:focus-visible,.nav-sidebar-link.is-active{background:rgba(75,174,82,.12);border-color:rgba(75,174,82,.22);transform:translateX(2px)}
           .nav-sidebar-link[aria-current="page"]{background:#4BAA52;color:#fff}
+          .nav-sidebar-link[aria-current="page"] .nav-sidebar-icon{filter:brightness(0) invert(1)}
           @media (max-width:1100px){.nav-links{display:none}}
           @media (max-width:760px){nav{padding:16px 18px;gap:12px}.nav-logo{font-size:1.2rem}.nav-sidebar-panel{width:min(86vw,340px);padding:22px 16px}}
         `;
@@ -89,12 +92,12 @@
 
       // Define navigation items with relative links from basePath
       const navItems = [
-        { label: 'Home', href: 'foovia.php' },
-        { label: 'Recipes', href: 'menu_module/recipe_page.php' },
-        { label: 'Tracking', href: 'TRACK_MODULE/tracking.php' },
-        { label: 'Sport', href: 'SPORT_MOULE/Exercice.php' },
-        { label: 'Marketplace', href: 'marketplace-gateway.php' },
-        { label: 'Support', href: 'SUPPORT_MODULE/support_rec_page.php' }
+        { label: 'Home', href: 'foovia.php', icon: 'home-icon-silhouette-svgrepo-com.svg' },
+        { label: 'Recipes', href: 'menu_module/recipe_page.php', icon: 'recipes-svgrepo-com.svg' },
+        { label: 'Tracking', href: 'TRACK_MODULE/tracking.php', icon: 'track-svgrepo-com.svg' },
+        { label: 'Sport', href: 'SPORT_MOULE/Exercice.php', icon: 'sport-small-dumbbell-svgrepo-com.svg' },
+        { label: 'Marketplace', href: 'marketplace-gateway.php', icon: 'marketplace-svgrepo-com.svg' },
+        { label: 'Support', href: 'SUPPORT_MODULE/support_rec_page.php', icon: 'support-svgrepo-com.svg' }
       ];
 
       const currentFilename = path.split('/').pop() || 'foovia.php';
@@ -111,6 +114,7 @@
         linksHtml += `
           <li>
             <a href="${fullHref}" class="nav-sidebar-link${activeClass}"${ariaCurrent}>
+              <img src="${basePath}assets/sidebar-icons/${item.icon}" class="nav-sidebar-icon" width="18" height="18" alt="" aria-hidden="true">
               ${item.label}
             </a>
           </li>

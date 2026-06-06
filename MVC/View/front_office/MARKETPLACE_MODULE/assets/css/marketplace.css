@@ -1405,6 +1405,18 @@ h6,
   transform: translateY(-1px);
 }
 
+.foovia-nav-food-waste {
+  background: #2f6df6;
+  color: #fff;
+}
+
+.foovia-nav-food-waste:hover,
+.foovia-nav-food-waste:focus {
+  background: #1f56cd;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
 .foovia-nav-user {
   background: var(--market-primary);
   color: #fff;
@@ -2575,6 +2587,312 @@ h6,
 
 .foovia-catalog-section {
   padding-top: 2rem;
+}
+
+.foovia-shop-shortcuts {
+  align-items: end;
+  border-top: 1px solid rgba(75, 174, 82, 0.16);
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(230px, 0.7fr) minmax(0, 1.3fr);
+  margin-top: 3rem;
+  padding-top: 2rem;
+}
+
+.foovia-shop-shortcuts-copy h2 {
+  color: var(--market-dark);
+  font-size: clamp(1.55rem, 2.2vw, 2.25rem);
+  margin: 0.8rem 0 0.55rem;
+}
+
+.foovia-shop-shortcuts-copy p,
+.market-catalog-intro {
+  color: var(--market-muted);
+  margin: 0;
+}
+
+.foovia-shop-shortcut-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.foovia-shop-shortcut {
+  background: var(--market-surface-strong);
+  border: 1px solid rgba(75, 174, 82, 0.14);
+  border-radius: 18px;
+  color: var(--market-dark);
+  cursor: pointer;
+  min-height: 146px;
+  padding: 1rem;
+  text-align: left;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.foovia-shop-shortcut:hover,
+.foovia-shop-shortcut:focus-visible {
+  border-color: rgba(75, 174, 82, 0.5);
+  box-shadow: 0 18px 38px rgba(46, 74, 40, 0.12);
+  outline: none;
+  transform: translateY(-3px);
+}
+
+.foovia-shop-shortcut-icon {
+  align-items: center;
+  background: rgba(47, 109, 246, 0.1);
+  border-radius: 10px;
+  color: #2f6df6;
+  display: inline-flex;
+  font-family: var(--foovia-heading-font);
+  font-size: 0.7rem;
+  font-weight: 900;
+  height: 34px;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+  min-width: 34px;
+  padding: 0 0.45rem;
+}
+
+.foovia-shop-shortcut strong,
+.foovia-shop-shortcut small {
+  display: block;
+}
+
+.foovia-shop-shortcut strong {
+  font-family: var(--foovia-heading-font);
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+
+.foovia-shop-shortcut small {
+  color: var(--market-muted);
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+
+.market-catalog-heading {
+  align-items: end;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.market-result-count {
+  background: rgba(75, 174, 82, 0.1);
+  border-radius: 999px;
+  color: var(--market-primary);
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  padding: 0.65rem 0.9rem;
+}
+
+.market-search {
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.market-search-primary {
+  align-items: end;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-bottom: 0.9rem;
+}
+
+.market-filter-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.market-field {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.market-field > span {
+  color: var(--market-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.market-clear-filters {
+  background: transparent;
+  border: 1px solid rgba(75, 174, 82, 0.22);
+  border-radius: 12px;
+  color: var(--market-primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  min-height: 48px;
+  padding: 0 1rem;
+}
+
+.market-clear-filters:hover:not(:disabled) {
+  background: rgba(75, 174, 82, 0.08);
+}
+
+.market-clear-filters:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.market-active-filter {
+  color: var(--market-muted);
+  font-size: 0.78rem;
+  margin-top: 0.8rem;
+}
+
+.market-grid > [data-product-card],
+.market-grid:hover > [data-product-card],
+.market-grid:hover > [data-product-card]:hover {
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+.market-card {
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.market-card:hover {
+  transform: translateY(-3px);
+}
+
+.market-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.market-card-media {
+  height: 184px;
+}
+
+.market-category-label {
+  color: var(--market-primary);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+}
+
+.market-meta {
+  display: -webkit-box;
+  min-height: 4.1em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.market-card-footer {
+  align-items: stretch;
+  display: grid;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.market-card-actions {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.market-card-actions .btn {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 40px;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+:root[data-theme="dark"] .foovia-shop-shortcuts {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .foovia-shop-shortcut,
+:root[data-theme="dark"] .market-search {
+  background: #1b1b16;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .foovia-shop-shortcuts-copy h2,
+:root[data-theme="dark"] .foovia-shop-shortcut,
+:root[data-theme="dark"] .market-field > span {
+  color: #fff;
+}
+
+:root[data-theme="dark"] .market-clear-filters {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #9ab7ff;
+}
+
+@media (max-width: 991.98px) {
+  .foovia-shop-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .market-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .market-grid > [data-product-card],
+  .market-grid:hover > [data-product-card],
+  .market-grid:hover > [data-product-card]:hover {
+    flex: 0 0 25%;
+    max-width: 25%;
+    width: 25%;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .market-grid > [data-product-card],
+  .market-grid:hover > [data-product-card],
+  .market-grid:hover > [data-product-card]:hover {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+    width: 33.3333%;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .market-grid > [data-product-card],
+  .market-grid:hover > [data-product-card],
+  .market-grid:hover > [data-product-card]:hover {
+    flex: 0 0 50%;
+    max-width: 50%;
+    width: 50%;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .foovia-shop-shortcut-grid,
+  .market-filter-grid,
+  .market-search-primary {
+    grid-template-columns: 1fr;
+  }
+
+  .foovia-shop-shortcut {
+    min-height: 0;
+  }
+
+  .market-catalog-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .market-clear-filters {
+    width: 100%;
+  }
 }
 
 .foovia-map-section {

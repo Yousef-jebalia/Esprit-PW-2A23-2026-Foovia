@@ -537,7 +537,7 @@ $current_page = basename(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) 
   })();
   // Unified sidebar initialization
 </script>
-<script src="js/sidebar.js"></script>
+<script src="js/sidebar.js?v=sidebar-icons-1"></script>
     <?php if ($user_subscription !== 'premium' && $user_subscription !== 'elite'): ?>
       <a href="foovia-premium.php" class="floating-premium-btn" title="Upgrade to Premium">
         <img src="assets/crown-svgrepo-com%20(1).svg" class="premium-icon-large" alt="Premium">
