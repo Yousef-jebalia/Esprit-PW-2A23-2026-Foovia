@@ -29,4 +29,3 @@ class config
             }
 }
 config::getConnexion();
-?>

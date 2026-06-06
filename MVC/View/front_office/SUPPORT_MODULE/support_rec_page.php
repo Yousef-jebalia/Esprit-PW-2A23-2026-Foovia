@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Reclamtion_Controller.php';
 include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/Thread_Controller.php';
+include_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/ReclamationMessage_Controller.php';
 include_once __DIR__ . '/../../../Controller/Controller_user.php';
 
 $user_subscription = 'free';
@@ -35,9 +36,11 @@ if (!empty($_SESSION['support_claim_flash_error'])) {
 
 $controller = new Controller_reclamation();
 $threadController = new Thread_Controller();
+$claimMessageController = new ReclamationMessage_Controller();
 $reclamations = [];
 $threads = [];
 $active_thread_id = (int) ($_GET['open_thread'] ?? ($_POST['open_thread_id'] ?? 0));
+$active_claim_id = (int) ($_GET['open_claim'] ?? ($_POST['open_claim_id'] ?? 0));
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (! $is_logged_in) {
@@ -56,6 +59,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $success = "Claim deleted successfully.";
         } else {
             $error = "Claim not found or you do not own this claim.";
+        }
+      } elseif (isset($_POST['action']) && $_POST['action'] === 'reply_claim') {
+        $claimId = (int) ($_POST['open_claim_id'] ?? 0);
+        $body = trim((string) ($_POST['reply_body'] ?? ''));
+
+        if ($claimId <= 0) {
+          $error = 'Invalid ticket selected.';
+        } elseif ($body === '') {
+          $error = 'Reply cannot be empty.';
+        } elseif (!$is_logged_in) {
+          $error = 'Please sign in to post a reply.';
+        } else {
+          $claim = $controller->get_reclamation_by_id($claimId);
+          if (!$claim || (int) ($claim['id_user'] ?? 0) !== $logged_in_user_id) {
+            $error = 'Ticket not found or you do not own this ticket.';
+          } else {
+            try {
+              $message = new ReclamationMessage(0, $claimId, $logged_in_user_id, $body, '');
+              $claimMessageController->add_message($message);
+              header('Location: ' . $_SERVER['PHP_SELF'] . '?open_claim=' . $claimId . '&posted_claim=1');
+              exit;
+            } catch (Exception $e) {
+              $error = 'Could not post your reply. Please try again.';
+            }
+          }
         }
       } elseif (isset($_POST['action']) && $_POST['action'] === 'reply_thread') {
         $threadId = (int) ($_POST['open_thread_id'] ?? 0);
@@ -113,17 +141,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 $reclamations = $is_logged_in ? $controller->get_reclamations_by_user($logged_in_user_id) : [];
 $threads = $threadController->get_threads_paged(1, 6);
 
-$reclamation_cards = array_map(static function (array $reclamation): array {
-  return [
-    'id' => (string) ($reclamation['id_reclam'] ?? ''),
+$reclamation_cards = [];
+foreach ($reclamations as $reclamation) {
+  $claimId = (int) ($reclamation['id_reclam'] ?? 0);
+  $ownerId = (int) ($reclamation['id_user'] ?? 0);
+  $storedMessages = $claimId > 0 ? $claimMessageController->get_messages($claimId) : [];
+  $ownerName = $logged_in_user_name;
+  $reclamation_cards[] = [
+    'id' => (string) $claimId,
+    'ownerUserId' => $ownerId,
     'subject' => trim((string) ($reclamation['subject'] ?? '')),
     'description' => trim((string) ($reclamation['description_reclam'] ?? '')),
     'status' => trim((string) ($reclamation['etat_reclam'] ?? '')),
     'type' => trim((string) ($reclamation['type_reclam'] ?? '')),
     'openingDate' => trim((string) ($reclamation['dateouvert_reclam'] ?? '')),
     'closingDate' => trim((string) ($reclamation['dateferm_reclam'] ?? '')),
+    'replyCount' => count($storedMessages),
+    'messages' => $claimMessageController->build_timeline($reclamation, $storedMessages, $ownerName),
   ];
-}, $reclamations);
+}
 
 $thread_cards = array_map(static function (array $thread): array {
   $publishedAt = trim((string) ($thread['published_at'] ?? ''));
@@ -155,6 +191,10 @@ foreach ($thread_cards as $index => $threadCard) {
 }
 
 if (isset($_GET['posted_thread'])) {
+  $success = 'Your reply was posted!';
+}
+
+if (isset($_GET['posted_claim'])) {
   $success = 'Your reply was posted!';
 }
 
@@ -927,8 +967,26 @@ if (!empty($reclamations)) {
                 <div class="claim-modal__text" id="claim-modal-subject"></div>
               </div>
               <div class="claim-modal__section">
-                <div class="claim-modal__label">Description</div>
-                <div class="claim-modal__text" id="claim-modal-description"></div>
+                <div class="claim-modal__label">Conversation</div>
+                <div class="thread-modal__messages" id="claim-modal-messages"></div>
+              </div>
+              <div class="claim-modal__section">
+                <div class="claim-modal__label">Reply</div>
+                <?php if ($is_logged_in): ?>
+                  <form method="post">
+                    <input type="hidden" name="action" value="reply_claim">
+                    <input type="hidden" name="open_claim_id" id="claim-modal-claim-id" value="0">
+                    <textarea class="thread-modal__reply-box" name="reply_body" id="claim-modal-reply-box" rows="4" placeholder="Write a reply…" required maxlength="5000"></textarea>
+                    <div class="thread-modal__actions">
+                      <button type="submit" class="thread-modal__reply-btn">Send reply</button>
+                    </div>
+                  </form>
+                <?php else: ?>
+                  <p class="mb-3" style="color:#64748b;">You must be signed in to post a reply.</p>
+                  <div class="thread-modal__actions">
+                    <a href="../foovia-signin.php?redirect=support" class="thread-modal__full-link">Sign in to reply</a>
+                  </div>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -1183,6 +1241,7 @@ if (!empty($reclamations)) {
       const CLAIMS = <?php echo json_encode($reclamation_cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
       const THREADS = <?php echo json_encode($thread_cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
       const ACTIVE_THREAD_ID = <?php echo (int) $active_thread_id; ?>;
+      const ACTIVE_CLAIM_ID = <?php echo (int) $active_claim_id; ?>;
 
       function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -1230,8 +1289,31 @@ if (!empty($reclamations)) {
           '<span class="ticket-badge" style="background:rgba(75,174,82,.08); color:var(--forest);">' + escapeHtml(normalizeClaimType(claim.type)) + '</span>' +
           '<span class="ticket-badge" style="background:rgba(0,0,0,.06); color:var(--page-text);">Opened ' + escapeHtml(formatClaimDate(claim.openingDate)) + '</span>';
         document.getElementById('claim-modal-subject').textContent = claim.subject || 'Untitled claim';
-        document.getElementById('claim-modal-description').textContent = claim.description || 'No description provided.';
+        document.getElementById('claim-modal-messages').innerHTML = renderClaimMessages(claim.messages || [], claim.ownerUserId);
+
+        var claimIdInput = document.getElementById('claim-modal-claim-id');
+        if (claimIdInput) {
+          claimIdInput.value = String(claim.id || '0');
+        }
+
         document.getElementById('claim-modal').classList.add('open');
+      }
+
+      function renderClaimMessages(messages, ownerUserId) {
+        if (!messages || !messages.length) {
+          return '<div class="thread-modal__empty">No messages yet.</div>';
+        }
+
+        return messages.map(function (message) {
+          var isClient = Number(message.idUser || 0) === Number(ownerUserId || 0);
+          var author = message.authorName || (isClient ? 'You' : 'Foovia Support');
+          var time = message.sentLabel || message.sentAt || 'Just now';
+          var body = escapeHtml(message.body || '');
+          return '<div class="thread-modal__message ' + (isClient ? 'user' : 'support') + '">' +
+            '<div class="thread-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
+            '<div>' + body + '</div>' +
+          '</div>';
+        }).join('');
       }
 
       function closeClaimModal() {
@@ -1360,6 +1442,15 @@ if (!empty($reclamations)) {
 
       if (ACTIVE_THREAD_ID > 0) {
         openThreadModalById(ACTIVE_THREAD_ID);
+      }
+
+      if (ACTIVE_CLAIM_ID > 0) {
+        var activeClaimIndex = CLAIMS.findIndex(function (claim) {
+          return Number(claim.id) === Number(ACTIVE_CLAIM_ID);
+        });
+        if (activeClaimIndex >= 0) {
+          openClaimModal(activeClaimIndex);
+        }
       }
     </script>
     <script>

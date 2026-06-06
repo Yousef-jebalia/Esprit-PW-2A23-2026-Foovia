@@ -111,4 +111,3 @@ class Reclamations
         $this->date_fermiture = $date_fermiture;
     }
 }
-?>
