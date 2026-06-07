@@ -48,7 +48,7 @@ http://localhost/Esprit-PW-2A23-2526-Foovia-
 ```
 
 ### Alternative
-If deployed online, access the application via the provided hosting URL.
+https://foovia.onrender.com/MVC/View/front_office/foovia.php
 
 ---
 
@@ -63,6 +63,7 @@ Once the application is running, users can:
 
 > Some features may require user authentication.
 
+Vidéo : https://www.youtube.com/watch?v=37sE-UCYsSQ&t=3s
 ---
 
 ## Requirements
