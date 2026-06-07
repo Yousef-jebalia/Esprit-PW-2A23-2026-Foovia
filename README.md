@@ -1,4 +1,4 @@
-# Esprit-PW-2A23-2526-Foovia
+# Esprit-PW-2A23-2026-Foovia
 
 This project was developed as part of the **PW (Projet Web) – 2nd Year Engineering Program** at *Esprit School of Engineering, Tunisia* (Academic Year 2025–2026).
 
