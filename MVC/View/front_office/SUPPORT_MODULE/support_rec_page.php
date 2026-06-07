@@ -783,9 +783,9 @@ if (!empty($reclamations)) {
       </div>
       <ul class="nav-links">
         <li><a href="../foovia.php">Dashboard</a></li>
-        <li><a href="../marketplace-gateway.php">Marketplace</a></li>
-        <li><a href="support_rec_page.php">Support</a></li>
-        <li><a href="threads_page.php">Threads</a></li>
+        <li><a href="#ticket-form">Claims</a></li>
+        <li><a href="#support-threads-section">Threads</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
       <div class="nav-actions">
         <?php if ((isset($_SESSION['role_user']) && strtolower(trim($_SESSION['role_user'])) === 'admin') || (isset($userData) && strtolower(trim($userData['role_user'] ?? '')) === 'admin')): ?>
@@ -1104,7 +1104,7 @@ if (!empty($reclamations)) {
     </div>
     <br><br>
 
-    <div class="container mt-4">
+    <div class="container mt-4" id="contact">
         <h2 id="support-team-heading" class="h3 fw-bold text-center mb-2 text-body">How to get in touch</h2>
         <p class="text-center text-muted small mb-4 mb-lg-5">Hover or focus a teammate to see their contact details.</p>
 
