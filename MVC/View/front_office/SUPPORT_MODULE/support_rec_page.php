@@ -37,6 +37,24 @@ if (!empty($_SESSION['support_claim_flash_error'])) {
 $controller = new Controller_reclamation();
 $threadController = new Thread_Controller();
 $claimMessageController = new ReclamationMessage_Controller();
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_GET['chatbot_claim'])
+    && (string) $_GET['chatbot_claim'] === '1'
+) {
+    require_once __DIR__ . '/../../../Controller/SUPPORT_MODULE/chatbot-claim-service.php';
+    chatbot_claim_send_json_response(
+        chatbot_claim_process_request(
+            $controller,
+            $logged_in_user_id,
+            $is_logged_in && $logged_in_user_name !== '',
+            file_get_contents('php://input')
+        )
+    );
+    exit;
+}
+
 $reclamations = [];
 $threads = [];
 $active_thread_id = (int) ($_GET['open_thread'] ?? ($_POST['open_thread_id'] ?? 0));
@@ -2145,7 +2163,7 @@ if (!empty($reclamations)) {
       Hybrid Wilson + claim flow:
       1) successfulBotReplies increments after each successful Wilson reply (chatbot-handler.php).
       2) Right after the configured plan reply limit is reached: two static bot bubbles (link, then yes/no) and wilsonDisabled=true.
-      3) awaiting_yesno / awaiting_description: no general Wilson. Claim: chatbot-claim-handler.php (AI classifies type only).
+      3) awaiting_yesno / awaiting_subject / awaiting_description: no general Wilson. Claim: support_rec_page.php?chatbot_claim=1 (AI classifies type from description).
       4) If wilsonDisabled and claimAssistState is null (e.g. after "no"), only static hints — no Wilson API.
     -->
     <!-- Chatbot JavaScript -->
@@ -2223,8 +2241,8 @@ if (!empty($reclamations)) {
         }
 
         const CHATBOT_ENDPOINT = '../../../Controller/SUPPORT_MODULE/chatbot-handler.php';
-        const CHATBOT_CLAIM_ENDPOINT = '../../../Controller/SUPPORT_MODULE/chatbot-claim-handler.php';
-        const CLAIM_PAGE_URL = 'add_rec_page.php';
+        const CHATBOT_CLAIM_ENDPOINT = <?php echo json_encode($_SERVER['PHP_SELF'] . '?chatbot_claim=1'); ?>;
+        const CLAIM_PAGE_URL = 'support_rec_page.php';
         const CAN_CREATE_CLAIMS = <?php echo $is_logged_in ? 'true' : 'false'; ?>;
         const WILSON_REPLIES_NORMAL_PLAN = 2;
         const WILSON_REPLIES_PREMIUM_PLAN = 4;
@@ -2241,6 +2259,8 @@ if (!empty($reclamations)) {
         let wilsonDisabled = false;
         /** null | 'awaiting_yesno' | 'awaiting_description' */
         let claimAssistState = null;
+        /** Subject collected during the in-chat claim flow (before description). */
+        let pendingClaimSubject = '';
         let chatbotSending = false;
 
         async function fetchBotReply(userMessage) {
@@ -2276,30 +2296,50 @@ if (!empty($reclamations)) {
           return 'unknown';
         }
 
-        async function fetchClaimCreation(description) {
-          const res = await fetch(CHATBOT_CLAIM_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description: description }),
-            credentials: 'same-origin'
-          });
-          const raw = await res.text();
-          let data;
-          try {
-            data = JSON.parse(raw);
-          } catch (e) {
-            throw new Error('Unexpected response while creating the claim.');
+        async function fetchClaimCreation(subject, description) {
+          const payload = JSON.stringify({ subject: subject, description: description });
+          let lastNetworkError = null;
+
+          for (let attempt = 1; attempt <= 2; attempt++) {
+            let res;
+            try {
+              res = await fetch(CHATBOT_CLAIM_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload,
+                credentials: 'same-origin'
+              });
+            } catch (networkErr) {
+              lastNetworkError = networkErr;
+              console.error('[Claim network error]', networkErr);
+              if (attempt < 2) {
+                await new Promise(function (resolve) { setTimeout(resolve, 900); });
+                continue;
+              }
+              throw new Error('Could not reach the server while creating your claim. Please try again or use the claim form below.');
+            }
+
+            const raw = await res.text();
+            let data;
+            try {
+              data = JSON.parse(raw);
+            } catch (e) {
+              console.error('[Claim invalid JSON]', raw);
+              throw new Error('Unexpected response while creating the claim.');
+            }
+            if (data.debug) {
+              console.error('[Claim debug]', data.debug);
+            }
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            if (!data.success) {
+              throw new Error('The claim could not be created.');
+            }
+            return data;
           }
-          if (data.debug) {
-            console.error('[Claim debug]', data.debug);
-          }
-          if (data.error) {
-            throw new Error(data.error);
-          }
-          if (!data.success) {
-            throw new Error('The claim could not be created.');
-          }
-          return data;
+
+          throw lastNetworkError || new Error('Could not create the claim.');
         }
 
         // Get current time formatted
@@ -2430,13 +2470,33 @@ if (!empty($reclamations)) {
             chatInput.value = '';
             const yn = parseYesNo(message);
             if (yn === 'yes') {
-              addMessage('Please describe your problem in a short message (1 or 2 sentences). We will use it to create your claim.', false);
-              claimAssistState = 'awaiting_description';
+              addMessage('What is the subject of your claim? Please give a short title (a few words).', false);
+              claimAssistState = 'awaiting_subject';
+              pendingClaimSubject = '';
             } else if (yn === 'no') {
               addMessage('Thank you for letting us know. If the issue persists, please contact the Foovia team through the website. Have a great day!', false);
               claimAssistState = null;
             } else {
               addMessage('Please reply with yes if you want Wilson to create a claim for you here in the chat, or no if you prefer not to.', false);
+            }
+            chatbotSending = false;
+            sendBtn.disabled = false;
+            return;
+          }
+
+          if (claimAssistState === 'awaiting_subject') {
+            chatbotSending = true;
+            sendBtn.disabled = true;
+            addMessage(message, true);
+            chatInput.value = '';
+            if (message.length < 3) {
+              addMessage('Please provide a slightly longer subject (at least 3 characters).', false);
+            } else if (message.length > 200) {
+              addMessage('That subject is too long. Please shorten it to 200 characters or fewer.', false);
+            } else {
+              pendingClaimSubject = message;
+              addMessage('Thanks. Now please describe your problem in a short message (1 or 2 sentences). We will use it to create your claim.', false);
+              claimAssistState = 'awaiting_description';
             }
             chatbotSending = false;
             sendBtn.disabled = false;
@@ -2452,11 +2512,12 @@ if (!empty($reclamations)) {
               showTyping();
             }, 150);
             try {
-              const data = await fetchClaimCreation(message);
+              const data = await fetchClaimCreation(pendingClaimSubject, message);
               hideTyping();
               const typePart = data.type ? ' Type: ' + data.type + '.' : '';
               addMessage((data.message || 'Your claim was created.') + typePart + ' Refreshing the page…', false);
               claimAssistState = null;
+              pendingClaimSubject = '';
               setTimeout(function () {
                 window.location.reload();
               }, 900);
