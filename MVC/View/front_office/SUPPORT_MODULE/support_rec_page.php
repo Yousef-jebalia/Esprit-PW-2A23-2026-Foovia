@@ -195,17 +195,10 @@ $thread_cards = array_map(static function (array $thread): array {
 
 foreach ($thread_cards as $index => $threadCard) {
   $messages = $threadController->get_messages((int) $threadCard['id']);
-  $thread_cards[$index]['messages'] = array_map(static function (array $message): array {
-    $sentAt = trim((string) ($message['sent_at'] ?? ''));
-    return [
-      'id' => (int) ($message['id_message'] ?? 0),
-      'body' => trim((string) ($message['body'] ?? '')),
-      'sentAt' => $sentAt,
-      'sentLabel' => $sentAt !== '' && strtotime($sentAt) !== false ? date('M j, Y H:i', strtotime($sentAt)) : '',
-      'authorName' => trim((string) ($message['author_name'] ?? '')),
-      'idUser' => (int) ($message['id_user'] ?? 0),
-    ];
-  }, $messages);
+  $thread_cards[$index]['messages'] = array_map(
+    [$threadController, 'to_timeline_item'],
+    $messages
+  );
 }
 
 if (isset($_GET['posted_thread'])) {
@@ -991,10 +984,9 @@ if (!empty($reclamations)) {
               <div class="claim-modal__section">
                 <div class="claim-modal__label">Reply</div>
                 <?php if ($is_logged_in): ?>
-                  <form method="post">
-                    <input type="hidden" name="action" value="reply_claim">
-                    <input type="hidden" name="open_claim_id" id="claim-modal-claim-id" value="0">
-                    <textarea class="thread-modal__reply-box" name="reply_body" id="claim-modal-reply-box" rows="4" placeholder="Write a reply…" required maxlength="5000"></textarea>
+                  <form id="claim-modal-reply-form">
+                    <input type="hidden" id="claim-modal-claim-id" value="0">
+                    <textarea class="thread-modal__reply-box" id="claim-modal-reply-box" rows="4" placeholder="Write a reply…" required maxlength="5000"></textarea>
                     <div class="thread-modal__actions">
                       <button type="submit" class="thread-modal__reply-btn">Send reply</button>
                     </div>
@@ -1073,10 +1065,9 @@ if (!empty($reclamations)) {
         <div class="thread-modal__section">
           <div class="thread-modal__label">Reply</div>
           <?php if ($is_logged_in): ?>
-            <form method="post">
-              <input type="hidden" name="action" value="reply_thread">
-              <input type="hidden" name="open_thread_id" id="thread-modal-thread-id" value="0">
-              <textarea class="thread-modal__reply-box" name="reply_body" id="thread-modal-reply-box" rows="4" placeholder="Write a reply…" required maxlength="5000"></textarea>
+            <form id="thread-modal-reply-form">
+              <input type="hidden" id="thread-modal-thread-id" value="0">
+              <textarea class="thread-modal__reply-box" id="thread-modal-reply-box" rows="4" placeholder="Write a reply…" required maxlength="5000"></textarea>
               <div class="thread-modal__actions">
                 <button type="submit" class="thread-modal__reply-btn">Send reply</button>
               </div>
@@ -1260,6 +1251,19 @@ if (!empty($reclamations)) {
       const THREADS = <?php echo json_encode($thread_cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
       const ACTIVE_THREAD_ID = <?php echo (int) $active_thread_id; ?>;
       const ACTIVE_CLAIM_ID = <?php echo (int) $active_claim_id; ?>;
+      const CLAIM_CONVERSATION_API = '../../../Controller/SUPPORT_MODULE/claim-conversation-api.php';
+      const THREAD_CONVERSATION_API = '../../../Controller/SUPPORT_MODULE/thread-conversation-api.php';
+      const CLAIM_POLL_INTERVAL_MS = 5000;
+      const LOGGED_IN_USER_ID = <?php echo (int) $logged_in_user_id; ?>;
+
+      var claimPollTimer = null;
+      var activeClaimConversationId = 0;
+      var activeClaimOwnerUserId = 0;
+      var lastClaimMessageId = 0;
+
+      var threadPollTimer = null;
+      var activeThreadConversationId = 0;
+      var lastThreadMessageId = 0;
 
       function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -1298,6 +1302,78 @@ if (!empty($reclamations)) {
         return dateValue && String(dateValue).trim() !== '' ? String(dateValue) : '-';
       }
 
+      function getMaxClaimMessageId(messages) {
+        var maxId = 0;
+        (messages || []).forEach(function (message) {
+          var id = Number(message.id || 0);
+          if (id > maxId) maxId = id;
+        });
+        return maxId;
+      }
+
+      function claimMessageHtml(message, ownerUserId) {
+        var isClient = Number(message.idUser || 0) === Number(ownerUserId || 0);
+        var author = message.authorName || (isClient ? 'You' : 'Foovia Support');
+        var time = message.sentLabel || message.sentAt || 'Just now';
+        var body = escapeHtml(message.body || '');
+        var msgId = Number(message.id || 0);
+        return '<div class="thread-modal__message ' + (isClient ? 'user' : 'support') + '" data-message-id="' + msgId + '">' +
+          '<div class="thread-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
+          '<div>' + body + '</div>' +
+        '</div>';
+      }
+
+      function scrollClaimMessagesToBottom() {
+        var box = document.getElementById('claim-modal-messages');
+        if (box) box.scrollTop = box.scrollHeight;
+      }
+
+      function appendClaimMessages(messages, ownerUserId) {
+        var box = document.getElementById('claim-modal-messages');
+        if (!box || !messages || !messages.length) return;
+
+        var empty = box.querySelector('.thread-modal__empty');
+        if (empty) empty.remove();
+
+        messages.forEach(function (message) {
+          var msgId = Number(message.id || 0);
+          if (msgId > 0 && box.querySelector('[data-message-id="' + msgId + '"]')) return;
+          box.insertAdjacentHTML('beforeend', claimMessageHtml(message, ownerUserId));
+          if (msgId > lastClaimMessageId) lastClaimMessageId = msgId;
+        });
+        scrollClaimMessagesToBottom();
+      }
+
+      function stopClaimPolling() {
+        if (claimPollTimer) {
+          clearInterval(claimPollTimer);
+          claimPollTimer = null;
+        }
+        activeClaimConversationId = 0;
+      }
+
+      function pollClaimMessages() {
+        if (activeClaimConversationId <= 0) return;
+        fetch(CLAIM_CONVERSATION_API + '?claim_id=' + activeClaimConversationId + '&after_id=' + lastClaimMessageId, {
+          credentials: 'same-origin'
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.messages && data.messages.length) {
+              appendClaimMessages(data.messages, activeClaimOwnerUserId);
+            }
+          })
+          .catch(function () {});
+      }
+
+      function startClaimPolling(claimId, ownerUserId, messages) {
+        stopClaimPolling();
+        activeClaimConversationId = Number(claimId || 0);
+        activeClaimOwnerUserId = Number(ownerUserId || 0);
+        lastClaimMessageId = getMaxClaimMessageId(messages);
+        claimPollTimer = setInterval(pollClaimMessages, CLAIM_POLL_INTERVAL_MS);
+      }
+
       function openClaimModal(index) {
         var claim = CLAIMS[index];
         if (!claim) return;
@@ -1314,7 +1390,11 @@ if (!empty($reclamations)) {
           claimIdInput.value = String(claim.id || '0');
         }
 
+        var replyBox = document.getElementById('claim-modal-reply-box');
+        if (replyBox) replyBox.value = '';
+
         document.getElementById('claim-modal').classList.add('open');
+        startClaimPolling(claim.id, claim.ownerUserId, claim.messages || []);
       }
 
       function renderClaimMessages(messages, ownerUserId) {
@@ -1323,18 +1403,12 @@ if (!empty($reclamations)) {
         }
 
         return messages.map(function (message) {
-          var isClient = Number(message.idUser || 0) === Number(ownerUserId || 0);
-          var author = message.authorName || (isClient ? 'You' : 'Foovia Support');
-          var time = message.sentLabel || message.sentAt || 'Just now';
-          var body = escapeHtml(message.body || '');
-          return '<div class="thread-modal__message ' + (isClient ? 'user' : 'support') + '">' +
-            '<div class="thread-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
-            '<div>' + body + '</div>' +
-          '</div>';
+          return claimMessageHtml(message, ownerUserId);
         }).join('');
       }
 
       function closeClaimModal() {
+        stopClaimPolling();
         document.getElementById('claim-modal').classList.remove('open');
       }
 
@@ -1344,20 +1418,84 @@ if (!empty($reclamations)) {
         }) || null;
       }
 
+      function getMaxThreadMessageId(messages) {
+        var maxId = 0;
+        (messages || []).forEach(function (message) {
+          var id = Number(message.id || 0);
+          if (id > maxId) maxId = id;
+        });
+        return maxId;
+      }
+
+      function threadMessageHtml(message) {
+        var isSelf = Number(message.idUser || 0) === Number(LOGGED_IN_USER_ID);
+        var author = message.authorName || (isSelf ? 'You' : ('User #' + Number(message.idUser || 0)));
+        var time = message.sentLabel || message.sentAt || 'Just now';
+        var body = escapeHtml(message.body || '');
+        var msgId = Number(message.id || 0);
+        return '<div class="thread-modal__message ' + (isSelf ? 'user' : 'support') + '" data-message-id="' + msgId + '">' +
+          '<div class="thread-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
+          '<div>' + body + '</div>' +
+        '</div>';
+      }
+
+      function scrollThreadMessagesToBottom() {
+        var box = document.getElementById('thread-modal-thread');
+        if (box) box.scrollTop = box.scrollHeight;
+      }
+
+      function appendThreadMessages(messages) {
+        var box = document.getElementById('thread-modal-thread');
+        if (!box || !messages || !messages.length) return;
+
+        var empty = box.querySelector('.thread-modal__empty');
+        if (empty) empty.remove();
+
+        messages.forEach(function (message) {
+          var msgId = Number(message.id || 0);
+          if (msgId > 0 && box.querySelector('[data-message-id="' + msgId + '"]')) return;
+          box.insertAdjacentHTML('beforeend', threadMessageHtml(message));
+          if (msgId > lastThreadMessageId) lastThreadMessageId = msgId;
+        });
+        scrollThreadMessagesToBottom();
+      }
+
+      function stopThreadPolling() {
+        if (threadPollTimer) {
+          clearInterval(threadPollTimer);
+          threadPollTimer = null;
+        }
+        activeThreadConversationId = 0;
+      }
+
+      function pollThreadMessages() {
+        if (activeThreadConversationId <= 0) return;
+        fetch(THREAD_CONVERSATION_API + '?thread_id=' + activeThreadConversationId + '&after_id=' + lastThreadMessageId, {
+          credentials: 'same-origin'
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (data.messages && data.messages.length) {
+              appendThreadMessages(data.messages);
+            }
+          })
+          .catch(function () {});
+      }
+
+      function startThreadPolling(threadId, messages) {
+        stopThreadPolling();
+        activeThreadConversationId = Number(threadId || 0);
+        lastThreadMessageId = getMaxThreadMessageId(messages);
+        threadPollTimer = setInterval(pollThreadMessages, CLAIM_POLL_INTERVAL_MS);
+      }
+
       function renderThreadMessages(messages) {
         if (!messages || !messages.length) {
           return '<div class="thread-modal__empty">No replies yet. Be the first to continue the discussion.</div>';
         }
 
         return messages.map(function (message) {
-          var isSupport = Number(message.idUser || 0) === 0;
-          var author = message.authorName || (isSupport ? 'Foovia Support' : ('User #' + Number(message.idUser || 0)));
-          var time = message.sentLabel || message.sentAt || 'Just now';
-          var body = escapeHtml(message.body || '');
-          return '<div class="thread-modal__message ' + (isSupport ? 'support' : 'user') + '">' +
-            '<div class="thread-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
-            '<div>' + body + '</div>' +
-          '</div>';
+          return threadMessageHtml(message);
         }).join('');
       }
 
@@ -1379,6 +1517,9 @@ if (!empty($reclamations)) {
           replyInput.value = String(threadIdValue);
         }
 
+        var replyBox = document.getElementById('thread-modal-reply-box');
+        if (replyBox) replyBox.value = '';
+
         var fullLink = document.getElementById('thread-modal-full-link');
         if (fullLink) {
           fullLink.setAttribute('href', 'thread_detail_page.php?id=' + threadIdValue);
@@ -1389,9 +1530,12 @@ if (!empty($reclamations)) {
         }
 
         document.getElementById('thread-modal').classList.add('open');
+        startThreadPolling(threadIdValue, thread.messages || []);
+        scrollThreadMessagesToBottom();
       }
 
       function closeThreadModal() {
+        stopThreadPolling();
         document.getElementById('thread-modal').classList.remove('open');
       }
 
@@ -1462,6 +1606,38 @@ if (!empty($reclamations)) {
         openThreadModalById(ACTIVE_THREAD_ID);
       }
 
+      var threadReplyForm = document.getElementById('thread-modal-reply-form');
+      if (threadReplyForm) {
+        threadReplyForm.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var threadId = Number(document.getElementById('thread-modal-thread-id').value || 0);
+          var replyBox = document.getElementById('thread-modal-reply-box');
+          var body = replyBox ? replyBox.value.trim() : '';
+          if (threadId <= 0 || body === '') return;
+
+          fetch(THREAD_CONVERSATION_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ thread_id: threadId, body: body }),
+            credentials: 'same-origin'
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data.error) {
+                alert(data.error);
+                return;
+              }
+              if (data.message) {
+                appendThreadMessages([data.message]);
+              }
+              if (replyBox) replyBox.value = '';
+            })
+            .catch(function () {
+              alert('Could not send reply. Please try again.');
+            });
+        });
+      }
+
       if (ACTIVE_CLAIM_ID > 0) {
         var activeClaimIndex = CLAIMS.findIndex(function (claim) {
           return Number(claim.id) === Number(ACTIVE_CLAIM_ID);
@@ -1469,6 +1645,38 @@ if (!empty($reclamations)) {
         if (activeClaimIndex >= 0) {
           openClaimModal(activeClaimIndex);
         }
+      }
+
+      var claimReplyForm = document.getElementById('claim-modal-reply-form');
+      if (claimReplyForm) {
+        claimReplyForm.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var claimId = Number(document.getElementById('claim-modal-claim-id').value || 0);
+          var replyBox = document.getElementById('claim-modal-reply-box');
+          var body = replyBox ? replyBox.value.trim() : '';
+          if (claimId <= 0 || body === '') return;
+
+          fetch(CLAIM_CONVERSATION_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ claim_id: claimId, body: body }),
+            credentials: 'same-origin'
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data.error) {
+                alert(data.error);
+                return;
+              }
+              if (data.message) {
+                appendClaimMessages([data.message], activeClaimOwnerUserId);
+              }
+              if (replyBox) replyBox.value = '';
+            })
+            .catch(function () {
+              alert('Could not send reply. Please try again.');
+            });
+        });
       }
     </script>
     <script>

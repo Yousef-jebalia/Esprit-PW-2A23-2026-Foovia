@@ -150,7 +150,7 @@ class Thread_Controller
                 FROM thread_message m
                 LEFT JOIN user u ON u.id_user = m.id_user
                 WHERE m.id_thread = :id
-                ORDER BY m.sent_at ASC';
+                ORDER BY m.sent_at ASC, m.id_message ASC';
         try {
             $stmt = $db->prepare($sql);
             $stmt->execute(['id' => $thread_id]);
@@ -158,6 +158,62 @@ class Thread_Controller
         } catch (Exception $e) {
             return [];
         }
+    }
+
+    public function get_messages_after(int $thread_id, int $after_id): array
+    {
+        $db  = config::getConnexion();
+        $sql = 'SELECT m.*, u.name_user AS author_name
+                FROM thread_message m
+                LEFT JOIN user u ON u.id_user = m.id_user
+                WHERE m.id_thread = :id AND m.id_message > :after
+                ORDER BY m.id_message ASC';
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['id' => $thread_id, 'after' => $after_id]);
+            return $stmt->fetchAll();
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    public function get_message_by_id(int $id_message): ?array
+    {
+        $db  = config::getConnexion();
+        $sql = 'SELECT m.*, u.name_user AS author_name
+                FROM thread_message m
+                LEFT JOIN user u ON u.id_user = m.id_user
+                WHERE m.id_message = :id
+                LIMIT 1';
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['id' => $id_message]);
+            $row = $stmt->fetch();
+            return $row !== false ? $row : null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    public function to_timeline_item(array $message): array
+    {
+        $sentAt = trim((string) ($message['sent_at'] ?? ''));
+        return [
+            'id'         => (int) ($message['id_message'] ?? 0),
+            'body'       => trim((string) ($message['body'] ?? '')),
+            'idUser'     => (int) ($message['id_user'] ?? 0),
+            'authorName' => trim((string) ($message['author_name'] ?? '')),
+            'sentAt'     => $sentAt,
+            'sentLabel'  => self::format_sent_label($sentAt),
+        ];
+    }
+
+    public static function format_sent_label(string $sentAt): string
+    {
+        if ($sentAt === '' || strtotime($sentAt) === false) {
+            return '';
+        }
+        return date('M j, Y H:i', strtotime($sentAt));
     }
 
     /**

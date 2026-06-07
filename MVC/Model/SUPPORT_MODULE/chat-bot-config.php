@@ -1,7 +1,5 @@
 <?php
-// Replace this with the key you generated in Google AI Studio (https://aistudio.google.com/apikey)
-//Ask team for api key
-// Model id for generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent
+
 
 define('GEMINI_MODEL', 'gemini-2.5-flash');//gemini-2.5-flash
 
