@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+                    $mail->Host       = $env['SMTP_HOST'] ?? 'smtp.gmail.com';
 include_once(__DIR__ . '/../../Model/config.php');
 include_once(__DIR__ . '/../../Controller/Controller_user.php');
 require_once __DIR__ . '/../../../vendor/autoload.php';
@@ -11,6 +11,8 @@ require_once __DIR__ . '/../../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+                  $mailPort = (int)($env['SMTP_PORT'] ?? 587);
+                  $mailEncryption = strtolower(trim($env['SMTP_ENCRYPTION'] ?? 'tls'));
 $error_message = '';
 $success_message = '';
 
@@ -23,38 +25,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_submit'])) {
         try {
             $controller = new Controller_user();
             $user = $controller->get_user_by_email($email);
+                    $envFile = __DIR__ . '/../../../.env';
+                    $env = is_file($envFile) ? parse_ini_file($envFile) : [];
+                    if (!is_array($env)) {
+                        $env = [];
+                    }
 
-            if ($user && strtolower(trim($user['role_user'])) === 'admin') {
+
+                    $mail->Host       = $env['SMTP_HOST'] ?? 'smtp.gmail.com';
                 $token = bin2hex(random_bytes(32));
                 $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
+                    $mailUsername = $env['SMTP_USERNAME'] ?? '';
+                    $mailPassword = $env['SMTP_PASSWORD'] ?? '';
+                    $mailPort = (int)($env['SMTP_PORT'] ?? 587);
+                    $mailEncryption = strtolower(trim($env['SMTP_ENCRYPTION'] ?? 'tls'));
 
-                $controller->set_user_reset_token((int)$user['id_user'], $token, $expires_at);
-
-                // Send email
-                $mail = new PHPMailer(true);
-
-                try {
-                    $mail->isSMTP();
-                    $mail->Host       = 'smtp.gmail.com';
-                    $mail->SMTPAuth   = true;
-
-                  $envFile = __DIR__ . '/../../../.env';
-                  $env = is_file($envFile) ? parse_ini_file($envFile) : [];
-                  if (!is_array($env)) {
+                    if ($mailUsername === '' || $mailPassword === '') {
+                        throw new Exception('SMTP credentials are not configured in .env.');
+                    }
                     $env = [];
-                  }
-                  $mailUsername = $env['SMTP_USERNAME'] ?? '';
+                    $mail->Username   = $mailUsername;
+                    $mail->Password   = $mailPassword;
                   $mailPassword = $env['SMTP_PASSWORD'] ?? '';
-
-                  if ($mailUsername === '' || $mailPassword === '') {
-                    throw new Exception('SMTP credentials are not configured in .env.');
-                  }
+                    $mail->SMTPSecure = $mailEncryption === 'ssl'
+                        ? PHPMailer::ENCRYPTION_SMTPS
+                        : PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = $mailPort;
 
                   $mail->Username   = $mailUsername;
                   $mail->Password   = $mailPassword;
 
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port       = 587;
+                    $mail->SMTPSecure = $mailEncryption === 'ssl'
+                      ? PHPMailer::ENCRYPTION_SMTPS
+                      : PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = $mailPort;
 
                     $mail->setFrom('noreply@foovia.com', 'FOOVIA Admin Center');
                     $mail->addAddress($email, $user['name_user']);
@@ -80,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_submit'])) {
                     $mail->send();
                     $success_message = 'If that admin account exists, a secure reset link has been sent.';
                 } catch (Exception $e) {
-                    $error_message = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                  $error_message = "Message could not be sent. Mail transport error: {$mail->ErrorInfo}";
                 }
             } else {
                 // For security, do not confirm existence

@@ -41,16 +41,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                 $mail = new PHPMailer(true);
 
                 try {
+                    $envFile = __DIR__ . '/../../../../.env';
+                    $env = is_file($envFile) ? parse_ini_file($envFile) : [];
+                    if (!is_array($env)) {
+                        $env = [];
+                    }
+
                     $mail->isSMTP();
-                    $mail->Host       = 'smtp.gmail.com';
+                    $mail->Host       = $env['SMTP_HOST'] ?? 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
 
-                    $env = parse_ini_file(__DIR__ . '/../../../../.env');
-                    $mail->Username   = $env['SMTP_USERNAME'];
-                    $mail->Password   = $env['SMTP_PASSWORD'];
+                    $mailUsername = $env['SMTP_USERNAME'] ?? '';
+                    $mailPassword = $env['SMTP_PASSWORD'] ?? '';
+                    $mailPort = (int)($env['SMTP_PORT'] ?? 587);
+                    $mailEncryption = strtolower(trim($env['SMTP_ENCRYPTION'] ?? 'tls'));
 
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port       = 587;
+                    if ($mailUsername === '' || $mailPassword === '') {
+                        throw new Exception('SMTP credentials are not configured in .env.');
+                    }
+
+                    $mail->Username   = $mailUsername;
+                    $mail->Password   = $mailPassword;
+
+                    $mail->SMTPSecure = $mailEncryption === 'ssl'
+                        ? PHPMailer::ENCRYPTION_SMTPS
+                        : PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = $mailPort;
 
                     $mail->setFrom('noreply@foovia.com', 'FOOVIA Backoffice');
                     $mail->addAddress($email, $user['name_user']);
@@ -76,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                     $mail->send();
                     $success_message = 'A password reset link has been sent to your email address.';
                 } catch (Exception $e) {
-                    $error_message = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                    $error_message = "Message could not be sent. Mail transport error: {$mail->ErrorInfo}";
                 }
             } else {
                 // For security, don't reveal if the email exists

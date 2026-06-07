@@ -33,29 +33,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                 $mail = new PHPMailer(true);
 
                 try {
+                    $envFile = __DIR__ . '/../../../.env';
+                    $env = is_file($envFile) ? parse_ini_file($envFile) : [];
+                    if (!is_array($env)) {
+                        $env = [];
+                    }
+
                     // Server settings
                     $mail->isSMTP();
-                    $mail->Host       = 'smtp.gmail.com';
+                    $mail->Host       = $env['SMTP_HOST'] ?? 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
 
-                    // Load credentials from .env
-                  $envFile = __DIR__ . '/../../../.env';
-                  $env = is_file($envFile) ? parse_ini_file($envFile) : [];
-                  if (!is_array($env)) {
-                    $env = [];
-                  }
-                  $mailUsername = $env['SMTP_USERNAME'] ?? '';
-                  $mailPassword = $env['SMTP_PASSWORD'] ?? '';
+                    $mailUsername = $env['SMTP_USERNAME'] ?? '';
+                    $mailPassword = $env['SMTP_PASSWORD'] ?? '';
+                    $mailPort = (int)($env['SMTP_PORT'] ?? 587);
+                    $mailEncryption = strtolower(trim($env['SMTP_ENCRYPTION'] ?? 'tls'));
 
-                  if ($mailUsername === '' || $mailPassword === '') {
-                    throw new Exception('SMTP credentials are not configured in .env.');
-                  }
+                    if ($mailUsername === '' || $mailPassword === '') {
+                        throw new Exception('SMTP credentials are not configured in .env.');
+                    }
 
-                  $mail->Username   = $mailUsername;
-                  $mail->Password   = $mailPassword;
+                    $mail->Username   = $mailUsername;
+                    $mail->Password   = $mailPassword;
 
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port       = 587;
+                    $mail->SMTPSecure = $mailEncryption === 'ssl'
+                        ? PHPMailer::ENCRYPTION_SMTPS
+                        : PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = $mailPort;
 
                     // Recipients
                     $mail->setFrom('noreply@foovia.com', 'FOOVIA');
@@ -75,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['forgot_submit'])) {
                     $mail->send();
                     $success_message = 'A password reset link has been sent to your email address.';
                 } catch (Exception $e) {
-                    $error_message = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                  $error_message = "Message could not be sent. Mail transport error: {$mail->ErrorInfo}";
                 }
             } else {
                 // To prevent email enumeration, show success even if not found, or show error if you prefer
