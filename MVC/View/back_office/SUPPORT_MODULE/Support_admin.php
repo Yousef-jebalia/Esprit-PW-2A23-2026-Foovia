@@ -681,10 +681,9 @@ foreach ($reclamations as $reclamation) {
             </div>
             <div class="claim-reply-modal__section">
                 <div class="claim-reply-modal__label">Reply as support</div>
-                <form method="post">
-                    <input type="hidden" name="action" value="reply_claim_admin">
-                    <input type="hidden" name="open_claim_id" id="claim-reply-modal-claim-id" value="0">
-                    <textarea class="claim-reply-modal__reply-box" name="reply_body" id="claim-reply-modal-reply-box" rows="4" placeholder="Write a reply to the client…" required maxlength="5000"></textarea>
+                <form id="claim-reply-modal-form">
+                    <input type="hidden" id="claim-reply-modal-claim-id" value="0">
+                    <textarea class="claim-reply-modal__reply-box" id="claim-reply-modal-reply-box" rows="4" placeholder="Write a reply to the client…" required maxlength="5000"></textarea>
                     <button type="submit" class="btn btn-success btn-sm">Send reply</button>
                 </form>
             </div>
@@ -708,6 +707,13 @@ foreach ($reclamations as $reclamation) {
     <script>
         const CLAIM_CONVERSATIONS = <?php echo json_encode($claim_conversations, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
         const ACTIVE_CLAIM_ID = <?php echo (int) $active_claim_id; ?>;
+        const CLAIM_CONVERSATION_API = '../../../Controller/SUPPORT_MODULE/claim-conversation-api.php';
+        const CLAIM_POLL_INTERVAL_MS = 5000;
+
+        var claimPollTimer = null;
+        var activeClaimConversationId = 0;
+        var activeClaimOwnerUserId = 0;
+        var lastClaimMessageId = 0;
 
         function escapeHtml(value) {
             return String(value == null ? '' : value)
@@ -724,20 +730,85 @@ foreach ($reclamations as $reclamation) {
             }) || null;
         }
 
+        function getMaxClaimMessageId(messages) {
+            var maxId = 0;
+            (messages || []).forEach(function (message) {
+                var id = Number(message.id || 0);
+                if (id > maxId) maxId = id;
+            });
+            return maxId;
+        }
+
+        function adminClaimMessageHtml(message, ownerUserId) {
+            var isClient = Number(message.idUser || 0) === Number(ownerUserId || 0);
+            var author = message.authorName || (isClient ? 'Client' : 'Support');
+            var time = message.sentLabel || message.sentAt || 'Just now';
+            var body = escapeHtml(message.body || '');
+            var msgId = Number(message.id || 0);
+            return '<div class="claim-reply-modal__message ' + (isClient ? 'client' : 'support') + '" data-message-id="' + msgId + '">' +
+                '<div class="claim-reply-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
+                '<div>' + body + '</div>' +
+            '</div>';
+        }
+
+        function scrollAdminClaimMessagesToBottom() {
+            var box = document.getElementById('claim-reply-modal-messages');
+            if (box) box.scrollTop = box.scrollHeight;
+        }
+
+        function appendAdminClaimMessages(messages, ownerUserId) {
+            var box = document.getElementById('claim-reply-modal-messages');
+            if (!box || !messages || !messages.length) return;
+
+            var empty = box.querySelector('.text-muted');
+            if (empty && empty.textContent.indexOf('No messages') !== -1) empty.remove();
+
+            messages.forEach(function (message) {
+                var msgId = Number(message.id || 0);
+                if (msgId > 0 && box.querySelector('[data-message-id="' + msgId + '"]')) return;
+                box.insertAdjacentHTML('beforeend', adminClaimMessageHtml(message, ownerUserId));
+                if (msgId > lastClaimMessageId) lastClaimMessageId = msgId;
+            });
+            scrollAdminClaimMessagesToBottom();
+        }
+
+        function stopClaimPolling() {
+            if (claimPollTimer) {
+                clearInterval(claimPollTimer);
+                claimPollTimer = null;
+            }
+            activeClaimConversationId = 0;
+        }
+
+        function pollClaimMessages() {
+            if (activeClaimConversationId <= 0) return;
+            fetch(CLAIM_CONVERSATION_API + '?claim_id=' + activeClaimConversationId + '&after_id=' + lastClaimMessageId, {
+                credentials: 'same-origin'
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.messages && data.messages.length) {
+                        appendAdminClaimMessages(data.messages, activeClaimOwnerUserId);
+                    }
+                })
+                .catch(function () {});
+        }
+
+        function startClaimPolling(claimId, ownerUserId, messages) {
+            stopClaimPolling();
+            activeClaimConversationId = Number(claimId || 0);
+            activeClaimOwnerUserId = Number(ownerUserId || 0);
+            lastClaimMessageId = getMaxClaimMessageId(messages);
+            claimPollTimer = setInterval(pollClaimMessages, CLAIM_POLL_INTERVAL_MS);
+        }
+
         function renderAdminClaimMessages(messages, ownerUserId) {
             if (!messages || !messages.length) {
                 return '<div class="text-muted">No messages yet.</div>';
             }
 
             return messages.map(function (message) {
-                var isClient = Number(message.idUser || 0) === Number(ownerUserId || 0);
-                var author = message.authorName || (isClient ? 'Client' : 'Support');
-                var time = message.sentLabel || message.sentAt || 'Just now';
-                var body = escapeHtml(message.body || '');
-                return '<div class="claim-reply-modal__message ' + (isClient ? 'client' : 'support') + '">' +
-                    '<div class="claim-reply-modal__message-meta">' + escapeHtml(author) + ' · ' + escapeHtml(time) + '</div>' +
-                    '<div>' + body + '</div>' +
-                '</div>';
+                return adminClaimMessageHtml(message, ownerUserId);
             }).join('');
         }
 
@@ -757,10 +828,16 @@ foreach ($reclamations as $reclamation) {
             document.getElementById('claim-reply-modal-subject').textContent = claim.subject || 'Untitled claim';
             document.getElementById('claim-reply-modal-messages').innerHTML = renderAdminClaimMessages(claim.messages || [], claim.ownerUserId);
             document.getElementById('claim-reply-modal-claim-id').value = String(claim.id || '0');
+
+            var replyBox = document.getElementById('claim-reply-modal-reply-box');
+            if (replyBox) replyBox.value = '';
+
             document.getElementById('claim-reply-modal').classList.add('open');
+            startClaimPolling(claim.id, claim.ownerUserId, claim.messages || []);
         }
 
         function closeClaimReplyModal() {
+            stopClaimPolling();
             document.getElementById('claim-reply-modal').classList.remove('open');
         }
 
@@ -799,6 +876,38 @@ foreach ($reclamations as $reclamation) {
 
             if (ACTIVE_CLAIM_ID > 0) {
                 openClaimReplyModal(ACTIVE_CLAIM_ID);
+            }
+
+            var claimReplyForm = document.getElementById('claim-reply-modal-form');
+            if (claimReplyForm) {
+                claimReplyForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    var claimId = Number(document.getElementById('claim-reply-modal-claim-id').value || 0);
+                    var replyBox = document.getElementById('claim-reply-modal-reply-box');
+                    var body = replyBox ? replyBox.value.trim() : '';
+                    if (claimId <= 0 || body === '') return;
+
+                    fetch(CLAIM_CONVERSATION_API, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ claim_id: claimId, body: body }),
+                        credentials: 'same-origin'
+                    })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            if (data.error) {
+                                alert(data.error);
+                                return;
+                            }
+                            if (data.message) {
+                                appendAdminClaimMessages([data.message], activeClaimOwnerUserId);
+                            }
+                            if (replyBox) replyBox.value = '';
+                        })
+                        .catch(function () {
+                            alert('Could not send reply. Please try again.');
+                        });
+                });
             }
         });
     </script>
