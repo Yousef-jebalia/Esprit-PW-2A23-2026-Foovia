@@ -118,16 +118,10 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
 
   <!-- LEFT: intro copy -->
   <div class="cw-left">
-    <span class="cw-eyebrow">Custom Workouts</span>
-    <h1 class="cw-title">
-      Build Your<br>
-      <span class="accent">Perfect</span><br>
-      <span class="accent2">Routine.</span>
-    </h1>
-    <p class="cw-desc">
-      Design a workout that fits your goals — every rep, every set, every muscle.
-      Go fully manual or let our AI build a smart plan tailored to the muscles you want to train.
-    </p>
+    
+
+
+  
   </div>
 
   <!-- DIVIDER -->

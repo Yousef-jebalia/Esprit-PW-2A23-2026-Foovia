@@ -124,6 +124,131 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
     height: 22px;
     filter: brightness(0) invert(1);
   }
+
+  /* ── Create Workout Banner ───────────────────────────────────────── */
+  .cw-banner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1px minmax(320px, 340px);
+    align-items: stretch;
+    gap: 32px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, rgba(0,0,0,.08));
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin: 0 0 36px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  }
+
+  .cw-left {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .cw-left .workout-header { margin-bottom: 0; }
+  .cw-left .workout-search { margin-bottom: 0; }
+
+  /* Divider */
+  .cw-banner::after {
+    content: '';
+    display: block;
+    width: 1px;
+    background: var(--border-color, rgba(0,0,0,.10));
+    border-radius: 999px;
+    align-self: stretch;
+    flex-shrink: 0;
+    grid-column: 2;
+  }
+
+  .cw-right {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .cw-right-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-muted, #888);
+    margin: 0 0 4px;
+  }
+
+  .cw-choice-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color, rgba(0,0,0,.10));
+    background: var(--bg-secondary, #f8f8f6);
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    text-align: left;
+  }
+
+  .cw-choice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
+    border-color: transparent;
+  }
+
+  .manual-card:hover { background: linear-gradient(135deg, #e8f4fd 0%, #d6ecf9 100%); }
+  .ai-card:hover     { background: linear-gradient(135deg, #f0ebff 0%, #e2d4ff 100%); }
+
+  .manual-card:hover .cw-card-arrow { color: #3a90d4; }
+  .ai-card:hover     .cw-card-arrow { color: #7c54e8; }
+
+  .cw-card-icon {
+    font-size: 26px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .cw-card-body { flex: 1 1 0; min-width: 0; }
+
+  .cw-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary, #111);
+    margin-bottom: 3px;
+  }
+
+  .cw-card-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted, #777);
+    line-height: 1.4;
+  }
+
+  .cw-card-arrow {
+    color: var(--text-muted, #aaa);
+    flex-shrink: 0;
+    transition: color .18s ease, transform .18s ease;
+  }
+
+  .cw-choice-card:hover .cw-card-arrow { transform: translateX(4px); }
+
+  /* Responsive: stack on narrow screens */
+  @media (max-width: 820px) {
+    .cw-banner {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 22px 20px;
+    }
+    .cw-banner::after { width: 100%; height: 1px; }
+    .cw-right { flex: none; width: 100%; }
+  }
 </style>
 
 </head>
@@ -186,14 +311,50 @@ $isAdmin = isset($_SESSION['role_user']) && strtolower(trim((string) $_SESSION['
 
 <!-- WORKOUT PAGE -->
 <section class="workout-page">
-  <div class="workout-header">
-    <h1>Workouts by Category</h1>
-  </div>
 
-  <div class="workout-search">
-    <input id="workout-search-input" class="workout-search-input" type="search" placeholder="Search workouts by name, time, or calories..." aria-label="Search workouts" />
-    <button id="workout-search-clear" class="workout-search-clear" type="button">Clear</button>
+  <!-- CREATE WORKOUT BANNER -->
+  <div class="cw-banner">
+    <!-- LEFT: title + search -->
+    <div class="cw-left">
+      <div class="workout-header">
+        <h1>Workouts by Category</h1>
+      </div>
+      <div class="workout-search">
+        <input id="workout-search-input" class="workout-search-input" type="search" placeholder="Search workouts by name, time, or calories..." aria-label="Search workouts" />
+        <button id="workout-search-clear" class="workout-search-clear" type="button">Clear</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: action buttons -->
+    <div class="cw-right">
+      <p class="cw-right-label">Choose how to start</p>
+
+      <!-- Manual button -->
+      <button class="cw-choice-card manual-card" onclick="handleManual()">
+        <div class="cw-card-icon">🖌</div>
+        <div class="cw-card-body">
+          <div class="cw-card-title">Build it Yourself</div>
+          <div class="cw-card-sub">Pick your exercises, set your reps and rest times — full control over every detail.</div>
+        </div>
+        <svg class="cw-card-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <!-- AI button -->
+      <button class="cw-choice-card ai-card" onclick="AI_workout_form()">
+        <div class="cw-card-icon">🤖</div>
+        <div class="cw-card-body">
+          <div class="cw-card-title">Generate with AI</div>
+          <div class="cw-card-sub">Tell us your workout name and target muscles — our AI crafts the perfect plan for you.</div>
+        </div>
+        <svg class="cw-card-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
   </div>
+  <!-- END CREATE WORKOUT BANNER -->
 
   <?php foreach ($categories as $category): ?>
     <?php $catWorkouts = array_filter($workouts, fn($w) => (int)$w['id_cat'] === (int)$category['id_cat']); ?>
